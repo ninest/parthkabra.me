@@ -65,6 +65,11 @@ export const Post = defineDocumentType(() => ({
       description: "Show table of contents?",
       default: true,
     },
+    draft: {
+      type: "boolean",
+      description: "Should this post be published?",
+      default: false,
+    },
   },
   computedFields: {
     cat: {

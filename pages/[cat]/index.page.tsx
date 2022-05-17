@@ -7,8 +7,8 @@ import {
   SmartLink,
   Spacer,
 } from "@/components";
-import { allCats, CatName, Cat } from "@/content/map";
-import { getPostLinkInfo, sortByDate } from "@/lib/content";
+import { allCats, CatName, Cat, altCatPosts } from "@/content/map";
+import { getContent, getPostLinkInfo, sortByDate } from "@/lib/content";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { NextSeo } from "next-seo";
 
@@ -25,7 +25,15 @@ export const getStaticProps: GetStaticProps = ({ params }) => {
   const catName = params!.cat as string as CatName;
   const cat = allCats[catName];
 
-  const posts = sortByDate(allPosts.filter((post) => post.cat == catName));
+  // Also get posts from the altPosts list
+
+  const altPosts = altCatPosts[catName].map((post) =>
+    getContent(allPosts, post.slug)
+  );
+  const posts = sortByDate([
+    ...allPosts.filter((post) => post.cat == catName),
+    ...altPosts,
+  ]);
 
   return {
     props: { catName, cat, posts },
@@ -45,10 +53,7 @@ const CatPage = ({
 
   return (
     <>
-      <NextSeo
-        title={cat.title}
-        description={`${cat.title} related posts`}
-      />
+      <NextSeo title={cat.title} description={`${cat.title} related posts`} />
 
       <PageBar items={[{ title: cat.title, href: `/${catName}` }]} />
 

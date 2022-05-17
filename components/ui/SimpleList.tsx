@@ -21,7 +21,7 @@ export const SimpleList = ({ items }: Props) => {
 
 const SimpleListItem = ({ listItem }: { listItem: SimpleListItem }) => {
   const listItemClassNames =
-    "flex items-center justify-between py-xs md:py-1 group space-x-base";
+    "flex items-top justify-between py-xs md:py-1 group space-x-base";
 
   const children = (
     <>

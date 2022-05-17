@@ -28,7 +28,9 @@ The downtime provided by COVID-19 gave me the opportunity to experiment with new
   <Image {...images.e2} />
 </div>
 
+<Alert variant="primary">
 The project has 100+ stars on GitHub.
+</Alert>
 
 In developing this app, I published my [Swiping Cards Plugin](https://github.com/ninest/swipeable_card) for others to use on their own project. It currently has 25+ likes, 90+ Pub Points, and has an overall popularity of 80%.
 

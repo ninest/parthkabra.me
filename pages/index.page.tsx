@@ -6,7 +6,7 @@ import {
   PageTitleBanner,
   SimpleList,
   SmartLink,
-  Spacer
+  Spacer,
 } from "@/components";
 import { featuredProjectSlugs, socialLinks, workSlugs } from "@/content/map";
 import bostonMapLight from "@/content/map-bos-light.jpg";
@@ -15,7 +15,7 @@ import {
   getPostLinkInfo,
   getProjectLinkInfo,
   getWorkLinkInfo,
-  sortByDate
+  sortByDate,
 } from "@/lib/content";
 import { useSettings } from "@/lib/settings";
 import clsx from "clsx";
@@ -23,7 +23,9 @@ import Image from "next/image";
 import { FaArrowRight } from "react-icons/fa";
 
 export default function IndexPage() {
-  const blogPosts = sortByDate(allPosts).map((post) => getPostLinkInfo(post));
+  const blogPosts = sortByDate(allPosts.filter((post) => !post.draft)).map(
+    (post) => getPostLinkInfo(post)
+  );
   const workPosts = (
     workSlugs.map((slug) => getContent(allWorks, slug)) as Work[]
   ).map((work) => getWorkLinkInfo(work));
@@ -69,7 +71,11 @@ export default function IndexPage() {
           </div>
 
           <div className="hidden md:static md:flex md:w-4/12 lg:w-1/5 xl:w-1/5 space-x-base">
-            <div className={clsx({ "contrast-200 brightness-50": theme == "dark" })}>
+            <div
+              className={clsx({
+                "contrast-200 brightness-50": theme == "dark",
+              })}
+            >
               <Image
                 src={mapImage}
                 alt="Map of Northeastern University"
@@ -124,8 +130,11 @@ export default function IndexPage() {
           </div>
 
           <Spacer size="3xl" />
-          <hr />
-          <Spacer size="2xl" />
+
+          <div className="hidden lg:block">
+            <hr />
+            <Spacer size="2xl" />
+          </div>
 
           <div className="lg:w-3/6">
             <h2 className="font-display font-bold text-lg">Blog</h2>

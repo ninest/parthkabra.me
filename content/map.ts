@@ -1,3 +1,5 @@
+import { allDocuments } from "@/.contentlayer/generated";
+
 /* Blog cats */
 export const allCats = {
   blog: { title: "Blog" },
@@ -7,6 +9,8 @@ export const allCats = {
   mac: { title: "Mac" },
   nextjs: { title: "NextJS" },
   python: { title: "Python" },
+  firefox: { title: "Firefox" },
+  meta: { title: "Meta" },
 };
 export interface Cat {
   title: string;
@@ -38,3 +42,20 @@ export const socialLinks = [
   { title: "LinkedIn", href: "https://www.linkedin.com/in/parth-kabra/" },
   { title: "Contact", href: "/contact" },
 ];
+
+/* Alt Cat slugs */
+// Some content belongs under multiple slugs
+export const altCatPosts: Record<CatName, { cat: CatName; slug: string }[]> = {
+  blog: [{ cat: "meta", slug: "redesign-4" }],
+  cli: [],
+  git: [],
+  html: [],
+  mac: [
+    { cat: "cli", slug: "cmatrix" },
+    { cat: "cli", slug: "asciiquarium" },
+  ],
+  nextjs: [],
+  python: [],
+  firefox: [],
+  meta: [],
+};
