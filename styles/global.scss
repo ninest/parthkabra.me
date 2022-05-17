@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  // Set default font size
+  font-size: 15px;
+}
+
+@import "./colors.scss";
+@import "./prose.scss";
+
+@layer utilities {
+  /* Default margin and spacing */
+  .space-x {
+    @apply px-sm;
+    @screen md {
+      @apply px-20;
+    }
+    @screen lg {
+      @apply px-24;
+    }
+    @screen xl {
+      @apply px-40;
+    }
+  }
+  .space-y {
+    @apply py-sm;
+    @screen md {
+      @apply py-sm;
+    }
+  }
+
+  .space {
+    @apply space-x space-y;
+  }
+
+  /* Form */
+  .form {
+    &-input {
+      @apply border-2 font-medium rounded outline-none bg-gray-50;
+      @apply p-xs;
+      @apply text-gray placeholder:text-gray-lighter;
+      @apply focus:border-gray-light;
+    }
+  }
+}

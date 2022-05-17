@@ -1,0 +1,368 @@
+---
+title: Installing And Using Black
+description: Format your Python code and set up pre-commit hooks
+date: 2021-05-25
+links:
+  - source: web
+    href: https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html
+    title: The Black code style
+  - source: web
+    href: https://pre-commit.com
+    title: pre-commit documentation
+---
+
+[Black](https://github.com/psf/black) is an opinionated **code formatter** for Python. In this guide, we will learn how to install Black, use it format code, integrate it with VSCode, and finally, set up pre-commit hooks to format our code before pushing. 
+
+To understand what Black does, take a look at this before and after comparison:
+
+<div className="mobile-full-bleed space-y-base lg:space-y-0 lg:flex lg:space-x-base  justify-between">
+
+```py title="before.py"
+a  =  0
+
+while True:
+  a += 0
+  print ( "increased"  )
+
+b = [{"name": "Bob", "age": 56}, {
+  "name": "Jack", "age": 12
+},
+]
+```
+
+```py title="after.py"
+a = 0
+
+while True:
+  a += 0
+  print("increased")
+
+b = [
+  { "name": "Bob", "age": 56 },
+  { "name": "Jack", "age": 12 },
+]
+```
+
+</div>
+
+You can try it out before installing it with the [Black Playground](https://black.vercel.app/?version=stable&state=_Td6WFoAAATm1rRGAgAhARYAAAB0L-Wj4ADhAJxdAD2IimZxl1N_WlOgJRNpltc7jK4b2Hj-0twuGJk9BSY2hpVFIUk5mMVWjqcAAAx21VwiWbOz9LYvg6Vf7KX_qwaiO6s-b-DvuyALyCV3ldo-W2BUivrZKcsm-e8aYodYgGhD0DU4uFrXfcEkQZGY7icz83lAbE6-0dj-S1yMe2e7XuLH3wzmVcU0hG9L-mETrXlKoPAoNpQwSj6D3gCNLaA1-NbnSgABuAHiAQAA8Y8YdbHEZ_sCAAAAAARZWg==).
+
+<Alert title="Should I use Black?">
+
+Many programmers choose not to use Black since it's opinionated and not customizable. One advantage of using it is that you spend less time arguing about code style since all the formatting is done for you, and there are no options to change. Still many people [dislike](https://www.reddit.com/r/Python/comments/exrtgn/my_unpopular_opinion_about_black_code_formatter/) it. Guide van Rossum also tweeted ["Black is overrated unless your team argues over style a lot"](https://twitter.com/gvanrossum/status/1227126706089021440).
+
+</Alert>
+
+## Installation
+
+### Global Installation
+
+If you're not using a virtual environment, and you want to format a single `.py` file, install Black globally:
+
+```bash
+pip install black
+
+# Mac
+pip3 install black
+```
+
+To confirm the installation is successful, enter `black --version` in your terminal, and ensure that you see an output similar to `black, version 20.8b1`.
+
+### Virtual environment installation
+
+If you're using a virtual environment (venv, pipenv, poetry), install Black as a **dev-dependency**:
+
+```bash
+# poetry
+poetry add black --dev
+```
+
+<Alert title="Installing Black with Pipenv">
+
+Pipenv does not allow pre-releases. To install Black, add this to your `Pipfile`:
+
+```toml title="Pipfile"
+[dev-packages]
+black = "==21.5b1"
+```
+
+
+Thank you to [u/Kanjirito](https://www.reddit.com/r/Python/comments/npnfq3/installing_and_using_black_for_code_formatting/h06lxow?utm_source=share&utm_medium=web2x&context=3) for bringing this up! Also see [#1760](https://github.com/pypa/pipenv/issues/1760).
+
+</Alert>
+
+## Using the CLI
+
+Create a new Python file and enter some ugly, unformatted code. For example, leave spaces between `print`, the string, and the brackets:
+
+
+```py title="example.py"
+print(   "black" )
+a     =      0
+```
+
+
+In your Terminal, navigate to the directory where `example.py` is located, and run the Black command. The command takes in the filename as a parameter, so in our case, it's
+
+```bash
+black example.py
+```
+
+You should get an output with `1 file reformatted.`. Now `example.py` should look like
+
+
+```py title="example.py"
+print("black")
+a = 0
+
+```
+
+As you can see, it's remove the extra whitespaces and added a newline at the end of the file.
+
+<Alert title="Using the CLI in a virtual environment">
+
+If you use pipenv or poetry, you will first have to enter the shell (either `pipenv shell` or `poetry shell`) to run the `black` command.
+
+Alternatively, you can use `pipenv run <command>` or `poetry run <command>`. For example:
+
+```bash
+poetry run black file.py
+```
+
+</Alert>
+
+You can also specify a directory (instead of a file) with black like `black src/`. All `.py` inside the directories will be formatted.
+
+## Black with VScode
+
+Open a Python file, then open the command palette and type `>Format Document`
+
+VScode may show you the notification: "Formatter autopep8 is not installed. Install?" You can click **Use black**.
+
+You can now use the keyboard shortcut `opt-shift-F` (on Mac) to format your code.
+
+You should also add the following line to you `settings.json` if you always want to format Python files with Black:
+
+
+```json title="settings.json"
+{
+  "python.formatting.provider": "black"
+}
+```
+
+<Alert title="Should I keep Black as my global formatting provider?">
+
+I like to use Black by default for formatting my Python code. Although I use it globally, certain projects may use a different formatter such as autopep8. In that case, I can override the setting `python.formatting.provider` in the project's settings (in the `workspace.json` file)
+
+</Alert>
+
+## Options
+
+Black has sensible defaults and in most cases, you **do not need to configure it at all**. You may, however, want to change certain parameters, such as the line length. You can add the `line-length` flag:
+
+```bash
+black --line-length 80 example.py
+```
+
+<Alert variant="error" title="You cannot change the indentation from 4 spaces">
+
+The tab length is fixed at 4. It is not configurable. See [#378](https://github.com/psf/black/issues/378).
+
+</Alert>
+
+Read more about options and code style in [The _Black_ code style](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html).
+
+### Specifying options in VScode
+
+Specify settings for Black in VScode with the `python.formatting.blackArgs` setting. For example, if you want your line length to be 80, add this to your settings:
+
+
+```json title="settings.json"
+{
+  ...,
+  "python.formatting.blackArgs": ["--line-length", "80"]
+}
+```
+
+
+When you format you use the "Format Document" shortcut (`opt-shift-F`) to format your code, the line length will be 80.
+
+### Specifying options in pyproject.toml
+
+If your project uses a virtual environment and you want to share Black settings, you can keep them in `pyproject.toml`. ([Relevant documentation](https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file))
+
+For example, to configure the maximum line length, add the following to `pyproject.toml`:
+
+```toml title="pyproject.toml"
+[tool.black]
+line-length = 80
+```
+
+Check out the [documentation](https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file) for more options.
+
+### Trailing commas
+
+Add a trailing comma if a you want an expression with multiple elements to have one element per line.
+
+For example, the following code will not change when you run black on it:
+
+```py
+numbers = [1, 2, 3, 4]
+```
+
+If you want each number to be on its own line, add a trailing comma after the `4`:
+
+<div className="space-y-base md:space-y-0 md:flex md:space-x-base">
+
+```py title="Before formatting"
+numbers = [1, 2, 3, 4,]
+```
+
+```py title="After formatting"
+numbers = [
+  1,
+  2,
+  3,
+  4,
+]
+```
+
+
+</div>
+
+### Disabling Black
+
+Say you want your list to look like this:
+
+```py
+numbers = [ 
+    1, 2, 3,
+    4, 5, 6,
+    7, 8, 9
+]
+```
+
+Black will format it like this:
+
+```py
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+To disable Black for a set of lines, add `fmt: off` above and `fmt: on` below.
+
+So to ensure that Black doesn't touch the list `numbers`, but have it format everything else:
+
+```py
+# fmt: off
+numbers = [  # This line until "fmt: on" will not be formated by Black
+    1, 2, 3,
+    4, 5, 6,
+    7, 8, 9
+]
+# fmt: on
+
+a =   1 # This will be formatted by Black
+```
+
+## Pre-commit and Black
+
+[Pre-commit](https://pre-commit.com/) will allow you to run Black on every commit. It is recommended that you configure Pre-commit with Black in a shared project to reduce merge-conflicts arising due to code formatting.
+
+Install pre-commit with
+
+```bash
+pip install pre-commit
+
+# On Mac
+pip3 install pre-commit
+```
+
+If you're using pipenv or poetry, run `pipenv install pre-commit --dev` or `poetry add pre-commit --dev` to install pre-commit as a development dependency.
+
+Create a file `.pre-commit-config.yaml` and add the following configuration:
+
+```yaml title=".pre-commit-config.yaml"
+repos:
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3
+```
+
+
+Check out the [documentation](https://pre-commit.com/) to learn more about pre-commit.
+
+At this stage, initialize your git repository of you haven't already with `git init`.
+
+"Install" the pre-commit hooks with the command:
+
+```bash
+pre-commit install
+```
+
+If you're using pipenv or poetry, run `pipenv run pre-commit install` or `poetry run pre-commit install`.
+
+
+If successful, you will see `pre-commit installed at .git/hooks/pre-commit`.
+
+Finally, test it out. Create a new Python file with some unformatted code:
+
+
+```python title="file.py"
+print (    "This code is not formatted"  )
+```
+
+
+Make a commit:
+
+```bash
+git add .
+git commit -m "First commit"
+```
+
+The first commit may take a while since Black has to be installed.
+
+If your code is already formatted, the commit is made. If pre-commit formats your code with Black, the commit will **not be made**. You will see this in your Terminal:
+
+```bash
+black...........................Failed
+- hook id: black
+- files were modified by this hook
+
+reformatted file.py
+All done! ✨ 🍰 ✨
+1 file reformatted.
+```
+
+The commit failed, but your `.py` files are now formatted. All you have to do is run the commit again with:
+
+```shell
+git add .  # make sure you add the changed files again!
+git commit -m "First commit"
+```
+
+If successful, you should see this in your Terminal:
+
+```shell
+black...........................Passed
+```
+
+To confirm that the commit has been made, you can run always run `git log --oneline`.
+
+<Alert variant="warning" title="Warning: The 'rev' field of repo 'https://github.com/psf/black' appears to be a mutable reference ...">
+
+This warning appears because in `.pre-commit-config.yaml`, the Black version is set to `stable`, and therefore can change when Black is updated.
+
+In order to pin the version, run `pre-commit autoupdate` in the terminal. Upon running this, your `.pre-commit-config.yaml` will be updated to something like:
+
+```yaml title=".pre-commit-config.yaml"
+repos:
+  - repo: https://github.com/psf/black
+    rev: 21.5b1
+    ...
+```
+
+Read more about this at [Using the latest version for a repository](https://pre-commit.com/#using-the-latest-version-for-a-repository).
+
+</Alert>

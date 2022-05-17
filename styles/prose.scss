@@ -1,0 +1,93 @@
+@layer utilities {
+  .prose {
+    @apply space-y-base leading-8 text-gray-darker;
+
+    p {
+      @apply break-words;
+    }
+
+    ul {
+      @apply list-outside list-disc ml-lg;
+    }
+    ol {
+      @apply list-outside list-decimal ml-lg;
+    }
+
+    h2,
+    h3,
+    h4 {
+      @apply font-display text-gray-dark;
+      // Extra spacing above and below headings
+      @apply pt-0.5 pb-0.5;
+    }
+
+    h2 {
+      @apply text-3xl font-bold;
+    }
+    h3 {
+      @apply text-2xl font-semibold;
+    }
+    h4 {
+      @apply text-xl font-medium;
+    }
+
+    /* Style all link anchors */
+    h2 a::before,
+    h3 a::before,
+    h4 a::before {
+      content: "#";
+      @apply opacity-0 md:opacity-5;
+    }
+    h2 a,
+    h3 a,
+    h4 a {
+      /* w-4/6 to allow clicking on the title to navigate to the hashed link */
+      @apply absolute -mx-sm w-3/6;
+    }
+
+    // Code, not pre
+    :not(pre) > code {
+      @apply bg-gray-100 text-gray-700 text-sm;
+      @apply p-0.5 rounded;
+    }
+
+    // Code block title
+    [data-rehype-pretty-code-title] {
+      @apply /* bg-gray-700 text-gray-50 */ -m-1 p-sm font-mono text-sm rounded-t;
+      background-color: #334155;
+      color: #f8fafc;
+    }
+
+    pre {
+      @apply overflow-x-scroll -m-1 text-sm py-md rounded;
+      // @apply bg-gray-800 text-gray-100;
+      background-color: #1e293b;
+      color: #f1f5f9;
+    }
+    pre > code {
+      @apply grid;
+      .line {
+        @apply px-md;
+        &.highlighted {
+          @apply font-bold /* bg-gray-600 */ rounded;
+          background-color: #475569;
+        }
+
+        > .highlighted-word {
+          @apply /* bg-gray-600 */ -m-0.5 p-0.5 opacity-80 rounded;
+          background-color: #475569;
+        }
+      }
+
+      &[data-line-numbers] {
+        counter-reset: line;
+
+        & > .line::before {
+          counter-increment: line;
+          content: counter(line);
+          @apply mr-base;
+        }
+      }
+    }
+  }
+}

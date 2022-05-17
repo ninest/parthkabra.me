@@ -1,0 +1,47 @@
+---
+title: Improving Your Online Security
+description: Improving your online security and privacy
+# Putting on a digital face mask 
+
+date: 2021-05-27
+
+# icon: shield
+---
+
+Do you use the same password across different sites? Have you ever received an email from yourself (somehow), where a hacker tries tries to extort money? Here are some ways to improve your online security.
+
+## Passwords
+
+Do not use the same password across websites. Use a unique password for each site you log into. This greatly decreases your chances of being hacked.
+
+**_But my one password is super strong_**
+
+Yes, it may be, but your password strength was never the issue. Obviously you should use a strong password, but if you use a single password, when one website gets hacked, "all" of your passwords are leaked. It's like putting all your eggs in one basket.
+
+**_Okay, but how do I remember all these passwords?_**
+
+You don't. Use a password manager.
+
+If you use only iOS, Mac, and Safari, use Apple's password manager, iCloud Keychain. Read more about it [here](https://support.apple.com/en-sg/HT204085). It's quite easy to use on your [iPhone](https://support.apple.com/en-us/HT211146) and [Mac](https://support.apple.com/en-us/HT211145). Safari will also [automatically suggest](https://www.google.com/search?q=safari+suggest+strong+password) (and store) strong passwords when you login.
+
+If you use only Chrome, use [Google's password manager](https://passwords.google.com/).
+
+If you use Firefox, use [Firefox Lockwise](https://www.mozilla.org/en-US/firefox/lockwise/).
+
+My personal suggestion is [**Bitwarden**](https://bitwarden.com/). It is free and open-source, has a mobile app, browser extension, and web interface, so I can access my passwords everywhere. I only need to keep one master password, which I have written down and kept in ██ ███ ██████.
+
+## 2FA
+
+If you enable two-factor authentication (2FA), a hacker cannot access your account even if they have your password. They will need your mobile phone or secure tokens to log into your account.
+
+It is quite easy to enable on [Google](https://www.google.com/landing/2step/) and [Facebook](https://www.facebook.com/help/148233965247823).
+
+## Monitor your accounts
+
+Obviously you cannot do all of this overnight. You may not remember that shady game website you signed up for (with your Google password) back in 2012.
+
+To check for data breaches where your personal data has been leaked, use [Firefox Monitor](https://monitor.firefox.com/). I also highly recommend signing up for their email alerts so you can be notified as and when the breach is detected.
+
+**_My email has been breached, what do I do?_**
+
+Check the compromised data. It will likely include email address and password. If so, change your password.

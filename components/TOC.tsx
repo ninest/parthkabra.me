@@ -1,0 +1,78 @@
+import { useEffect, useState } from "react";
+import clsx from "clsx";
+import { useRouter } from "next/router";
+import { Spacer } from "./Spacer";
+
+interface Heading {
+  slug: string;
+  text: string;
+  level: number;
+}
+
+interface Props {
+  listParentClassName?: string;
+  listItemClassName?: string;
+}
+
+const TOCLinks = ({
+  listParentClassName = "",
+  listItemClassName = "",
+}: Props) => {
+  const [headings, setHeadings] = useState<Heading[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    setHeadings([]);
+    const article = document.getElementsByTagName("article")[0];
+    if (article)
+      for (let e of article.children as any) {
+        // TODO: improve
+        const element: HTMLElement = e;
+
+        if (["H2", "H3", "H4"].includes(element.tagName)) {
+          const heading: Heading = {
+            slug: element.id,
+            text: element.innerText,
+            level: parseInt(element.tagName[1]) - 1,
+          };
+
+          setHeadings((previousHeadings) => [...previousHeadings, heading]);
+        }
+      }
+    /* Update TOC on page change */
+  }, [router.asPath]);
+
+  return (
+    <>
+      <ul className={listParentClassName}>
+        {headings &&
+          headings.map((heading) => (
+            <li key={heading.slug} className={listItemClassName}>
+              <a
+                className={clsx("block", {
+                  "ml-base": heading.level === 2,
+                  "ml-lg": heading.level === 3,
+                })}
+                href={`#${heading.slug}`}
+              >
+                {heading.text}
+              </a>
+            </li>
+          ))}
+      </ul>
+    </>
+  );
+};
+
+export const TOC = () => {
+  return (
+    <div className="rounded-md">
+      <h3 className="font-semibold text-sm uppercase">Contents</h3>
+      <Spacer size="xs" />
+      <TOCLinks
+        listParentClassName="space-y-sm"
+        listItemClassName="text-sm text-gray"
+      />
+    </div>
+  );
+};
