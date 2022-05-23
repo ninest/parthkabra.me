@@ -1,4 +1,5 @@
 import { Button, Spacer } from "@/components";
+import { MiniTitle } from "./MiniTitle";
 
 interface Link {
   href: string;
@@ -14,16 +15,21 @@ const LinkButton = ({ link }: { link: Link }) => {
 
 interface LinkProps {
   title?: string;
+  showTitle?: boolean;
   links: { href: string; title: string }[];
 }
 
-export const Links = ({ title = "Links", links }: LinkProps) => {
+export const Links = ({
+  title = "Links",
+  showTitle = true,
+  links,
+}: LinkProps) => {
   return (
     <div>
-      <h3 className="font-semibold text-sm uppercase">{title}</h3>
+      {showTitle && <MiniTitle>{title}</MiniTitle>}
       <Spacer size="xs" />
       <div className="flex flex-wrap -mt-xs">
-        {links.map((link,index) => (
+        {links.map((link, index) => (
           <LinkButton key={index} link={link} />
         ))}
       </div>

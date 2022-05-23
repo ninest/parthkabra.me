@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { MiniTitle, Spacer } from "@/components";
 import clsx from "clsx";
 import { useRouter } from "next/router";
-import { Spacer } from "./Spacer";
+import { useEffect, useState } from "react";
 
 interface Heading {
   slug: string;
@@ -67,7 +67,7 @@ const TOCLinks = ({
 export const TOC = () => {
   return (
     <div className="rounded-md">
-      <h3 className="font-semibold text-sm uppercase">Contents</h3>
+      <MiniTitle>Contents</MiniTitle>
       <Spacer size="xs" />
       <TOCLinks
         listParentClassName="space-y-sm"

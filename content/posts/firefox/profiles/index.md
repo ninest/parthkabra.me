@@ -6,6 +6,7 @@ links:
   - source: docs
     href: https://support.mozilla.org/en-US/kb/profile-manager-create-remove-switch-firefox-profiles
     title: Profile Manager
+showContents: false
 ---
 
 Firefox Profiles allow you to have multiple instances of Firefox on a single computer. Each instance can have their own extensions, settings, themes, cookies, browsing history, etc.

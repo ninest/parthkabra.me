@@ -10,6 +10,7 @@ export const allCats = {
   nextjs: { title: "NextJS" },
   python: { title: "Python" },
   firefox: { title: "Firefox" },
+  cs: { title: "Computer Science" },
   meta: { title: "Meta" },
 };
 export interface Cat {
@@ -46,7 +47,7 @@ export const socialLinks = [
 /* Alt Cat slugs */
 // Some content belongs under multiple slugs
 export const altCatPosts: Record<CatName, { cat: CatName; slug: string }[]> = {
-  blog: [{ cat: "meta", slug: "redesign-4" }],
+  blog: [{ cat: "meta", slug: "redesign-3" }],
   cli: [],
   git: [],
   html: [],
@@ -57,5 +58,6 @@ export const altCatPosts: Record<CatName, { cat: CatName; slug: string }[]> = {
   nextjs: [],
   python: [],
   firefox: [],
+  cs:[],
   meta: [],
 };

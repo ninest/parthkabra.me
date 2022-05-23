@@ -1,12 +1,8 @@
 import { SmartLink } from "@/components";
+import { LinkItem } from "@/types";
 
-interface SimpleListItem {
-  text: string;
-  href?: string;
-  side?: string;
-}
 interface Props {
-  items: SimpleListItem[];
+  items: LinkItem[];
 }
 
 export const SimpleList = ({ items }: Props) => {
@@ -19,19 +15,27 @@ export const SimpleList = ({ items }: Props) => {
   );
 };
 
-const SimpleListItem = ({ listItem }: { listItem: SimpleListItem }) => {
+const SimpleListItem = ({ listItem }: { listItem: LinkItem }) => {
   const listItemClassNames =
     "flex items-top justify-between py-xs md:py-1 group space-x-base";
 
   const children = (
     <>
-      <div className="group-hover:text-primary group-hover:underline">{listItem.text}</div>
-      <div className="flex-none text-gray-light tabular-nums">{listItem.side}</div>
+      <div className="group-hover:text-primary group-hover:underline">
+        {listItem.title}
+      </div>
+      <div className="flex-none text-gray-light tabular-nums">
+        {listItem.date}
+      </div>
     </>
   );
 
   return listItem.href ? (
-    <SmartLink href={listItem.href} className={listItemClassNames}>
+    <SmartLink
+      href={listItem.href}
+      className={listItemClassNames}
+      activeClassName="text-primary font-semibold"
+    >
       {children}
     </SmartLink>
   ) : (

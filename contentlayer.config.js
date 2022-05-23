@@ -8,6 +8,8 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import { remarkMdxImages } from "remark-mdx-images";
 import rehypePrettyCode from "rehype-pretty-code";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
 const Link = defineNestedType(() => ({
   name: "Link",
@@ -250,11 +252,12 @@ export default makeSource({
   documentTypes: [Post, Work, Project, MePage],
   mdx: {
     cwd: path.join(process.cwd(), "/content"),
-    remarkPlugins: [remarkMdxImages],
+    remarkPlugins: [remarkMdxImages, remarkMath],
     rehypePlugins: [
       rehypeSlug,
       rehypeAutolinkHeadings,
       [rehypePrettyCode, prettyCodeOptions],
+      rehypeKatex,
     ],
     esbuildOptions: (options) => {
       options.outdir = path.join(process.cwd(), "/public/notouchy");

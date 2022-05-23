@@ -3,6 +3,7 @@
     "./components/",
     "./components/ui/",
     "./components/form/",
+    "./components/single/",
     "./layouts/"
   ]
 }

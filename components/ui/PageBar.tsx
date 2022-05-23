@@ -12,9 +12,14 @@ import { Sidebar } from "./Sidebar";
 interface Props {
   items?: { title: string; href?: string }[];
   sidebarSections?: ReactNode[];
+  fullWidth?: boolean;
 }
 
-export const PageBar = ({ items, sidebarSections = [] }: Props) => {
+export const PageBar = ({
+  items,
+  sidebarSections = [],
+  fullWidth = false,
+}: Props) => {
   const scrollPosition = useScrollPosition();
   const haveScrolledBelowTitle = scrollPosition > 135;
 
@@ -36,11 +41,14 @@ export const PageBar = ({ items, sidebarSections = [] }: Props) => {
     <>
       <header
         className={clsx(
-          "relative",
-          "space sticky top-0 bg-light opacity-90 flex justify-between items-center z-10",
+          // z-index only works on non static elements
+          "z-10",
+          { space: !fullWidth, "space lg:px-3xl": fullWidth },
+          "sticky top-0 bg-light opacity-95 flex justify-between items-center z-10",
           "mt-xl",
+
           {
-            "border-b md:border-none": haveScrolledBelowTitle,
+            "border-b md:border-none": !fullWidth && haveScrolledBelowTitle,
           }
         )}
       >

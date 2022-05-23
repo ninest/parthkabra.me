@@ -139,6 +139,19 @@ export default function IndexPage() {
           <div className="lg:w-3/6">
             <h2 className="font-display font-bold text-lg">Blog</h2>
             <SimpleList items={blogPosts} />
+            <Spacer size="xs" />
+            {/* TODO: make this a local component */}
+            <div className="flex">
+              <Button
+                href="/work"
+                variant="ghost"
+                size="sm"
+                className="text-gray-light"
+                iconRight={FaArrowRight}
+              >
+                View all
+              </Button>
+            </div>
           </div>
         </main>
       </div>

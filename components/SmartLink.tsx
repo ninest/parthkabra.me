@@ -18,10 +18,10 @@ export const SmartLink = ({
   const router = useRouter();
   const className = clsx(props.className, {
     underline,
-    [`${activeClassName}`]: router.asPath === href,
+    [`${activeClassName}`]: router.asPath == href.split("?")[0],
   });
 
-  if (href[0] === "/")
+  if (href[0] === "/" || href[0].includes("parthkabra.me"))
     return (
       <Link href={href}>
         <a {...props} className={className} />
@@ -38,4 +38,3 @@ export const SmartLink = ({
     />
   );
 };
-

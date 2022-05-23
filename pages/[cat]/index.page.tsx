@@ -8,7 +8,14 @@ import {
   Spacer,
 } from "@/components";
 import { allCats, CatName, Cat, altCatPosts } from "@/content/map";
-import { getContent, getPostLinkInfo, sortByDate } from "@/lib/content";
+import {
+  getContent,
+  getPostLinkInfo,
+  getPostLinks,
+  getPosts,
+  sortByDate,
+} from "@/lib/content";
+import { LinkItem } from "@/types";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { NextSeo } from "next-seo";
 
@@ -25,32 +32,23 @@ export const getStaticProps: GetStaticProps = ({ params }) => {
   const catName = params!.cat as string as CatName;
   const cat = allCats[catName];
 
-  // Also get posts from the altPosts list
-
-  const altPosts = altCatPosts[catName].map((post) =>
-    getContent(allPosts, post.slug)
-  );
-  const posts = sortByDate([
-    ...allPosts.filter((post) => post.cat == catName),
-    ...altPosts,
-  ]);
+  const posts = getPosts(catName);
+  const postLinks = getPostLinks(posts);
 
   return {
-    props: { catName, cat, posts },
+    props: { catName, cat, postLinks },
   };
 };
 
 const CatPage = ({
   catName,
   cat,
-  posts,
+  postLinks,
 }: {
   catName: CatName;
   cat: Cat;
-  posts: Post[];
+  postLinks: LinkItem[];
 }) => {
-  const pythonPosts = posts.map((post) => getPostLinkInfo(post));
-
   return (
     <>
       <NextSeo title={cat.title} description={`${cat.title} related posts`} />
@@ -78,7 +76,7 @@ const CatPage = ({
 
       <div className="space">
         <section className="lg:w-4/6 xl:w-3/6 max-w-6xl">
-          <SimpleList items={pythonPosts} />
+          <SimpleList items={postLinks} />
         </section>
       </div>
     </>

@@ -1,6 +1,13 @@
 import { Work } from "@/.contentlayer/generated";
 import { allWorks } from "@/.contentlayer/generated/index.mjs";
-import { Links, mdxComponents, PageBar, Spacer, TOC } from "@/components";
+import {
+  Links,
+  mdxComponents,
+  MiniTitle,
+  PageBar,
+  Spacer,
+  TOC,
+} from "@/components";
 import { PageRightSidebarLayout, RightSidebarLayout } from "@/layouts";
 import { startEndYear } from "@/lib/date";
 import type { GetStaticPaths, GetStaticProps } from "next";
@@ -68,7 +75,18 @@ const WorkPage = ({ work }: { work: Work }) => {
           </>
         }
       >
-        <MDX components={mdxComponents} />
+        <div className="lg:hidden">
+          {work.projects && (
+            <>
+              <MiniTitle>Links</MiniTitle>
+              <Links showTitle={false} links={work.projects} />
+            </>
+          )}
+          <Spacer size="lg" />
+        </div>
+        <article className="prose">
+          <MDX components={mdxComponents} />
+        </article>
       </PageRightSidebarLayout>
     </>
   );

@@ -45,3 +45,13 @@ html {
     }
   }
 }
+
+/* Katex styling */
+.katex-html {
+  // Hide area hidden
+  @apply hidden;
+}
+
+.katex {
+  @apply text-lg;
+}

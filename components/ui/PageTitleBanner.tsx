@@ -16,7 +16,7 @@ export const PageTitleBanner = (props: Props) => {
     return <div className={className}>{props.children}</div>;
   } else {
     return (
-      <div className={clsx("bg-gray-50 border-y px-xs", "text-center")}>
+      <div className={clsx(className, "px-xs", "text-center")}>
         <Spacer size="3xl" />
         <h1 className="font-display text-5xl font-black text-gray-dark">
           {props.title}

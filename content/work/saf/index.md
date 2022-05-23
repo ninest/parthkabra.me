@@ -20,7 +20,7 @@ projects:
     href: https://hls-app.pages.dev
 ---
 
-In the second year of my compulsory National Service at Singapore, I worked as a software developer. Most of my friends had a typical military roles such as supply assistant, transport operator (_driver_), or infantry, but I was luckier since I was chosen for a role directly related to my future career. In this time, developed and rolled out multiple modules and apps for the Singapore Armed Forces such as
+In the second year of my compulsory National Service at Singapore, I worked as a software developer. Most of my friends had a typical military roles such as supply assistant, transport operator (_driver_), or infantry, but I was more fortunate to be selected for a role related to my future career. In this time, developed and rolled out multiple modules and apps for the Singapore Armed Forces such as
 
 - iTrust
 - MT-RAC+

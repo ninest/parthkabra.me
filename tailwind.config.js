@@ -11,6 +11,16 @@ module.exports = {
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
         display: ["Karla", "Inter", ...defaultTheme.fontFamily.mono],
+        system: [
+          "-apple-system",
+          "system-ui",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
       },
       spacing: {
         xs: `${2 * 0.25}em`,

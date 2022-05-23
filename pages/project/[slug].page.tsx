@@ -4,6 +4,7 @@ import {
   Button,
   Links,
   mdxComponents,
+  MiniTitle,
   PageBar,
   Spacer,
   TOC,
@@ -73,7 +74,18 @@ const ProjectPage = ({ project }: { project: Project }) => {
           </>
         }
       >
-        <MDX components={mdxComponents} />
+        <div className="lg:hidden">
+          {project.links && (
+            <>
+              <MiniTitle>Links</MiniTitle>
+              <Links showTitle={false} links={project.links} />
+            </>
+          )}
+          <Spacer size="lg" />
+        </div>
+        <article className="prose">
+          <MDX components={mdxComponents} />
+        </article>
       </PageRightSidebarLayout>
     </>
   );

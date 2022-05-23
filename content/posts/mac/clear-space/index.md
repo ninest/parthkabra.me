@@ -3,7 +3,7 @@ title: Clear Space On Mac
 description: Reclaim space from XCode and other folders on your Mac
 date: 2021-06-06
 ---
-
+w
 ## XCode
 
 Reclaiming space from XCode mainly involves deleting files from `~/Library/Developer/`.

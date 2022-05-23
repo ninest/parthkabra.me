@@ -40,7 +40,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const saveSettings = () => storage.save<Settings>("settings", settings);
 
   const setTheme = (theme: Settings["theme"]) => {
-    console.log(`Received theme ${theme}`);
     setSettings((s) => ({
       ...s,
       theme,

@@ -2,6 +2,10 @@
   .prose {
     @apply space-y-base leading-8 text-gray-darker;
 
+    blockquote {
+      @apply border-l-2 pl-sm font-medium;
+    }
+
     p {
       @apply break-words;
     }
