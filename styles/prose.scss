@@ -63,7 +63,7 @@
     }
 
     pre {
-      @apply overflow-x-scroll -m-1 text-sm py-md rounded;
+      @apply overflow-x-scroll text-sm py-md rounded;
       // @apply bg-gray-800 text-gray-100;
       background-color: #1e293b;
       color: #f1f5f9;
@@ -91,6 +91,16 @@
           content: counter(line);
           @apply mr-base;
         }
+      }
+    }
+
+    table {
+      @apply border-collapse border rounded-md;
+
+      // Table cells
+      th,
+      td {
+        @apply border p-1;
       }
     }
   }

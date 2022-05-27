@@ -5,8 +5,9 @@ import {
   mdxComponents,
   MiniTitle,
   PageBar,
-  PostList, Spacer,
-  TOC
+  PostList,
+  Spacer,
+  TOC,
 } from "@/components";
 import { Collection, collections } from "@/content/collections";
 import { allCats, Cat, CatName } from "@/content/map";
@@ -16,7 +17,7 @@ import {
   getPostLinkInfo,
   getPostLinks,
   getPosts,
-  sortByDate
+  sortByDate,
 } from "@/lib/content";
 import { formatDateFull } from "@/lib/date";
 import { LinkItem } from "@/types";
@@ -40,7 +41,6 @@ export const getStaticProps: GetStaticProps = ({ params }) => {
   const cat: Cat = allCats[post?.cat as CatName];
 
   const relatedPosts = getPosts(catName);
-
 
   const relatedPostLinks = getPostLinks(relatedPosts);
 
@@ -81,12 +81,12 @@ const PostPage = ({
 }: Props) => {
   const MDX = useMDXComponent(post.body.code);
 
-  const sidebarSections = [];
-  if (post.links) sidebarSections.push(<Links links={post.links} />);
-  if (post.showContents) sidebarSections.push(<TOC />);
+  const mobileSidebarSections = [];
+  if (post.links) mobileSidebarSections.push(<Links links={post.links} />);
+  if (post.showContents) mobileSidebarSections.push(<TOC />);
 
   if (!!collectionPosts)
-    sidebarSections.push(
+    mobileSidebarSections.push(
       <div>
         <MiniTitle>In this series</MiniTitle>
         <div className="mt-xs space-y-xs">
@@ -109,11 +109,11 @@ const PostPage = ({
               { title: cat.title, href: `/${post.cat}` },
               { title: post.title, href: `/${post.cat}/${post.slug}` },
             ]}
-            sidebarSections={sidebarSections}
+            sidebarSections={mobileSidebarSections}
             fullWidth={!!collectionPosts}
           />
         }
-        title={post.title}
+        title={`${post.draft ? "[DRAFT] " : ""}${post.title}`}
         description={post.description}
         date={formatDateFull(new Date(post.date))}
         sidebar={
@@ -125,15 +125,15 @@ const PostPage = ({
         collection={collection}
         collectionPosts={collectionPosts}
       >
-        <div className="lg:hidden">
-          {post.links && <Links showTitle={false} links={post.links} />}
-          <Spacer size="lg" />
-        </div>
         <article className="prose">
           <MDX components={mdxComponents} />
         </article>
+        <div className="lg:hidden">
+          <Spacer size="xl" />
+          {post.links && <Links links={post.links} />}
+        </div>
 
-        <Spacer size="3xl" />
+        {/* <Spacer size="3xl" /> */}
         {/* <Spacer size="3xl" />
         <section>
           <MiniTitle>Related</MiniTitle>

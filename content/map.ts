@@ -1,4 +1,4 @@
-import { allDocuments } from "@/.contentlayer/generated";
+import { allDocuments, allPosts } from "@/.contentlayer/generated";
 
 /* Blog cats */
 export const allCats = {
@@ -12,6 +12,9 @@ export const allCats = {
   firefox: { title: "Firefox" },
   cs: { title: "Computer Science" },
   meta: { title: "Meta" },
+  vscode: { title: "VS Code" },
+  typescript: { title: "TypeScript" },
+  javascript: { title: "JavaScript" },
 };
 export interface Cat {
   title: string;
@@ -52,12 +55,16 @@ export const altCatPosts: Record<CatName, { cat: CatName; slug: string }[]> = {
   git: [],
   html: [],
   mac: [
+    { cat: "vscode", slug: "jetbrains-mono" },
     { cat: "cli", slug: "cmatrix" },
     { cat: "cli", slug: "asciiquarium" },
   ],
   nextjs: [],
   python: [],
   firefox: [],
-  cs:[],
+  cs: [],
   meta: [],
+  vscode: [],
+  typescript: [],
+  javascript: [],
 };

@@ -16,7 +16,7 @@ export const getPostLinkInfo = (post: Post): LinkItem => {
     title: post.title,
     cat: post.cat as CatName,
     href: `/${post.cat}/${post.slug}`,
-    date: formatDate(new Date(post.date)),
+    right: formatDate(new Date(post.date)),
     description: post.description,
   };
 };
@@ -35,7 +35,7 @@ export const getWorkLinkInfo = (work: Work): LinkItem => {
   return {
     title: work.title,
     href: `/work/${work.slug}`,
-    date,
+    right: date,
   };
 };
 
@@ -43,7 +43,7 @@ export const getProjectLinkInfo = (project: Project): LinkItem => {
   return {
     title: project.title,
     href: `/project/${project.slug}`,
-    date: new Date(project.date).getFullYear().toString(),
+    right: new Date(project.date).getFullYear().toString(),
   };
 };
 
@@ -78,12 +78,13 @@ export const getPostsMonthsList = (): MonthPosts[] => {
   allPosts.forEach((post) => {
     const date = new Date(post.date);
     const monthYear = formatDateMonthYear(date);
-    const postLink = getPostLinkInfo(post);
+    const postLink = { ...getPostLinkInfo(post), date: new Date(post.date) };
     // Check if there is a dictionary with this month in first
     const monthPosts = contentByMonth.find((mp) => mp.month == monthYear);
     if (monthPosts) {
-      monthPosts.posts.push(postLink);
+      monthPosts.posts.unshift(postLink);
     } else {
+      // First sort the posts
       // Otherwise create and add it
       contentByMonth.push({
         month: monthYear,
@@ -92,6 +93,11 @@ export const getPostsMonthsList = (): MonthPosts[] => {
       });
     }
   });
+
+  // Sort all posts within each month
+  contentByMonth.forEach((mp) =>
+    mp.posts.sort((a, z) => z.date!.getTime() - a.date!.getTime())
+  );
 
   return contentByMonth.sort((mpA, mpZ) => mpZ.order - mpA.order);
 };

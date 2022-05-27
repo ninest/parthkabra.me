@@ -27,7 +27,6 @@ export const PageRightSidebarLayout = ({
   sidebarBottom = <></>,
   children,
   collectionPosts,
-  collection,
 }: Props) => {
   const hasLeftSidebar = !!collectionPosts;
 
@@ -44,8 +43,6 @@ export const PageRightSidebarLayout = ({
         })}
       >
         <RightSidebarLayout
-          sidebar={<div className="space-y-lg">{sidebar}</div>}
-          sidebarBottom={sidebarBottom}
           navbar={
             hasLeftSidebar && (
               <div className="space-y-base relative -z-10">
@@ -53,6 +50,8 @@ export const PageRightSidebarLayout = ({
               </div>
             )
           }
+          sidebar={sidebar && <div className="space-y-lg">{sidebar}</div>}
+          sidebarBottom={sidebarBottom}
         >
           <div>{children}</div>
         </RightSidebarLayout>

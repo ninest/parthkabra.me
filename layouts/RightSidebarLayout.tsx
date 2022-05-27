@@ -35,7 +35,7 @@ export const RightSidebarLayout = ({
           "lg:grid-cols-[minmax(0,3fr)_1fr]": !hasLeftSidebar,
           "lg:grid-cols-[1fr_minmax(0,3fr)_1fr]": hasLeftSidebar,
         },
-        "max-w-[200ch] mx-auto"
+        "max-w-[150ch] mx-auto"
       )}
     >
       {hasLeftSidebar && (
@@ -49,14 +49,17 @@ export const RightSidebarLayout = ({
         <Spacer size="3xl" />
         {children}
       </div>
-      <div className="relative hidden lg:block flex-none w-72">
-        <div className="sticky top-16 pt-16 overflow-y-scroll max-h-screen">
-          {sidebar}
+
+      {sidebar && (
+        <div className="relative hidden lg:block flex-none w-72">
+          <div className="sticky top-16 pt-16 overflow-y-scroll max-h-screen">
+            {sidebar}
+          </div>
+          <div className="fixed w-72 bottom-0 ">
+            <div className="pb-3xl">{sidebarBottom}</div>
+          </div>
         </div>
-        <div className="fixed w-72 bottom-0 ">
-          <div className="pb-3xl">{sidebarBottom}</div>
-        </div>
-      </div>
+      )}
     </main>
   );
 };

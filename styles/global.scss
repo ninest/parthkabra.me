@@ -5,6 +5,8 @@
 html {
   // Set default font size
   font-size: 15px;
+
+  font-variant-ligatures: additional-ligatures;
 }
 
 @import "./colors.scss";

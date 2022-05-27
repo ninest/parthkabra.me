@@ -10,6 +10,7 @@ import { remarkMdxImages } from "remark-mdx-images";
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
 
 const Link = defineNestedType(() => ({
   name: "Link",
@@ -252,7 +253,7 @@ export default makeSource({
   documentTypes: [Post, Work, Project, MePage],
   mdx: {
     cwd: path.join(process.cwd(), "/content"),
-    remarkPlugins: [remarkMdxImages, remarkMath],
+    remarkPlugins: [remarkMdxImages, remarkMath, remarkGfm],
     rehypePlugins: [
       rehypeSlug,
       rehypeAutolinkHeadings,

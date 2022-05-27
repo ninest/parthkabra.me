@@ -6,7 +6,8 @@ export type Size = typeof sizes[number];
 export interface LinkItem {
   title: string;
   href: string;
-  date?: string;
+  right?: string;
   description?: string;
   cat?: CatName;
+  date?: Date;
 }

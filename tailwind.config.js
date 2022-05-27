@@ -10,7 +10,8 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
-        display: ["Karla", "Inter", ...defaultTheme.fontFamily.mono],
+        display: ["Karla", "Inter", ...defaultTheme.fontFamily.sans],
+        mono: ["JetBrains Mono", ...defaultTheme.fontFamily.mono],
         system: [
           "-apple-system",
           "system-ui",
