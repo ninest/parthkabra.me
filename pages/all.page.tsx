@@ -60,8 +60,10 @@ export default function AllPostsPage() {
             {blogPosts.map((monthPosts) => (
               <div key={monthPosts.order}>
                 <h3 className="font-extrabold text-xl">{monthPosts.month}</h3>
-                <Spacer />
-                <PostList items={monthPosts.posts} bubble showCat />
+                <Spacer size="xs" />
+                <section className="space-y-xs">
+                  <PostList items={monthPosts.posts} showCat />
+                </section>
               </div>
             ))}
           </div>

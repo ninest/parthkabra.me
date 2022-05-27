@@ -2,6 +2,7 @@ import { allPosts, Project, Work } from "@/.contentlayer/generated";
 import { allProjects, allWorks } from "@/.contentlayer/generated/index.mjs";
 import {
   Button,
+  Icon,
   PageBar,
   PageTitleBanner,
   SimpleList,
@@ -20,7 +21,7 @@ import {
 import { useSettings } from "@/lib/settings";
 import clsx from "clsx";
 import Image from "next/image";
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowRight, FaLocationArrow } from "react-icons/fa";
 
 export default function IndexPage() {
   const blogPosts = sortByDate(allPosts.filter((post) => !post.draft)).map(
@@ -55,10 +56,10 @@ export default function IndexPage() {
             </SmartLink>
             <Spacer />
 
-            <section className="w-5/6 lg:w-4/6 space-y-base">
+            <section className="w-5/6 lg:w-3/6 space-y-base">
               <p>
-                Computer science student at <b>Northeastern University</b> with
-                significant experience in app development.
+                Computer science student at <b>Northeastern University</b>,
+                Boston with significant experience in app development.
               </p>
               <div className="text-gray-light space-x-base">
                 {socialLinks.map((link) => (
@@ -70,18 +71,28 @@ export default function IndexPage() {
             </section>
           </div>
 
-          <div className="hidden md:static md:flex md:w-4/12 lg:w-1/5 xl:w-1/5 space-x-base">
-            <div
-              className={clsx({
-                "contrast-200 brightness-50": theme == "dark",
-              })}
+          <div className="hidden md:static md:flex md:w-4/12 lg:w-1/5 xl:w-1/5 max-w-xs space-x-base">
+            <SmartLink
+              href="https://www.google.com/maps/place/Northeastern+University/@42.3398067,-71.0913604,17z/data=!3m1!4b1!4m5!3m4!1s0x89e37a1999cf5ce1:0xc97b00e66522b98c!8m2!3d42.3398067!4d-71.0891717"
+              className="block"
             >
-              <Image
-                src={mapImage}
-                alt="Map of Northeastern University"
-                className="rounded-lg"
-              />
-            </div>
+              <div
+                className={clsx({
+                  "contrast-200 brightness-50": theme == "dark",
+                })}
+              >
+                <Image
+                  src={mapImage}
+                  alt="Map of Northeastern University"
+                  className="rounded-lg"
+                />
+              </div>
+              <Spacer size="xs" />
+              <div className="text-gray-light flex place-content-center items-center space-x-sm">
+                <Icon icon={FaLocationArrow} className="text-xs" />
+                <div className="text-sm">Boston, MA</div>
+              </div>
+            </SmartLink>
           </div>
         </div>
         <Spacer size="xl" />
@@ -92,8 +103,14 @@ export default function IndexPage() {
 
       <div className="space">
         <main>
-          <div className="flex flex-col space-y-xl lg:space-y-0 lg:flex-row lg:space-x-24">
-            <div className="xl:w-3/12 lg:w-4/12">
+          <div
+            className={clsx(
+              "flex flex-col space-y-xl lg:space-y-0",
+              "lg:flex-row lg:space-x-24",
+              "lg:w-9/12 xl:w-7/12 max-w-7xl"
+            )}
+          >
+            <div className="lg:w-1/2">
               <h2 className="font-display font-bold text-lg">Projects</h2>
               <SimpleList items={featuredProjectPosts} />
               <Spacer size="xs" />
@@ -109,7 +126,7 @@ export default function IndexPage() {
                 </Button>
               </div>
             </div>
-            <div className="xl:w-3/12 lg:w-4/12">
+            <div className="lg:w-1/2">
               <div className="bg-primary-50 rounded -m-sm p-sm lg:rounded-md lg:-m-lg lg:p-lg">
                 <h2 className="font-display font-bold text-lg">Work</h2>
                 <SimpleList items={workPosts} />
@@ -136,7 +153,7 @@ export default function IndexPage() {
             <Spacer size="2xl" />
           </div>
 
-          <div className="lg:w-3/6">
+          <div className="lg:w-3/6 max-w-7xl">
             <h2 className="font-display font-bold text-lg">Blog</h2>
             <SimpleList items={blogPosts} />
             <Spacer size="xs" />
