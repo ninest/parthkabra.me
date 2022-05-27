@@ -1,7 +1,8 @@
 import { allPosts, Post, Project, Work } from "@/.contentlayer/generated";
 import { altCatPosts, CatName } from "@/content/map";
-import { formatDate, startEndYear } from "@/lib/date";
+import { formatDate, formatDateMonthYear, startEndYear } from "@/lib/date";
 import { LinkItem } from "@/types";
+import { map } from "zod";
 
 export const getContent = <T extends { slug: string }>(
   allContent: T[],
@@ -13,7 +14,7 @@ export const getContent = <T extends { slug: string }>(
 export const getPostLinkInfo = (post: Post): LinkItem => {
   return {
     title: post.title,
-    cat: post.cat,
+    cat: post.cat as CatName,
     href: `/${post.cat}/${post.slug}`,
     date: formatDate(new Date(post.date)),
     description: post.description,
@@ -61,4 +62,36 @@ export const getPosts = (catName: CatName): Post[] => {
   const posts = allPosts.filter((post) => post.cat == catName);
 
   return sortByDate([...altPosts, ...posts]);
+};
+
+interface MonthPosts {
+  month: string;
+  posts: LinkItem[];
+  // year * 100 + month so that MonthPosts[] can be sorted by time
+  order: number;
+}
+
+// Convert from a list of `allPosts` to a list of { month, content[] }[]
+export const getPostsMonthsList = (): MonthPosts[] => {
+  const contentByMonth: MonthPosts[] = [];
+
+  allPosts.forEach((post) => {
+    const date = new Date(post.date);
+    const monthYear = formatDateMonthYear(date);
+    const postLink = getPostLinkInfo(post);
+    // Check if there is a dictionary with this month in first
+    const monthPosts = contentByMonth.find((mp) => mp.month == monthYear);
+    if (monthPosts) {
+      monthPosts.posts.push(postLink);
+    } else {
+      // Otherwise create and add it
+      contentByMonth.push({
+        month: monthYear,
+        posts: [postLink],
+        order: date.getFullYear() * 100 + date.getMonth(),
+      });
+    }
+  });
+
+  return contentByMonth.sort((mpA, mpZ) => mpZ.order - mpA.order);
 };

@@ -143,7 +143,7 @@ export default function IndexPage() {
             {/* TODO: make this a local component */}
             <div className="flex">
               <Button
-                href="/work"
+                href="/all"
                 variant="ghost"
                 size="sm"
                 className="text-gray-light"
