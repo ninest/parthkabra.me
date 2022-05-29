@@ -4,7 +4,7 @@ description: A module to validate and mask Singapore NRICs
 date: 2020-11-20
 links:
   - source: github
-    url: https://github.com/ninest/nric-utils
+    href: https://github.com/ninest/nric-utils
     title: GitHub
 showContents: false
 ---

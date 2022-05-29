@@ -4,10 +4,10 @@ description: Time as a color
 date: 2020-12-11
 links:
   - source: github
-    url: https://github.com/ninest/hexy-time
+    href: https://github.com/ninest/hexy-time
     title: GitHub
   - source: web
-    url:  https://hexy-time.now.sh
+    href:  https://hexy-time.now.sh
     title: Website
 ---
 

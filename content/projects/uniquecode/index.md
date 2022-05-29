@@ -4,11 +4,12 @@ description: Fancy fonts with plain text
 date: 2021-06-04
 links:
   - source: github
-    url: https://github.com/ninest/unique-code
+    href: https://github.com/ninest/unique-code
     title: GitHub
   - source: web
-    url: https://uniquecode.vercel.app/
+    href: https://uniquecode.vercel.app/
     title: Website
+showContents: false
 ---
 
 import { images } from "./projects/uniquecode/assets"
@@ -16,8 +17,8 @@ import { images } from "./projects/uniquecode/assets"
 Unique Code lets you copy and paste 𝗿𝗶𝗰𝗵 𝒕𝒆𝒙𝒕 into fields that only support plain text.
 
 <div className="flex space-x-base">
-  <Image {...images.one} />
-  <Image {...images.two} />
+  <Image {...images.one} border />
+  <Image {...images.two} border />
 </div>
 
 For example,

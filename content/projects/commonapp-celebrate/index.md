@@ -5,10 +5,10 @@ date: 2020-12-11
 
 links:
   - source: github
-    url: https://github.com/ninest/commonapp-celebrate
+    href: https://github.com/ninest/commonapp-celebrate
     title: GitHub
   - source: web
-    url:  https://celebrate.now.sh
+    href:  https://celebrate.now.sh
     title: Website
 ---
 

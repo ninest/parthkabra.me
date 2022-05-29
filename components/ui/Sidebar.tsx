@@ -30,12 +30,14 @@ export const Sidebar = ({
         </button>
       </div>
 
-      {sections &&
-        sections.map((section, index) => (
-          <section key={index} className="border-b p-sm">
-            {section}
-          </section>
-        ))}
+      <div className="h-full overflow-scroll">
+        {sections &&
+          sections.map((section, index) => (
+            <section key={index} className="border-b p-sm">
+              {section}
+            </section>
+          ))}
+      </div>
     </div>
   );
 };

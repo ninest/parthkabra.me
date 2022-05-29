@@ -3,6 +3,7 @@ title: Lorem Ipsum?
 date: 2019-12-24
 description: The Testing Grounds
 showContents: false
+draft: true
 ---
 
 import { Icon } from "@/components/Icon"

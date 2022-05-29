@@ -1,7 +1,16 @@
 import type { MePage } from "@/.contentlayer/generated";
 import { allMePages } from "@/.contentlayer/generated/index.mjs";
-import { Links, mdxComponents, PageBar, TOC } from "@/components";
+import {
+  Links,
+  mdxComponents,
+  MiniTitle,
+  PageBar,
+  PostList,
+  TOC,
+} from "@/components";
+import { Collection } from "@/content/collections";
 import { PageRightSidebarLayout } from "@/layouts";
+import { LinkItem } from "@/types";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useMDXComponent } from "next-contentlayer/hooks";
 import { NextSeo } from "next-seo";
@@ -26,9 +35,24 @@ export const getStaticProps: GetStaticProps = ({ params }) => {
 const MePage = ({ page }: { page: MePage }) => {
   const MDX = useMDXComponent(page.body.code);
 
-  const sidebarSections = [];
-  if (page.links) sidebarSections.push(<Links links={page.links} />);
-  if (page.showContents) sidebarSections.push(<TOC />);
+  const collectionPosts: LinkItem[] = allMePages.map((mePage) => ({
+    href: `/${mePage.slug}`,
+    title: mePage.title,
+    description: mePage.description,
+  }));
+
+  const mobileSidebarSections = [];
+  if (page.links) mobileSidebarSections.push(<Links links={page.links} />);
+  if (page.showContents) mobileSidebarSections.push(<TOC />);
+  mobileSidebarSections.push(
+    <div>
+      <MiniTitle>More about me</MiniTitle>
+      <div className="mt-xs space-y-xs">
+        <PostList items={collectionPosts} />
+      </div>
+    </div>
+  );
+
   return (
     <>
       <NextSeo title={page.title} description={page.description} />
@@ -37,9 +61,11 @@ const MePage = ({ page }: { page: MePage }) => {
         top={
           <PageBar
             items={[{ title: page.title, href: `/me/${page.slug}` }]}
-            sidebarSections={sidebarSections}
+            sidebarSections={mobileSidebarSections}
+            fullWidth={!!collectionPosts}
           />
         }
+        collectionPosts={collectionPosts}
         title={page.title}
         description={page.description}
         sidebar={
@@ -49,7 +75,9 @@ const MePage = ({ page }: { page: MePage }) => {
           </>
         }
       >
-        <MDX components={mdxComponents} />
+        <article className="prose">
+          <MDX components={mdxComponents} />
+        </article>
       </PageRightSidebarLayout>
     </>
   );

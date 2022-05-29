@@ -3,6 +3,7 @@ export interface Collection {
   title: string;
   description: string;
   posts: {
+    // TODO: change to {cat|"me",title}[]
     slugs: string[];
   };
 }

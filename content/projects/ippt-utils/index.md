@@ -4,7 +4,7 @@ description: A module to calculate IPPT scores
 date: 2020-11-20
 links:
   - icon: github
-    url: https://github.com/ninest/ippt-utils
+    href: https://github.com/ninest/ippt-utils
     title: GitHub
 showContents: false
 ---

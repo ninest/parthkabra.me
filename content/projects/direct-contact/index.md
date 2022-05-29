@@ -4,10 +4,10 @@ description: WhatsApp message someone without saving them as a contact
 date: 2021-01-21
 links:
   - source: github
-    url: https://github.com/ninest/direct-contact
+    href: https://github.com/ninest/direct-contact
     title: GitHub
   - source: web
-    url: https://directcontact.vercel.app/
+    href: https://directcontact.vercel.app/
     title: Website
 showContents: false
 ---

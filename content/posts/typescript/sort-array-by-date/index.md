@@ -5,8 +5,6 @@ date: 2022-05-30
 showContents: false
 ---
 
-If we have a list that looks like this:
-
 ```ts
 const posts = [
   { slug: "third", date: new Date("2022-02-23") },
@@ -16,13 +14,13 @@ const posts = [
 ]
 ```
 
-We can create a new list of posts sorted by date:
+A new list of posts sorted by date can be created like this:
 
 ```ts
 // Ascending order:
-posts.sort((postA, postB) => postA.date.getTime() - postB.date.getTime())
+const asc = posts.sort((postA, postB) => postA.date.getTime() - postB.date.getTime())
 // Descending order (latest post first):
-posts.sort((postA, postB) => postB.date.getTime() - postA.date.getTime())
+const desc = posts.sort((postA, postB) => postB.date.getTime() - postA.date.getTime())
 ```
 
 <Alert title="What do the arguments in .sort mean?" open={false}>
@@ -50,15 +48,19 @@ In short,
 - Ascending order (or earliest first): `a - z`
 - Descending order (or latest first): `z - a`
 
+I personally find it easier to understand because "a to z" is ascending while "z to a" id descending.
+
 </Alert>
 
-### Why use .getTime?
+<Alert title="Why use .getTime?" open={false}>
 
-JavaScript implicitly coerces dates to numbers when trying to subtract one from another, so using `.getTime()` and subtracting numbers is more efficient. Additionally, requires the arguments in the `.sort` function 
 
-If you try sorting dates in typescript like `dates.sort((a, z) => a - z)` without using `.getTime()`, you may see the following errors:
+JavaScript implicitly coerces dates to numbers when trying to subtract one from another, so using `.getTime()` and subtracting numbers is more efficient. 
+
+Additionally, if you try sorting dates in typescript like `dates.sort((a, z) => a - z)` without using `.getTime()`, you may see the following errors:
 
 ```ts
 The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type
 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type
 ```
+</Alert>

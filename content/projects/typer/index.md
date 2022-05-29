@@ -4,11 +4,12 @@ description: The 10-second typing game
 date: 2020-05-18
 links:
   - source: github
-    url: https://github.com/ninest/typer
+    href: https://github.com/ninest/typer
     title: GitHub
   - source: web
-    url:  https://typer.now.sh
+    href:  https://typer.now.sh
     title: Website
+showContents: false
 ---
 
 import { images } from "./projects/typer/assets"
