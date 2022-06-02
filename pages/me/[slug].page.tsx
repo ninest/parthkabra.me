@@ -53,6 +53,7 @@ const MePage = ({ page }: { page: MePage }) => {
     </div>
   );
 
+
   return (
     <>
       <NextSeo title={page.title} description={page.description} />
@@ -65,9 +66,13 @@ const MePage = ({ page }: { page: MePage }) => {
             fullWidth={!!collectionPosts}
           />
         }
-        collectionPosts={collectionPosts}
         title={page.title}
         description={page.description}
+        
+        hasNavbar={true}
+        collectionPosts={collectionPosts}
+
+        hasSidebar={!!page.links || page.showContents}
         sidebar={
           <>
             {page.links && <Links links={page.links} />}

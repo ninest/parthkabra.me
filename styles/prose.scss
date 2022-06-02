@@ -57,7 +57,8 @@
 
     // Code block title
     [data-rehype-pretty-code-title] {
-      @apply /* bg-gray-700 text-gray-50 */ -m-1 p-sm font-mono text-sm rounded-t;
+      // TODO: fix; -mb-1 to move it down so rounded corner of pre doesn't look weird
+      @apply /* bg-gray-700 text-gray-50 */ -mb-1 p-sm font-mono text-sm rounded-t;
       background-color: #334155;
       color: #f8fafc;
     }

@@ -60,13 +60,16 @@ const WorkPage = ({ work }: { work: Work }) => {
         description={work.description}
         date={
           <>
-            {work.location} -{" "}
+            {work.location}
+            {" · "}
             {startEndYear({
               start: new Date(work.startDate),
               end: work.endDate ? new Date(work.endDate) : undefined,
             })}
           </>
         }
+        hasNavbar={false}
+        hasSidebar={true}
         sidebar={
           <>
             <Links links={[{ href: work.website, title: "Website" }]} />

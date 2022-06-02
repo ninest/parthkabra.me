@@ -78,7 +78,11 @@ const ProjectPage = ({ project }: { project: Project }) => {
         title={project.title}
         description={project.description}
         date={formatDateFull(new Date(project.date))}
+        
+        hasNavbar={true}
         collectionPosts={collectionPosts}
+
+        hasSidebar={true}
         sidebar={
           <>
             {project.links && <Links links={project.links} />}

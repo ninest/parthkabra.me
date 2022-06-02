@@ -116,12 +116,14 @@ const PostPage = ({
         title={`${post.draft ? "[DRAFT] " : ""}${post.title}`}
         description={post.description}
         date={formatDateFull(new Date(post.date))}
+        hasSidebar={!!post.links || post.showContents}
         sidebar={
           <>
             {post.links && <Links links={post.links} />}
             {post.showContents && <TOC />}
           </>
         }
+        hasNavbar={!!collectionPosts}
         collection={collection}
         collectionPosts={collectionPosts}
       >

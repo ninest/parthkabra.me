@@ -10,10 +10,13 @@ interface Props {
   title: string;
   description: string;
   date?: ReactNode;
-  sidebar: ReactNode;
-  sidebarBottom?: ReactNode;
   children: ReactNode;
 
+  hasSidebar: boolean;
+  sidebar: ReactNode;
+  sidebarBottom?: ReactNode;
+
+  hasNavbar: boolean;
   // Not all posts are parts of "collections"
   collection?: Collection;
   collectionPosts?: any[];
@@ -23,13 +26,15 @@ export const PageRightSidebarLayout = ({
   title,
   description,
   date,
+  children,
+
+  hasSidebar = false,
   sidebar,
   sidebarBottom = <></>,
-  children,
+
+  hasNavbar = false,
   collectionPosts,
 }: Props) => {
-  const hasLeftSidebar = !!collectionPosts;
-
   return (
     <>
       {top}
@@ -38,20 +43,22 @@ export const PageRightSidebarLayout = ({
 
       <div
         className={clsx("space-x", {
-          "md:space-x": !hasLeftSidebar,
-          "md:px-3xl": hasLeftSidebar,
+          "md:space-x": !hasNavbar,
+          "md:px-3xl": hasNavbar,
         })}
       >
         <RightSidebarLayout
+          hasNavbar={hasNavbar}
           navbar={
-            hasLeftSidebar && (
+            hasNavbar && (
               <div className="space-y-base relative -z-10">
-                <PostList items={collectionPosts} />
+                <PostList items={collectionPosts!} />
               </div>
             )
           }
-          sidebar={sidebar && <div className="space-y-lg">{sidebar}</div>}
-          sidebarBottom={sidebarBottom}
+          hasSidebar={hasSidebar}
+          sidebar={hasSidebar && <div className="space-y-lg">{sidebar}</div>}
+          sidebarBottom={hasSidebar && sidebarBottom}
         >
           <div>{children}</div>
         </RightSidebarLayout>
