@@ -5,13 +5,17 @@ date: 2022-05-20
 draft: true
 ---
 
+<div className="hidden">
+
+- read so many stories of bad roommates, proud to be part of that community
+- little did I know I would be writing about them
+
+</div>
+
 import { Chat } from "@/components/Chat";
 import { PeeSeat } from "@/components/single/PeeSeat";
 import { Keyboard } from "@/components/single/Keyboard";
 import { Mouse } from "@/components/single/Mouse";
-
-- read so many stories of bad roommates, proud to be part of that community
-- little did I know I would be writing about them
 
 > I stayed in a Hotel for a semester in university, but I did not enjoy it.
 
@@ -19,7 +23,7 @@ I don't think that's something you hear very often. Don't get me wrong; the hote
 
 Also, I'm an introvert, and wherever possible, I'll try to resolve a problem without talking.
 
-## A bit about muself
+## A bit about myself
 
 I'm no stranger to roommate living. In fact, I've lived in rooms with 10-16 other people in my [National Service](/work/saf) in the Singapore Army.
 

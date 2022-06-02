@@ -93,8 +93,28 @@ You can now set the icon.
 
 ## Settings to change
 
+### Tab discarding
+
 To open the settings for the extension, click on the STG icon then click on the "<Icon icon={HiCog} className="inline" />" on the bottom right:
 
 <Image {...images.settingsCog} narrower />
 
 I personally recommend enabling the setting "Discard tabs after hide (this will save RAM)". When you switch from one group to another, the tabs of the inactive group will be "disabled" (not closed). When you switch back to that group, the disabled tabs will be re-enabled. This saves memory by putting tabs to sleep when they're not in use.
+
+### Tab overview home page
+
+To see a page with an overview of all tabs, click on the STG button (<Icon icon={CgMenuGridR} className="inline" />) button, then click on the "<Icon icon={CgMenuGridR} className="inline" /> Manage Groups button at the bottom".
+
+This should open a page that looks like this:
+
+<Image {...images.overview}  />
+
+This page is useful for viewing all your tabs at a glance, so I like to set it as the "new tab page" so that I can see it whenever I open a new Firefox window.
+
+Copy the URL of the page. It will be something like `moz-extension://xxx-xxxxx-xxxxxx/manage/manage.html`.
+
+Then open Firefox Settings > Home > New Window and tabs. Set "Homepage and new windows" to "Custom URLs...", and paste in the URL copied.
+
+When complete, your settings should look something like this:
+
+<Image {...images.settings}  />

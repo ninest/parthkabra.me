@@ -7,6 +7,8 @@ import newIcon from "./images/newIcon.png";
 import workGroup from "./images/workGroup.png";
 import groupSettings from "./images/groupSettings.png";
 import settingsCog from "./images/settingsCog.png";
+import overview from "./images/overview.png"
+import settings from "./images/settings.png"
 
 export const images = {
   afterInstall: {
@@ -46,4 +48,6 @@ export const images = {
   },
   groupSettings: { src: groupSettings, width: 980, height: 612 },
   settingsCog: { src: settingsCog, width: 942, height: 440 },
+  overview: { src: overview, width: 2056, height: 1234 },
+  settings: { src: settings, width: 2056, height: 1234 },
 };
