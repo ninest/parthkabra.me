@@ -1,19 +1,15 @@
-import { Post } from "@/.contentlayer/generated";
 import { allPosts } from "@/.contentlayer/generated/index.mjs";
 import {
   PageBar,
   PageTitleBanner,
   SimpleList,
   SmartLink,
-  Spacer,
+  Spacer
 } from "@/components";
-import { allCats, CatName, Cat, altCatPosts } from "@/content/map";
+import { allCats, Cat, CatName } from "@/content/map";
 import {
-  getContent,
-  getPostLinkInfo,
   getPostLinks,
-  getPosts,
-  sortByDate,
+  getPosts
 } from "@/lib/content";
 import { LinkItem } from "@/types";
 import type { GetStaticPaths, GetStaticProps } from "next";

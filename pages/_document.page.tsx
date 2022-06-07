@@ -6,7 +6,8 @@ export default function Document() {
       <Head>
         <meta name="theme-color" content="#111111" />
 
-        {/* Preload fonts */}
+        {/* Preload fonts  */}
+        {/* TODO: preload jetbrains mono */}
         <link
           rel="preload"
           href="/fonts/karla.woff2"

@@ -59,7 +59,10 @@ export const getPosts = (catName: CatName): Post[] => {
   const altPosts = altCatPosts[catName].map((post) =>
     getContent(allPosts, post.slug)
   );
-  const posts = allPosts.filter((post) => post.cat == catName);
+  const posts = allPosts
+    .filter((post) => post.cat == catName)
+    // Do not include drafts
+    .filter((post) => !post.draft);
 
   return sortByDate([...altPosts, ...posts]);
 };
