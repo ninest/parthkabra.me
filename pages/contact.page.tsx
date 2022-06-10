@@ -128,7 +128,7 @@ export const ContactPage = () => {
       <Spacer size="xl" />
 
       <div className="space">
-        <RightSidebarLayout sidebar={<>{message}</>}>
+        <RightSidebarLayout hasSidebar={true} sidebar={<>{message}</>}>
           <div className="block lg:hidden">
             <div>{message}</div>
             <Spacer size="xl" />
