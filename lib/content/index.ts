@@ -78,24 +78,27 @@ interface MonthPosts {
 export const getPostsMonthsList = (): MonthPosts[] => {
   const contentByMonth: MonthPosts[] = [];
 
-  allPosts.forEach((post) => {
-    const date = new Date(post.date);
-    const monthYear = formatDateMonthYear(date);
-    const postLink = { ...getPostLinkInfo(post), date: new Date(post.date) };
-    // Check if there is a dictionary with this month in first
-    const monthPosts = contentByMonth.find((mp) => mp.month == monthYear);
-    if (monthPosts) {
-      monthPosts.posts.unshift(postLink);
-    } else {
-      // First sort the posts
-      // Otherwise create and add it
-      contentByMonth.push({
-        month: monthYear,
-        posts: [postLink],
-        order: date.getFullYear() * 100 + date.getMonth(),
-      });
-    }
-  });
+  allPosts
+    // Do not include drafts
+    .filter((post) => !post.draft)
+    .forEach((post) => {
+      const date = new Date(post.date);
+      const monthYear = formatDateMonthYear(date);
+      const postLink = { ...getPostLinkInfo(post), date: new Date(post.date) };
+      // Check if there is a dictionary with this month in first
+      const monthPosts = contentByMonth.find((mp) => mp.month == monthYear);
+      if (monthPosts) {
+        monthPosts.posts.unshift(postLink);
+      } else {
+        // First sort the posts
+        // Otherwise create and add it
+        contentByMonth.push({
+          month: monthYear,
+          posts: [postLink],
+          order: date.getFullYear() * 100 + date.getMonth(),
+        });
+      }
+    });
 
   // Sort all posts within each month
   contentByMonth.forEach((mp) =>
