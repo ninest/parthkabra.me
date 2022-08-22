@@ -4,11 +4,13 @@ import { Alert, Mermaid, SmartLink } from "@/components";
 
 export const mdxComponents = {
   Image: (props: any) => {
-    const src = `/notouchy${props.src}`;
+    const src = props.src;
     const className = clsx("rounded-md", props.className);
 
     const border = props.border;
     const narrower = props.narrower;
+
+    const { width, height } = imageSize(src);
 
     return (
       <div
@@ -18,7 +20,13 @@ export const mdxComponents = {
           "md:w-4/6 m-auto": narrower,
         })}
       >
-        <Image className={className} {...props} src={src} />
+        <Image
+          className={className}
+          {...props}
+          width={width}
+          height={height}
+          src={src}
+        />
       </div>
     );
   },

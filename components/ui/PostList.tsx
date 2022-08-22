@@ -1,5 +1,5 @@
 import { SmartLink, Spacer } from "@/components/";
-import { allCats } from "@/content/map";
+import { catMap, CatName } from "@/lib/content/cat";
 import { LinkItem } from "@/types";
 import clsx from "clsx";
 
@@ -33,7 +33,7 @@ const PostListItem = ({
   bubble?: boolean;
   showCat?: boolean;
 }) => {
-  const cat = allCats[listItem.cat!];
+  const cat = catMap[listItem.cat as CatName];
   return (
     <SmartLink
       href={listItem.href}
@@ -44,7 +44,12 @@ const PostListItem = ({
       activeClassName="bg-gray-100"
     >
       <div className="font-medium">
-        {showCat && <span className="text-gray-light">{cat.title}{" / "}</span>}
+        {showCat && (
+          <span className="text-gray-light">
+            {cat.title}
+            {" / "}
+          </span>
+        )}
         {listItem.title}
       </div>
       <Spacer size="xs" />

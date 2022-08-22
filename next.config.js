@@ -1,7 +1,7 @@
 const { withContentlayer } = require("next-contentlayer");
 
 /** @type {import('next').NextConfig} */
-const nextConfig = withContentlayer({
+const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ["page.tsx", "api.tsx"],
   async rewrites() {
@@ -80,6 +80,6 @@ const nextConfig = withContentlayer({
       },
     ];
   },
-});
+};
 
 module.exports = nextConfig;

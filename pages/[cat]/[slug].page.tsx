@@ -9,7 +9,7 @@ import {
   Spacer,
   TOC,
 } from "@/components";
-import { Collection, collections } from "@/content/collections";
+import { Collection, collections } from "@/lib/content/collections";
 import { allCats, Cat, CatName } from "@/content/map";
 import { PageRightSidebarLayout } from "@/layouts";
 import {

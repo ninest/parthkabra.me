@@ -23,17 +23,15 @@
       "@/*": [
         "./*"
       ],
-      "contentlayer/generated": [
-        "./.contentlayer/generated"
-      ]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".contentlayer/generated"
-, "pages/[cat]/index.pagetsx"  ],
+    ".contentlayer/generated",
+    "pages/[cat]/index.pagetsx"
+  ],
   "exclude": [
     "node_modules"
   ]

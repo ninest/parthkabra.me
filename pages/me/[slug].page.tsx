@@ -1,23 +1,14 @@
-import type { MePage } from "@/.contentlayer/generated";
-import { allMePages } from "@/.contentlayer/generated/index.mjs";
-import {
-  Links,
-  mdxComponents,
-  MiniTitle,
-  PageBar,
-  PostList,
-  TOC,
-} from "@/components";
-import { Collection } from "@/content/collections";
+import { Links, mdxComponents, PageBar, TOC } from "@/components";
 import { PageRightSidebarLayout } from "@/layouts";
-import { LinkItem } from "@/types";
+import { getMePage, getMePages, MePage } from "@/lib/content/me";
+import { parseMarkdoc, serializeMarkdoc } from "@/lib/markdoc/parse";
 import { GetStaticPaths, GetStaticProps } from "next";
-import { useMDXComponent } from "next-contentlayer/hooks";
 import { NextSeo } from "next-seo";
 
 export const getStaticPaths: GetStaticPaths = () => {
+  const mePages = getMePages();
   return {
-    paths: allMePages.map((page) => `/me/${page.slug}`),
+    paths: mePages.map((mePage) => ({ params: { slug: mePage.slug } })),
     fallback: false,
   };
 };
@@ -27,51 +18,42 @@ export const getStaticProps: GetStaticProps = ({ params }) => {
 
   return {
     props: {
-      page: allMePages.find((page) => page.slug == pageSlug),
+      serializedPage: serializeMarkdoc(getMePage(pageSlug)),
     },
   };
 };
 
-const MePage = ({ page }: { page: MePage }) => {
-  const MDX = useMDXComponent(page.body.code);
-
-  const collectionPosts: LinkItem[] = allMePages.map((mePage) => ({
-    href: `/${mePage.slug}`,
-    title: mePage.title,
-    description: mePage.description,
-  }));
+const Page = ({ serializedPage }: { serializedPage: string }) => {
+  const page = parseMarkdoc(serializedPage);
 
   const mobileSidebarSections = [];
-  if (page.links) mobileSidebarSections.push(<Links links={page.links} />);
-  if (page.showContents) mobileSidebarSections.push(<TOC />);
-  mobileSidebarSections.push(
-    <div>
-      <MiniTitle>More about me</MiniTitle>
-      <div className="mt-xs space-y-xs">
-        <PostList items={collectionPosts} />
-      </div>
-    </div>
-  );
-
+  // if (page.links) mobileSidebarSections.push(<Links links={page.links} />);
+  // if (page.showContents) mobileSidebarSections.push(<TOC />);
+  // mobileSidebarSections.push(
+  //   <div>
+  //     <MiniTitle>More about me</MiniTitle>
+  //     <div className="mt-xs space-y-xs">
+  //       <PostList items={collectionPosts} />
+  //     </div>
+  //   </div>
+  // );
 
   return (
     <>
-      <NextSeo title={page.title} description={page.description} />
+      <NextSeo title={page.frontmatter.title} description={page.frontmatter.description} />
 
-      <PageRightSidebarLayout
+      {/* <PageRightSidebarLayout
         top={
           <PageBar
-            items={[{ title: page.title, href: `/me/${page.slug}` }]}
-            sidebarSections={mobileSidebarSections}
+            items={[{ title: page.frontmatter.title, href: `/me/${page.slug}` }]}
+            // sidebarSections={mobileSidebarSections}
             fullWidth={!!collectionPosts}
           />
         }
         title={page.title}
         description={page.description}
-        
         hasNavbar={true}
         collectionPosts={collectionPosts}
-
         hasSidebar={!!page.links || page.showContents}
         sidebar={
           <>
@@ -83,9 +65,9 @@ const MePage = ({ page }: { page: MePage }) => {
         <article className="prose">
           <MDX components={mdxComponents} />
         </article>
-      </PageRightSidebarLayout>
+      </PageRightSidebarLayout> */}
     </>
   );
 };
 
-export default MePage;
+export default Page;

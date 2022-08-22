@@ -1,5 +1,5 @@
 import { SmartLink, Spacer } from "@/components";
-import { socialLinks } from "@/content/map";
+import { socialLinks } from "@/lib/content/social";
 
 export const Footer = () => {
   return (

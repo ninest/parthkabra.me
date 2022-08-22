@@ -1,6 +1,6 @@
 import { PageTitleBanner, SmartLink, Spacer } from "@/components";
 import { PostList } from "@/components/ui/PostList";
-import { Collection } from "@/content/collections";
+import { Collection } from "@/lib/content/collections";
 import { RightSidebarLayout } from "@/layouts";
 import clsx from "clsx";
 import { ReactNode } from "react";
