@@ -1,5 +1,3 @@
-import { allPosts, Project, Work } from "@/.contentlayer/generated";
-import { allProjects, allWorks } from "@/.contentlayer/generated/index.mjs";
 import {
   Button,
   Icon,
@@ -9,32 +7,61 @@ import {
   SmartLink,
   Spacer,
 } from "@/components";
-import { featuredProjectSlugs, socialLinks, workSlugs } from "@/content/map";
 import bostonMapLight from "@/content/map-bos-light.jpg";
+import { getPostPages, posts } from "@/lib/content/markdown/post";
 import {
-  getContent,
-  getPostLinkInfo,
-  getProjectLinkInfo,
-  getWorkLinkInfo,
-  sortByDate,
-} from "@/lib/content";
+  featuredProjects,
+  getProjectPages,
+} from "@/lib/content/markdown/project";
+import { mdsToLinks } from "@/lib/content/markdown/transformers";
+import { getWorkPages, works } from "@/lib/content/markdown/work";
+
+import { socialLinks } from "@/lib/content/social";
+import {
+  parseMarkdownPages,
+  serializeMarkdownPage,
+  serializeMarkdownPages,
+} from "@/lib/markdoc/parse";
+
 import { useSettings } from "@/lib/settings";
 import clsx from "clsx";
+import { InferGetStaticPropsType } from "next";
 import Image from "next/image";
 import { FaArrowRight, FaLocationArrow } from "react-icons/fa";
 
-export default function IndexPage() {
-  const blogPosts = sortByDate(allPosts.filter((post) => !post.draft)).map(
-    (post) => getPostLinkInfo(post)
-  );
-  const workPosts = (
-    workSlugs.map((slug) => getContent(allWorks, slug)) as Work[]
-  ).map((work) => getWorkLinkInfo(work));
-  const featuredProjectPosts = (
-    featuredProjectSlugs.map((slug) =>
-      getContent(allProjects, slug)
-    ) as Project[]
-  ).map((project) => getProjectLinkInfo(project));
+export const getStaticProps = async () => {
+  const blogPages = getPostPages(posts);
+  const workPages = getWorkPages(works);
+  const featuredProjectPages = getProjectPages(featuredProjects);
+  return {
+    props: {
+      pages: {
+        blogPages: serializeMarkdownPages(blogPages),
+        workPages: serializeMarkdownPages(workPages),
+        featuredProjectPages: serializeMarkdownPages(featuredProjectPages),
+      },
+    },
+  };
+};
+
+export default function IndexPage({
+  pages,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  const blogPages = parseMarkdownPages(pages.blogPages);
+  const workPages = parseMarkdownPages(pages.workPages);
+  const featuredProjectPages = parseMarkdownPages(pages.featuredProjectPages);
+  // const blogPages = sortByDate(allPosts.filter((post) => !post.draft)).map(
+  //   (post) => getPostsFromCat()
+  // );
+  // const workPages = (
+  //   workSlugs.map((slug) => getContent(allWorks, slug)) as Work[]
+  // ).map((work) => getWorkLinkInfo(work));
+
+  // const featuredProjectPosts = (
+  //   featuredProjectSlugs.map((slug) =>
+  //     getContent(allProjects, slug)
+  //   ) as Project[]
+  // ).map((project) => getProjectLinkInfo(project));
 
   const { theme } = useSettings();
   const mapImage = bostonMapLight;
@@ -112,7 +139,7 @@ export default function IndexPage() {
           >
             <div className="lg:w-1/2">
               <h2 className="font-display font-bold text-lg">Projects</h2>
-              <SimpleList items={featuredProjectPosts} />
+              <SimpleList items={mdsToLinks(featuredProjectPages)} />
               <Spacer size="xs" />
               <div className="flex">
                 <Button
@@ -129,7 +156,7 @@ export default function IndexPage() {
             <div className="lg:w-1/2">
               <div className="bg-primary-50 rounded -m-sm p-sm lg:rounded-md lg:-m-lg lg:p-lg">
                 <h2 className="font-display font-bold text-lg">Work</h2>
-                <SimpleList items={workPosts} />
+                <SimpleList items={mdsToLinks(workPages)} />
                 <Spacer size="xs" />
                 <div className="flex">
                   <Button
@@ -155,7 +182,7 @@ export default function IndexPage() {
 
           <div className="lg:w-3/6 max-w-7xl">
             <h2 className="font-display font-bold text-lg">Blog</h2>
-            <SimpleList items={blogPosts} />
+            <SimpleList items={mdsToLinks(blogPages)} />
             <Spacer size="xs" />
             {/* TODO: make this a local component */}
             <div className="flex">

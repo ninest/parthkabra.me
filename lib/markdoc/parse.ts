@@ -1,6 +1,11 @@
-import { MarkdocFromFile } from "./types";
+import { MarkdownPage } from "../content/markdown";
 
-export const serializeMarkdoc = (markdoc: any): string =>
-  JSON.stringify(markdoc);
-export const parseMarkdoc = (string: string): MarkdocFromFile =>
-  JSON.parse(string);
+export const serializeMarkdownPage = (mdPage: MarkdownPage): string =>
+  JSON.stringify(mdPage);
+export const parseMarkdownPage = (str: string): MarkdownPage => JSON.parse(str);
+
+export const serializeMarkdownPages = (mdPages: MarkdownPage[]): string[] =>
+  mdPages.map(serializeMarkdownPage);
+
+export const parseMarkdownPages = (strs: string[]): MarkdownPage[] =>
+  strs.map(parseMarkdownPage);

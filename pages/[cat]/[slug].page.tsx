@@ -1,147 +1,115 @@
-import { Post } from "@/.contentlayer/generated";
-import { allPosts } from "@/.contentlayer/generated/index.mjs";
 import {
-  Links,
-  mdxComponents,
-  MiniTitle,
-  PageBar,
-  PostList,
-  Spacer,
-  TOC,
+  PageBar, Spacer
 } from "@/components";
-import { Collection, collections } from "@/lib/content/collections";
-import { allCats, Cat, CatName } from "@/content/map";
+
 import { PageRightSidebarLayout } from "@/layouts";
-import {
-  getContent,
-  getPostLinkInfo,
-  getPostLinks,
-  getPosts,
-  sortByDate,
-} from "@/lib/content";
+
+import { cats, getPostPage, posts } from "@/lib/content/markdown/post";
 import { formatDateFull } from "@/lib/date";
-import { LinkItem } from "@/types";
-import type { GetStaticPaths, GetStaticProps } from "next";
-import { useMDXComponent } from "next-contentlayer/hooks";
+import { markdocComponents } from "@/lib/markdoc/components";
+import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
+import Markdoc from "@markdoc/markdoc";
+import type {
+  GetStaticPaths, GetStaticPropsContext,
+  InferGetStaticPropsType
+} from "next";
 import { NextSeo } from "next-seo";
+import React from "react";
 
 export const getStaticPaths: GetStaticPaths = () => {
   return {
-    paths: allPosts.map((post) => `/${post.cat}/${post.slug}`),
+    paths: posts.map((post) => `/${post.slug.join("/")}`),
     fallback: false,
   };
 };
 
-export const getStaticProps: GetStaticProps = ({ params }) => {
+export const getStaticProps = ({ params }: GetStaticPropsContext) => {
+  const catName = params!.cat as string;
   const slug = params!.slug as string;
-  const catName = params!.cat as CatName;
-  const postPath = `${catName}/${slug}`;
 
-  const post = allPosts.find((post) => `${post.cat}/${post.slug}` == postPath);
-  const cat: Cat = allCats[post?.cat as CatName];
+  const cat = cats.find((cat) => cat.slug === catName);
 
-  const relatedPosts = getPosts(catName);
+  const page = getPostPage({ slug: [catName, slug] });
 
-  const relatedPostLinks = getPostLinks(relatedPosts);
-
-  // Check if this post is part of a collection
-  const collection = collections.find((collection) =>
-    collection.posts.slugs.includes(slug)
-  );
-
-  if (collection) {
-    const collectionPosts = sortByDate(
-      collection.posts.slugs.map((slug) => getContent(allPosts, slug))
-    ).map((post) => getPostLinkInfo(post as Post));
-
-    return {
-      props: { post, cat, collection, collectionPosts, relatedPostLinks },
-    };
-  }
+  // TODO: collection
 
   return {
-    props: { post, cat, relatedPostLinks },
+    props: { cat, serializedPage: serializeMarkdownPage(page) },
   };
 };
 
-interface Props {
-  cat: Cat;
-  post: Post;
-  collection?: Collection;
-  collectionPosts?: LinkItem[];
-  relatedPostLinks: LinkItem[];
-}
+// interface Props {
+//   cat: Cat;
+//   post: Post;
+//   collection?: Collection;
+//   collectionPosts?: LinkItem[];
+//   relatedPostLinks: LinkItem[];
+// }
 
 const PostPage = ({
-  post,
   cat,
-  collection,
-  collectionPosts,
-  relatedPostLinks,
-}: Props) => {
-  const MDX = useMDXComponent(post.body.code);
+  serializedPage,
+}: InferGetStaticPropsType<typeof getStaticProps>) => {
+  const page = parseMarkdownPage(serializedPage);
 
-  const mobileSidebarSections = [];
-  if (post.links) mobileSidebarSections.push(<Links links={post.links} />);
-  if (post.showContents) mobileSidebarSections.push(<TOC />);
+  const renderedContent = Markdoc.renderers.react(page.content, React, {
+    components: markdocComponents,
+  });
 
-  if (!!collectionPosts)
-    mobileSidebarSections.push(
-      <div>
-        <MiniTitle>In this series</MiniTitle>
-        <div className="mt-xs space-y-xs">
-          <PostList items={collectionPosts} />
-        </div>
-      </div>
-    );
+  // const mobileSidebarSections = [];
+  // if (post.links) mobileSidebarSections.push(<Links links={post.links} />);
+  // if (post.showContents) mobileSidebarSections.push(<TOC />);
+
+  // if (!!collectionPosts)
+  //   mobileSidebarSections.push(
+  //     <div>
+  //       <MiniTitle>In this series</MiniTitle>
+  //       <div className="mt-xs space-y-xs">
+  //         <PostList items={collectionPosts} />
+  //       </div>
+  //     </div>
+  //   );
 
   return (
     <>
       <NextSeo
-        title={post.title}
-        description={post.metaDescription ?? post.description}
+        title={page.frontmatter.title}
+        description={page.frontmatter.description}
       />
 
       <PageRightSidebarLayout
         top={
           <PageBar
             items={[
-              { title: cat.title, href: `/${post.cat}` },
-              { title: post.title, href: `/${post.cat}/${post.slug}` },
+              { title: cat!.title, href: `/${cat?.slug}` },
+              { title: page.frontmatter.title, href: page!.href },
             ]}
-            sidebarSections={mobileSidebarSections}
-            fullWidth={!!collectionPosts}
+            // sidebarSections={mobileSidebarSections}
+            // fullWidth={!!collectionPosts}
           />
         }
-        title={`${post.draft ? "[DRAFT] " : ""}${post.title}`}
-        description={post.description}
-        date={formatDateFull(new Date(post.date))}
-        hasSidebar={!!post.links || post.showContents}
+        // TODO: draft?
+        title={`${page.frontmatter.title}`}
+        description={page.frontmatter.description}
+        date={formatDateFull(new Date(page.frontmatter.date))}
+        // hasSidebar={!!post.links || post.showContents}
+        hasSidebar={false}
         sidebar={
           <>
-            {post.links && <Links links={post.links} />}
-            {post.showContents && <TOC />}
+            {/* {post.links && <Links links={post.links} />}
+            {post.showContents && <TOC />} */}
           </>
         }
-        hasNavbar={!!collectionPosts}
-        collection={collection}
-        collectionPosts={collectionPosts}
+        // hasNavbar={!!collectionPosts}
+        hasNavbar={false}
+        // collection={collection}
+        // collectionPosts={collectionPosts}
       >
-        <article className="prose">
-          <MDX components={mdxComponents} />
-        </article>
+        <div className="prose">{renderedContent}</div>
         <div className="lg:hidden">
           <Spacer size="xl" />
-          {post.links && <Links links={post.links} />}
+          {/* {post.links && <Links links={post.links} />} */}
         </div>
-
-        {/* <Spacer size="3xl" /> */}
-        {/* <Spacer size="3xl" />
-        <section>
-          <MiniTitle>Related</MiniTitle>
-          <Spacer size="xs" />
-          <SimpleList items={relatedPostLinks} />
-        </section> */}
       </PageRightSidebarLayout>
     </>
   );

@@ -1,5 +1,6 @@
 @layer utilities {
-  .prose {
+  .prose,
+  .prose > article {
     @apply space-y-base leading-8 text-gray-darker;
 
     blockquote {
@@ -63,38 +64,6 @@
       color: #f8fafc;
     }
 
-    pre {
-      @apply overflow-x-scroll text-sm py-md rounded;
-      // @apply bg-gray-800 text-gray-100;
-      background-color: #1e293b;
-      color: #f1f5f9;
-    }
-    pre > code {
-      @apply grid;
-      .line {
-        @apply px-md;
-        &.highlighted {
-          @apply font-bold /* bg-gray-600 */ rounded;
-          background-color: #475569;
-        }
-
-        > .highlighted-word {
-          @apply /* bg-gray-600 */ -m-0.5 p-0.5 opacity-80 rounded;
-          background-color: #475569;
-        }
-      }
-
-      &[data-line-numbers] {
-        counter-reset: line;
-
-        & > .line::before {
-          counter-increment: line;
-          content: counter(line);
-          @apply mr-base;
-        }
-      }
-    }
-
     table {
       @apply border-collapse border rounded-md;
 
@@ -102,6 +71,32 @@
       th,
       td {
         @apply border p-1;
+      }
+    }
+
+    pre {
+      @apply overflow-x-scroll;
+      @apply p-5;
+      // @apply p-5;
+
+      .line.highlighted {
+        @apply -m-[0.21rem] p-[0.21rem] bg-gray-900 rounded;
+      }
+    }
+    .line-numbers {
+      code {
+        counter-reset: step;
+        counter-increment: step calc(var(--start, 1) - 1);
+        // --start is set in MarkdocFence
+      }
+      code .line::before {
+        content: counter(step);
+        counter-increment: step;
+        width: 1rem;
+        margin-right: 1.5rem;
+        display: inline-block;
+        text-align: right;
+        color: rgba(115, 138, 148, 0.4);
       }
     }
   }

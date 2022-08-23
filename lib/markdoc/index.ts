@@ -1,26 +1,22 @@
-import Markdoc, {
-  Config,
-  RenderableTreeNode,
-  ValidateError,
-} from "@markdoc/markdoc";
+import Markdoc, { Config } from "@markdoc/markdoc";
 import yaml from "js-yaml";
 import { Frontmatter } from "../content/frontmatter";
 import { readMarkdownFile } from "../file/read";
-import { image, MarkdocImage } from "./nodes/image";
+import { fence } from "./nodes/fence";
+import { image } from "./nodes/image";
 import { link } from "./nodes/links";
-import { div, MarkdocDiv } from "./tags/div";
+import { div } from "./tags/div";
 
 const config: Config = {
   nodes: {
     image,
     link,
+    fence,
   },
   tags: {
     div,
   },
 };
-
-const markdocComponents = { MarkdocImage, MarkdocDiv };
 
 export const markdocFromFile = (filepath: string) => {
   const source = readMarkdownFile(filepath).trim();
