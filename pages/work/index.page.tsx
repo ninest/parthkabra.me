@@ -1,29 +1,19 @@
-import { allWorks, Work } from "@/.contentlayer/generated";
 import { PageBar, PageTitleBanner, SmartLink, Spacer } from "@/components";
-import { sortByDate } from "@/lib/content";
-import { GetStaticProps } from "next";
+import { mdsToLinks } from "@/lib/content/markdown/transformers";
+import { getWorkPages, works } from "@/lib/content/markdown/work";
+import { LinkItem } from "@/types";
+
+import {
+  GetStaticProps,
+  GetStaticPropsContext,
+  InferGetStaticPropsType,
+} from "next";
 import { NextSeo } from "next-seo";
 
-// Subset of type work required for timeline
-type WorkSubset = Pick<
-  Work,
-  "slug" | "title" | "description" | "startDate" | "endDate"
->;
-
-export const getStaticProps: GetStaticProps = () => {
-  //@ts-ignore
-  const workPosts: WorkSubset[] = allWorks
-    .sort(
-      (a, z) =>
-        new Date(z.startDate).getTime() - new Date(a.startDate).getTime()
-    )
-    .map((work) => ({
-      slug: work.slug,
-      title: work.title,
-      description: work.description,
-      startDate: work.startDate,
-      endDate: work.endDate ?? null,
-    }));
+export const getStaticProps: GetStaticProps = ({
+  params,
+}: GetStaticPropsContext) => {
+  const workPosts: LinkItem[] = mdsToLinks(getWorkPages(works));
 
   return {
     props: {
@@ -32,7 +22,9 @@ export const getStaticProps: GetStaticProps = () => {
   };
 };
 
-const WorkListPage = ({ workPosts }: { workPosts: WorkSubset[] }) => {
+const WorkListPage = ({
+  workPosts,
+}: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
     <>
       <NextSeo
@@ -66,15 +58,15 @@ const WorkListPage = ({ workPosts }: { workPosts: WorkSubset[] }) => {
 
       <div className="space">
         <div className="ml-lg border-l-4 pl-2xl space-y-2xl">
-          {workPosts.map((work) => (
+          {workPosts.map((work: LinkItem) => (
             <SmartLink
-              key={work.slug}
-              href={`/work/${work.slug}`}
+              key={work.href}
+              href={work.href}
               className="block relative group"
             >
               <div className="absolute -left-[4.6rem] -top-3 mb-5 py-sm bg-light">
                 <div className="bg-primary-50 px-2 py-0.5 rounded-full text-sm">
-                  {new Date(work.startDate).getFullYear()}
+                  {work.date}
                 </div>
               </div>
               <h3 className="font-medium text-xl group-hover:underline">

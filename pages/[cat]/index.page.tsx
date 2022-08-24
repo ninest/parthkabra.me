@@ -1,4 +1,3 @@
-import { allPosts } from "@/.contentlayer/generated/index.mjs";
 import {
   PageBar,
   PageTitleBanner,
@@ -6,50 +5,46 @@ import {
   SmartLink,
   Spacer
 } from "@/components";
-import { allCats, Cat, CatName } from "@/content/map";
 import {
-  getPostLinks,
-  getPosts
-} from "@/lib/content";
-import { LinkItem } from "@/types";
-import type { GetStaticPaths, GetStaticProps } from "next";
+  cats,
+  getCat, getPostPages,
+  posts
+} from "@/lib/content/markdown/post";
+import { mdsToLinks } from "@/lib/content/markdown/transformers";
+import type {
+  GetStaticPaths, GetStaticPropsContext,
+  InferGetStaticPropsType
+} from "next";
 import { NextSeo } from "next-seo";
 
 export const getStaticPaths: GetStaticPaths = () => {
-  // Get all cats from posts and remove duplicates
-  const cats = [...new Set(allPosts.map((post) => post.cat))];
-  return {
-    paths: cats.map((cat) => `/${cat}`),
-    fallback: false,
-  };
+  const paths = cats.map((cat) => `/${cat.slug}`);
+  return { paths, fallback: false };
 };
 
-export const getStaticProps: GetStaticProps = ({ params }) => {
-  const catName = params!.cat as string as CatName;
-  const cat = allCats[catName];
+export const getStaticProps = ({ params }: GetStaticPropsContext) => {
+  const catName = params!.cat as string;
+  const cat = getCat(catName);
+  if (!cat) throw Error("Category not found");
 
-  const posts = getPosts(catName);
-  const postLinks = getPostLinks(posts);
+  const pageInfos = posts.filter((pageInfo) => pageInfo.slug[0] === catName);
+  const pages = getPostPages(pageInfos);
+  const pageLinks = mdsToLinks(pages);
 
   return {
-    props: { catName, cat, postLinks },
+    props: { cat, pageLinks },
   };
 };
 
 const CatPage = ({
-  catName,
   cat,
-  postLinks,
-}: {
-  catName: CatName;
-  cat: Cat;
-  postLinks: LinkItem[];
-}) => {
+  pageLinks,
+}: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
     <>
       <NextSeo title={cat.title} description={`${cat.title} related posts`} />
 
-      <PageBar items={[{ title: cat.title, href: `/${catName}` }]} />
+      <PageBar items={[{ title: cat.title, href: `/${cat.slug}` }]} />
 
       <Spacer size="xl" />
 
@@ -72,7 +67,7 @@ const CatPage = ({
 
       <div className="space">
         <section className="lg:w-4/6 xl:w-3/6 max-w-6xl">
-          <SimpleList items={postLinks} />
+          <SimpleList items={pageLinks} />
         </section>
       </div>
     </>

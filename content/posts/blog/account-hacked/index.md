@@ -1,11 +1,7 @@
 ---
 title: Improving Your Online Security
 description: Improving your online security and privacy
-# Putting on a digital face mask 
-
 date: 2021-05-27
-
-# icon: shield
 ---
 
 Do you use the same password across different sites? Have you ever received an email from yourself (somehow), where a hacker tries tries to extort money? Here are some ways to improve your online security.
@@ -22,13 +18,13 @@ Yes, it may be, but your password strength was never the issue. Obviously you sh
 
 You don't. Use a password manager.
 
-If you use only iOS, Mac, and Safari, use Apple's password manager, iCloud Keychain. Read more about it [here](https://support.apple.com/en-sg/HT204085). It's quite easy to use on your [iPhone](https://support.apple.com/en-us/HT211146) and [Mac](https://support.apple.com/en-us/HT211145). Safari will also [automatically suggest](https://www.google.com/search?q=safari+suggest+strong+password) (and store) strong passwords when you login.
+If you use only iOS, Mac, and Safari, use Apple's password manager, iCloud Keychain. Read more about it [here](https://support.apple.com/en-sg/HT204085). It's quite easy to use on your [iPhone](https://support.apple.com/en-us/HT211146) and [Mac](https://support.apple.com/en-us/HT211145). Safari will also [automatically suggest](https://www.google.com/search?q=safari+suggest+strong+password) and store strong passwords when you login.
 
 If you use only Chrome, use [Google's password manager](https://passwords.google.com/).
 
 If you use Firefox, use [Firefox Lockwise](https://www.mozilla.org/en-US/firefox/lockwise/).
 
-My personal suggestion is [**Bitwarden**](https://bitwarden.com/). It is free and open-source, has a mobile app, browser extension, and web interface, so I can access my passwords everywhere. I only need to keep one master password, which I have written down and kept in ██ ███ ██████.
+My personal suggestion is [Bitwarden](https://bitwarden.com/). It is free and open-source, has a mobile app, browser extension, and web interface, so I can access my passwords everywhere. I only need to keep one master password, which I have written down and kept in ██ ███ ██████.
 
 ## 2FA
 

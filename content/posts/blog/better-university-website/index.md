@@ -8,8 +8,6 @@ links:
     title: Husker
 ---
 
-import { images } from "./posts/blog/better-university-website/assets"
-
 ## The problem
 
 My university (Northeastern University) used to have this website called myNortheastern. It was pretty simple and easy to use, and contained a list of useful links and resources, such as Canvas, advising services, course registration, degree audit, printing services, and more. It was a list of links to other pages.
@@ -22,14 +20,14 @@ After being accepted, I was always getting overwhelmed by the number of links an
 
 I like to create websites, so using Google Sheets as a backend, I made a simple website:
 
-<Image {...images.neulinks} narrower border />
+![NEU Links](/images/blog/better-university-website/neulinks.png) {% .bordered %}
 
 And of course, it's mobile friendly too!
 
-<div className="flex space-x-xl md:w-4/6 m-auto">
-  <Image {...images.neulinksMobile} border />
-  <Image {...images.neulinksMobileFree} border />
-</div>
+{% div class="flex space-x-xl md:w-4/6 m-auto" %}
+![Mobile view](/images/blog/better-university-website/neulinksMobile.png) {% .bordered %}
+
+![Mobile view](/images/blog/better-university-website/neulinksMobileFree.png) {% .bordered %}
+{% /div %}
 
 It's not the best website, but it works, and people seem to like it! I'm gonna continue working on this and make small improvements here and there.
-

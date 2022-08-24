@@ -25,7 +25,7 @@ const SimpleListItem = ({ listItem }: { listItem: LinkItem }) => {
         {listItem.title}
       </div>
       <div className="flex-none text-gray-light tabular-nums">
-        {listItem.right}
+        {listItem.date}
       </div>
     </>
   );

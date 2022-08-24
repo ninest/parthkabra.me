@@ -40,3 +40,23 @@ console.log("Reached here")
 a++
 return a + 10
 ```
+
+## Alerts, or expandables to be precise
+
+Below is an alert:
+
+{% alert title="First alert" %}
+Hello
+{% /alert %}
+
+## Divs
+
+Sometimes, I just want a nice looking div. Here's one:
+
+{% div class="p-5 rounded-xl text-black bg-dark text-light" %}
+This is an interesting div!
+{% /div %}
+
+## Links
+
+Do [links](/blog) work?

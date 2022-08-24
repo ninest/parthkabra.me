@@ -26,6 +26,9 @@ export const cats: CatInfo[] = [
   { slug: "javascript", title: "JavaScript" },
 ];
 
+export const getCat = (catName: string) =>
+  cats.find((cat) => cat.slug === catName);
+
 export const posts: MarkdownPageInfo[] = [
   { slug: ["blog", "first"] },
   { slug: ["blog", "account-hacked"] },

@@ -1,5 +1,3 @@
-import { Work } from "@/.contentlayer/generated";
-import { allWorks } from "@/.contentlayer/generated/index.mjs";
 import {
   Links,
   mdxComponents,
@@ -9,76 +7,98 @@ import {
   TOC,
 } from "@/components";
 import { PageRightSidebarLayout, RightSidebarLayout } from "@/layouts";
+import { getWorkPage, works } from "@/lib/content/markdown/work";
 import { startEndYear } from "@/lib/date";
-import type { GetStaticPaths, GetStaticProps } from "next";
-import { useMDXComponent } from "next-contentlayer/hooks";
+import { markdocComponents } from "@/lib/markdoc/components";
+import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
+import Markdoc from "@markdoc/markdoc";
+import type {
+  GetStaticPaths,
+  GetStaticProps,
+  GetStaticPropsContext,
+  InferGetStaticPropsType,
+} from "next";
+
 import { NextSeo } from "next-seo";
 import Link from "next/link";
+import React from "react";
 
 export const getStaticPaths: GetStaticPaths = () => {
   return {
-    paths: allWorks.map((post) => `/work/${post.slug}`),
+    paths: works.map((post) => `/work/${post.slug[0]}`),
     fallback: false,
   };
 };
 
-export const getStaticProps: GetStaticProps = ({ params }) => {
+export const getStaticProps = ({ params }: GetStaticPropsContext) => {
   const workSlug = params!.slug as string;
+
+  const page = getWorkPage({ slug: [workSlug] });
 
   return {
     props: {
-      work: allWorks.find((work) => `${work.slug}` == workSlug),
+      serializedPage: serializeMarkdownPage(page),
     },
   };
 };
 
-const WorkPage = ({ work }: { work: Work }) => {
-  const MDX = useMDXComponent(work.body.code);
+const WorkPage = ({
+  serializedPage,
+}: InferGetStaticPropsType<typeof getStaticProps>) => {
+  const page = parseMarkdownPage(serializedPage);
 
-  const sidebarSections = [
-    <Links key={1} links={[{ href: work.website, title: "Website" }]} />,
-  ];
-  if (work.projects)
-    sidebarSections.push(<Links title="Projects" links={work.projects} />);
-  if (work.showContents) sidebarSections.push(<TOC />);
+  const renderedContent = Markdoc.renderers.react(page.content, React, {
+    components: markdocComponents,
+  });
+
+  // const sidebarSections = [
+  //   <Links key={1} links={[{ href: work.website, title: "Website" }]} />,
+  // ];
+  // if (work.projects)
+  //   sidebarSections.push(<Links title="Projects" links={work.projects} />);
+  // if (work.showContents) sidebarSections.push(<TOC />);
 
   return (
     <>
-      <NextSeo title={work.title} description={work.description} />
+      <NextSeo
+        title={page.frontmatter.title}
+        description={page.frontmatter.description}
+      />
 
       <PageRightSidebarLayout
         top={
           <PageBar
             items={[
               { title: "Work", href: `/work` },
-              { title: work.title, href: `/work/${work.slug}` },
+              { title: page.frontmatter.title, href: page.href },
             ]}
-            sidebarSections={sidebarSections}
-          ></PageBar>
+            // sidebarSections={sidebarSections}
+          />
         }
-        title={work.title}
-        description={work.description}
+        title={page.frontmatter.title}
+        description={page.frontmatter.title}
         date={
           <>
-            {work.location}
-            {" · "}
+            {page.frontmatter.location},{" "}
             {startEndYear({
-              start: new Date(work.startDate),
-              end: work.endDate ? new Date(work.endDate) : undefined,
+              start: new Date(page.frontmatter.startDate!),
+              end: page.frontmatter.endDate
+                ? new Date(page.frontmatter.endDate)
+                : undefined,
             })}
           </>
         }
         hasNavbar={false}
-        hasSidebar={true}
-        sidebar={
-          <>
-            <Links links={[{ href: work.website, title: "Website" }]} />
-            {work.projects && <Links title="Projects" links={work.projects} />}
-            {work.showContents && <TOC />}
-          </>
-        }
+        hasSidebar={false}
+        // sidebar={
+        //   <>
+        //     <Links links={[{ href: work.website, title: "Website" }]} />
+        //     {work.projects && <Links title="Projects" links={work.projects} />}
+        //     {work.showContents && <TOC />}
+        //   </>
+        // }
       >
-        <div className="lg:hidden">
+        {/* <div className="lg:hidden">
           {work.projects && (
             <>
               <MiniTitle>Links</MiniTitle>
@@ -86,10 +106,8 @@ const WorkPage = ({ work }: { work: Work }) => {
             </>
           )}
           <Spacer size="lg" />
-        </div>
-        <article className="prose">
-          <MDX components={mdxComponents} />
-        </article>
+        </div> */}
+        <article className="prose">{renderedContent}</article>
       </PageRightSidebarLayout>
     </>
   );

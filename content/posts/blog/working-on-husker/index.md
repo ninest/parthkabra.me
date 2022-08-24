@@ -8,24 +8,21 @@ links:
     title: Husker
 ---
 
-import { images } from "./posts/blog/working-on-husker/assets"
-
-
 ## Next steps
 
-I wanted there to be more content on the site. It's not only links and resources that people need, but personal experiences too. There are many small buts of useful information you will only find on forums like Reddit, or by actually talking to seniors. The website I created was really only meant to display a some links and a few smaller pages. 
+I wanted there to be more content on the site. It's not only links and resources that people need, but personal experiences too. There are many small buts of useful information you will only find on forums like Reddit, or by actually talking to seniors. The website I created was really only meant to display a some links and a few smaller pages.
 
-The website needed a refresh. Not only did it need to have a list of links and resources, but also a space for text content, pages, and other similar pages. 
+The website needed a refresh. Not only did it need to have a list of links and resources, but also a space for text content, pages, and other similar pages.
 
-## *Husker*
+## _Husker_
 
 I spent 2-3 days in the winter break after my semester rewriting the entire the website. There are various changes from the first version.
 
-<Image {...images.mainLight} border />
+![Light mode mai](/images/blog/working-on-husker/main-light.png) {% .bordered %}
 
 ### Sidebar
 
-The sidebar is always present on the desktop view. I thought that this would make it easier to navigate around the website. The first version of the site had a top navigation bar. I was originally going for that in the redesign too, but there were too many links to add. 
+The sidebar is always present on the desktop view. I thought that this would make it easier to navigate around the website. The first version of the site had a top navigation bar. I was originally going for that in the redesign too, but there were too many links to add.
 
 I also wanted to add "highlighted" links, which would be resources or links accessed often by students. At the start of the spring semester of 2022, every student was required to take a COVID-19 test every week. I thought that it would be incredibly convenient to have the link to schedule a test on the sidebar, always in view.
 
@@ -34,6 +31,12 @@ I also wanted to add "highlighted" links, which would be resources or links acce
 
   <p> On the mobile view of the website, there is a top navigation bar, and the sidebar is hidden behind a menu button. I did not plan to have this navbar on mobile, but at the same I did want "highlighted" links to always be in view.</p>
 </div>
+
+{% div class="flex space-x-lg" %}
+![Mobile light view](/images/blog/working-on-husker/mobile-light.png) {% .bordered %}
+
+On the mobile view of the website, there is a top navigation bar, and the sidebar is hidden behind a menu button. I did not plan to have this navbar on mobile, but at the same I did want "highlighted" links to always be in view.
+{% /div %}
 
 ### Links
 
@@ -51,10 +54,11 @@ I have purposely tried to make the UI as simple and forgettable as possible. For
 
 Also, there's dark mode!
 
-<div className="flex space-x-lg">
-  <Image {...images.mainDark} border />
-  <Image {...images.mobileDark} border />
-</div>
+{% div class="flex space-x-lg" %}
+![Main dark mode](/images/blog/working-on-husker/main-dark.png) {% .bordered %}
+
+![Mobile dark mode](/images/blog/working-on-husker/mobile-dark.png) {% .bordered %}
+{% /div %}
 
 ### Contribute form
 
@@ -62,13 +66,12 @@ Anyone with a suggestion for a link or resources can fill out the [contribute fo
 
 This form is actually a Google Form in disguise ([read how I did it](https://www.parthkabra.me/html/google-forms-embed)). I was going to make database in Firebase, but that was too much work for such a simple form.
 
-<Alert title="What does Husker mean?">
-Nothing. 
+{% alert title="What does Husker mean?" %}
+Nothing.
 
-I didn't like the first name "NEU Links" and was trying to think of a new one before redesigning the site. I thought name is *something husky*.
+I didn't like the first name "NEU Links" and was trying to think of a new one before redesigning the site. I thought name is _something husky_.
 
-I wanted to keep the site title as *Husky* temporary, but I ended up typing *Husker* instead somehow. I liked how it looked so I left it. 
+I wanted to keep the site title as _Husky_ temporary, but I ended up typing _Husker_ instead somehow. I liked how it looked so I left it.
 
-When I pushed it, I kind of forgot about it until a friend called in Husker, and it just stuck. 
-
-</Alert>
+When I pushed it, I kind of forgot about it until a friend called in Husker, and it just stuck.
+{% /alert %}

@@ -37,11 +37,11 @@ iTrust was the first project we worked on, a management application for transpor
 
 ## MT-RAC Plus
 
-<Alert>
+{% alert %}
 
 MT-RAC Plus (Military Transport Risk Assessment Checklist Plus) is an application that digitalizes checklists for drivers in the army. Its aims were to reduce the amount of paper wastage and make the process of getting approval from officers and commanders easier.
 
-</Alert>
+{% /alert %}
 
 ### Tech stack
 
@@ -57,12 +57,11 @@ Our project supervisors had mentioned that this project had to be up and running
 
 The UI had to be very simple as it was competing against pen and paper. I do think that the interface achieved the purpose of being simple: there are no unnecessary colors. In fact, if you use the application, you will realize that the interface is very "forgettable". This is indeed by design.
 
-import { images } from './work/saf/assets';
+{% div class="flex space-x-base md:w-4/6 m-auto" %}
+![MTRAC login](/images/work/saf/mtrac-login.png) {% .bordered %}
 
-<div className="flex space-x-base md:w-4/6 m-auto">
-  <Image {...images.mtracLogin} border />
-  <Image {...images.mtracCreate} border />
-</div>
+![MTRAC create form](/images/work/saf/mtrac-create.png) {% .bordered %}
+{% /div %}
 
 ### Database
 
@@ -82,34 +81,36 @@ If I were to work on this project again, I would certainly look into domain-driv
 
 ## HLS App
 
-<Alert>
+{% alert %}
 Some companies in the army complete HLS (Healthy Life Style) a few times a week. It is a physical training conduct.
 
 The HLS App serves as a music and recordings app for these conducts.
-</Alert>
+{% /alert %}
 
 Thrice a week, certain companies in our battalion would have HLS conducts. In these conducts, one of the commanders would read out the exercises and count. Similarly, For the run, they would read out timings such as "20 minutes remaining" or "5 minutes remaining"
 
-<div className="flex space-x-base md:w-4/6 m-auto">
-  <Image {...images.hlsZero} border />
-  <Image {...images.hlsOne} border />
-</div>
+{% div class="flex space-x-base md:w-4/6 m-auto" %}
+![HLS](/images/work/saf/hls-0.png) {% .bordered %}
+
+![HLS](/images/work/saf/hls-1.png) {% .bordered %}
+{% /div %}
 
 I had first worked with audio and recordings with [Holt Soundboard](/project/ninenine). This project, however, was more challenging as it involved overlaying audio and creating an interface for controlling music.
 
 I also learned about the [Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API), which I used to keep the screen awake while audio is playing. However, certain browsers (older browsers or desktop browsers) do not support this API, so I ensured that the user is notified about it:
 
-<div className="w-4/6 md:w-3/6 max-w-3xl">
-<Image {...images.hlsWL} />
-</div>
+
+{% div class="w-4/5 md:w-4/6" %}
+![HLS Wake Lock alert](/images/work/saf/hls-wakelock.png)
+{% /div %}
 
 ## IPPT App
 
-<Alert>
+{% alert %}
 IPPT (Individual Physical Proficiency Test) is the fitness test for the Singapore Army. It consists of three stations: situps, pushups, and 2.4 km (1.5 mi) running.
 
 The aim of the IPPT app is to record and store IPPT station results and allow servicemen to view their scores.
-</Alert>
+{% /alert %}
 
 For this application, we created an NPM package [`ippt-utils`](/project/ippt-utils) which is used to calculate IPPT scores based on the serviceman's age, number of situps, pushups, and running time.
 

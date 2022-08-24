@@ -13,6 +13,7 @@ export const image = {
     const attributes = node.transformAttributes(config);
     const children = node.transformChildren(config);
 
+
     try {
       const result = sizeOf(`public/${attributes.src}`);
       const { width, height } = result;
@@ -22,4 +23,3 @@ export const image = {
     }
   },
 };
-

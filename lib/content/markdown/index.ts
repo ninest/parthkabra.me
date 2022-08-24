@@ -17,7 +17,7 @@ export type HrefFunction = (
 ) => string;
 
 const defaultHrefFn: HrefFunction = (folder, pageInfo) =>
-  pageInfo.slug.join("/");
+  "/" + folder + "/" + pageInfo.slug.join("/");
 
 interface GetMarkdownPageParams {
   folder: string;

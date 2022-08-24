@@ -38,13 +38,6 @@ export const getStaticProps = ({ params }: GetStaticPropsContext) => {
   };
 };
 
-// interface Props {
-//   cat: Cat;
-//   post: Post;
-//   collection?: Collection;
-//   collectionPosts?: LinkItem[];
-//   relatedPostLinks: LinkItem[];
-// }
 
 const PostPage = ({
   cat,
@@ -91,7 +84,7 @@ const PostPage = ({
         // TODO: draft?
         title={`${page.frontmatter.title}`}
         description={page.frontmatter.description}
-        date={formatDateFull(new Date(page.frontmatter.date))}
+        date={formatDateFull(new Date(page.frontmatter.date!))}
         // hasSidebar={!!post.links || post.showContents}
         hasSidebar={false}
         sidebar={

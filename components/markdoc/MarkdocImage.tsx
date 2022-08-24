@@ -22,7 +22,7 @@ export const MarkdocImage = ({
           alt={alt}
           width={width}
           height={height}
-          className="md:rounded bg-gray-lightest dark:bg-gray-darkest"
+          className="bg-gray-lightest dark:bg-gray-darkest"
         />
       </span>
     );

@@ -25,10 +25,10 @@ export const Alert = ({
   };
 
   const classNames = clsx(
-    "p-base rounded -m-1",
+    "p-base rounded-lg -m-1",
     {
       "bg-primary-lightest": variant == "primary",
-      "bg-gray-200": variant == "gray",
+      "bg-gray-100": variant == "gray",
       "bg-warning-light": variant == "warning",
     },
     props.className

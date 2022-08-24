@@ -50,6 +50,15 @@
       @apply absolute -mx-sm w-3/6;
     }
 
+    // Images
+    // The span contains the image, and .narrower/.border are the <p> classes
+    .narrower > span {
+      @apply rounded-md md:w-4/6 m-auto overflow-hidden;
+    }
+    .bordered > span {
+      @apply rounded-md border border-gray-200 overflow-hidden;
+    }
+
     // Code, not pre
     :not(pre) > code {
       @apply bg-gray-100 text-gray-700 text-sm;
@@ -89,7 +98,8 @@
         counter-increment: step calc(var(--start, 1) - 1);
         // --start is set in MarkdocFence
       }
-      code .line::before {
+      // TODO: shiki seems to add an empty line at the end
+      code .line:not(:last-child)::before {
         content: counter(step);
         counter-increment: step;
         width: 1rem;
