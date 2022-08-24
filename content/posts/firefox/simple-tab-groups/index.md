@@ -8,10 +8,6 @@ links:
     title: Simple Tab Groups Extension
 ---
 
-import { Icon } from "@/components/Icon"
-import { CgMenuGridR } from "react-icons/cg"
-import { images } from "./posts/firefox/simple-tab-groups/assets"
-
 Managing tabs is difficult. I used to use a separate Desktop (Space) for entertainment and different courses. Each of these desktops had a Firefox window with their own tabs. While this worked, it was difficult to manage so many desktops. Additionally, keeping so many windows and tabs open really slowed down my computer.
 
 Simple Tab Groups (STG for short) can help solve this problem.
@@ -22,21 +18,21 @@ First, download the [Simple Tab Groups Extension](https://addons.mozilla.org/en-
 
 After installing, go to the settings page (`about:preferences`) and select "Open previous windows and tabs". Note that this setting has changed from "Restore previous session" to "Open previous windows and tabs".
 
-Your browser should look like this with the STG button (<Icon icon={CgMenuGridR} className="inline" />) on the top right.
+Your browser should look like this with the STG button on the top right.
 
-<Image {...images.afterInstall} border narrower />
+![After install](/images/firefox/simple-tab-groups/install.png) {% .bordered .narrower %}
 
-Click the STG button <Icon icon={CgMenuGridR} className="inline" /> on the top right and you should see the menu. There should be three options:
+Click the STG button on the top right and you should see the menu. There should be three options:
 
 1. Create new group
 2. Show other tabs
 3. Manage groups
 
-<Image {...images.menu} narrower />
+![Menu](/images/firefox/simple-tab-groups/menu.png) {% .narrower %}
 
 By default, there will be no tab groups. If you have any other tabs open, they will be available under "Other tabs". For example:
 
-<Image {...images.otherTabs} narrower />
+![Other tabs](/images/firefox/simple-tab-groups/otherTabs.png) {% .narrower %}
 
 The YouTube and Google tabs are not a part of any tab group, so they are under "Other tabs".
 
@@ -46,13 +42,15 @@ To create a group, click on the "Create new group" button and give the group a n
 
 I am going to make a group for "Entertainment", which will contain websites such as YouTube and Netflix. Clicking on the STG button will now show that there is one tab group:
 
-<Image {...images.newGroup} narrower />
+![new group](/images/firefox/simple-tab-groups/newGroup.png) {% .narrower %}
+
 
 Note the "0" on the right of the Entertainment tab group. This means that there are no tabs in this group right now. The group has also been given a default icon, which can be seen on the left side of "Entertainment".
 
 To switch to this tab group, click on "Entertainment". This should clear the tabs in the window and show this notification:
 
-<Image {...images.hidden} narrower />
+![hidden](/images/firefox/simple-tab-groups/hidden.png) {% .narrower %}
+
 
 Click on "Keep Tabs Hidden".
 
@@ -60,7 +58,8 @@ We are now in the Entertainment group. You can confirm this in two ways.
 
 The STG extension icon has now changed to the Entertainment tab group icon:
 
-<Image {...images.newIcon} narrower />
+![New](/images/firefox/simple-tab-groups/newIcon.png) {% .narrower %}
+
 
 Clicking on this icon will show the Entertainment button highlighted.
 
@@ -70,7 +69,8 @@ Open YouTube, Netflix, or any other tabs.
 
 Similar to the Entertainment, let's create a group for Work, and open sites like Google Docs, and Mail:
 
-<Image {...images.workGroup} narrower />
+![work group](/images/firefox/simple-tab-groups/workGroup.png) {% .narrower %}
+
 
 Now try switching to the Entertainment tab group. You will see that YouTube and Netflix are open, while Mail and Google Docs are gone.
 
@@ -80,14 +80,12 @@ I personally find this very powerful as it is easy to work on multiple things wi
 
 ### Changing Icons
 
-import { FaChevronRight } from "react-icons/fa"
-import { HiCog } from "react-icons/hi"
+To change the icon of the Entertainment group, click on the STG icon, then click on the "right" button.
 
-To change the icon of the Entertainment group, click on the STG icon, then click on the "<Icon icon={FaChevronRight} className="inline" />" button.
+![group settngs](/images/firefox/simple-tab-groups/groupSettings.png) {% .narrower %}
 
-<Image {...images.groupSettings} narrower />
 
-Open settings by clicking on the "<Icon icon={HiCog} className="inline" />" button.
+Open settings by clicking on the settings/cog button.
 
 You can now set the icon.
 
@@ -95,19 +93,22 @@ You can now set the icon.
 
 ### Tab discarding
 
-To open the settings for the extension, click on the STG icon then click on the "<Icon icon={HiCog} className="inline" />" on the bottom right:
+To open the settings for the extension, click on the STG icon then click on the "cog/settings" on the bottom right:
 
-<Image {...images.settingsCog} narrower />
+![settingsCog](/images/firefox/simple-tab-groups/settingsCog.png) {% .narrower %}
+
 
 I personally recommend enabling the setting "Discard tabs after hide (this will save RAM)". When you switch from one group to another, the tabs of the inactive group will be "disabled" (not closed). When you switch back to that group, the disabled tabs will be re-enabled. This saves memory by putting tabs to sleep when they're not in use.
 
 ### Tab overview home page
 
-To see a page with an overview of all tabs, click on the STG button (<Icon icon={CgMenuGridR} className="inline" />) button, then click on the "<Icon icon={CgMenuGridR} className="inline" /> Manage Groups button at the bottom".
+To see a page with an overview of all tabs, click on the STG button button, then click on the "Manage Groups" button at the bottom.
 
 This should open a page that looks like this:
 
-<Image {...images.overview}  />
+![![Menu](/images/firefox/simple-tab-groups/menu.png) {% .narrower %}
+](/images/firefox/simple-tab-groups/overview.png) 
+
 
 This page is useful for viewing all your tabs at a glance, so I like to set it as the "new tab page" so that I can see it whenever I open a new Firefox window.
 
@@ -117,4 +118,4 @@ Then open Firefox Settings > Home > New Window and tabs. Set "Homepage and new w
 
 When complete, your settings should look something like this:
 
-<Image {...images.settings}  />
+![settings](/images/firefox/simple-tab-groups/settings.png) {% .narrower %}

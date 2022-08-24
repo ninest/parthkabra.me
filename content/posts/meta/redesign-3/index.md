@@ -14,34 +14,35 @@ links:
     title: My 2022 website
 ---
 
-import { images } from "./posts/meta/redesign-3/assets"
-
 Despite not using my website for all that much other than listing projects, work experience, and handful of blog posts, I'm always redesigning and rewriting it. In fact, I have rewritten it **thrice** since I first made it in 2020!
 
 With the current design, I hope to write more blog posts and share interesting things I find.
 
 ## 2020
 
-<Image {...images.main20} border />
-<Image {...images.project20} border />
+![Main 20](/images/meta/redesign/2020-main.png) {% .bordered %}
+
+![project 20](/images/meta/redesign/2020-project.png) {% .bordered %}
 
 ## 2021
 
-<Image {...images.main21} border />
-<Image {...images.project21} border />
+![Main 21](/images/meta/redesign/2021-main.png) {% .bordered %}
 
-## 2022 
+![project 21](/images/meta/redesign/2020-project.png) {% .bordered %}
 
+## 2022
 
-<Image {...images.main22} border />
-<Image {...images.project22} border />
+![Main 22](/images/meta/redesign/2022-main.png) {% .bordered %}
+
+![project 22](/images/meta/redesign/2022-project.png) {% .bordered %}
 
 ## Current
 
 This is the current version as of the publishing date of this post.
 
-<Image {...images.main} border />
-<Image {...images.project} border />
+![Main](/images/meta/redesign/2022a-main.png) {% .bordered %}
+
+![Project](/images/meta/redesign/2022a-project.png) {% .bordered %}
 
 If you're interested, you can also [read about my 2021 redesign](/meta/redesign). You might also notice that there's no post for my second redesign. That's because it didn't last very long.
 

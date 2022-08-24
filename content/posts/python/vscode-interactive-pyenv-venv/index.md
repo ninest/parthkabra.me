@@ -31,7 +31,7 @@ Confirm that this is working by checking your Python version with `python -V`, a
 You can also create a file `.python-version` at the root of your project with the path to the virtualenv:
 
 
-```txt title=".python-version"
+```txt {% title=".python-version" %}
 3.9.5/envs/project-venv
 ```
 
@@ -63,7 +63,7 @@ and run it with `shift+enter`.
 
 To list out all versions and virtualenvs with pyenv, run `pyenv versions`. At the bottom, we should see the virtualenv we created:
 
-```bash title="pyenv versions"
+```bash {% title="pyenv versions" %}
 ...
   system
   ...

@@ -15,6 +15,6 @@ By default, there's only one profile on Firefox. To create a new one, open Firef
 
 Click on "Create a New Profile" and follow the steps. Once it's created, you can launch it by clicking "Launch Profile in new browser".
 
-<Alert>
+{% alert %}
 If you use multiple accounts for a website, it is simpler to use [Firefox's Mutli-Account Containers](https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/).
-</Alert>
+{% /alert %}

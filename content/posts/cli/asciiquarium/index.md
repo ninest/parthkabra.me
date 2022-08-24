@@ -17,6 +17,4 @@ Once installed, restart your terminal and run
 asciiquarium
 ```
 
-import one from './posts/cli/asciiquarium/images/one.png'
-
-<Image src={one} width={1532} height={1060} />
+![Asciiquarium](/images/cli/asciiquarium/one.png)

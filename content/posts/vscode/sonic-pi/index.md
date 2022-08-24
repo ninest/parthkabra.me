@@ -33,17 +33,17 @@ Once installed, **open the Sonic Pi** app and enter the following in your Termin
 sonic_pi play 50
 ```
 
-<Alert variant="warning" title="ERROR: Sonic Pi is not listening on 4557 - is it running?">
+{% alert variant="warning" title="ERROR: Sonic Pi is not listening on 4557 - is it running?" %}
 
 If you get this error, it means the Sonic Pi is not open. Open the app, then try the command again.
 
-</Alert>
+{% /alert %}
 
 ## 2. Use sonic-pi-cli to play music from a ruby file
 
 Create a file with the `.rb` extension with some Sonic Pi Ruby code, for example:
 
-```ruby title="music.ruby"
+```ruby {% title="music.ruby" %}
 play :E4
 ```
 
@@ -61,11 +61,11 @@ sonic_pi stop
 
 At this stage, we can already use VSCode. However, it is quite inconvenient to type `sonic_pi stop` and `cat music.rb | sonic_pi` every time we make a change.
 
-<Alert compact variant="primary" title="What does the '|' character mean?">
+{% alert variant="primary" title="What does the '|' character mean?" %}
 
 `|` is the pipe operator. In short, it passes the output of one command (`cat music.rb`) to another (`sonic_pi`). Read more here: [piping in Unix or Linux](https://www.geeksforgeeks.org/piping-in-unix-or-linux/).
 
-</Alert>
+{% /alert %}
 
 ## 3. Configuring keyboard shortcuts
 
@@ -75,7 +75,7 @@ VSCode makes it easy to create to run `sonic_pi stop` and `cat music.rb | sonic_
 
 All VSCode tasks are stored in `tasks.json`. Top open this file, enter the command ">Tasks: Open user tasks" in the command palette, and you should see a file like this:
 
-```json title="tasks.json"
+```json {% title="tasks.json" %}
 {
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
@@ -93,7 +93,7 @@ Both are of type `shell`. We also have to give them unique labels so we can refe
 
 Add the tasks like this:
 
-```json title="tasks.json"
+```json {% title="tasks.json" %}
 {
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
@@ -120,11 +120,9 @@ Add the tasks like this:
 
 We need to add keybindings to run these tasks.
 
-import {VscGoToFile} from 'react-icons/vsc'
+Open `keybindings.json` with the keyboard shortcut `cmd-K cmd-s`. Click the button on the top right ("go to file" button) to open the file in JSON. It should look something like this:
 
-Open `keybindings.json` with the keyboard shortcut `cmd-K cmd-s`. Click the button on the top right (<VscGoToFile className="inline" />) to open the file in JSON. It should look something like this:
-
-```json title="keybindings.json"
+```json {% title="keybindings.json" %}
 // Place your key bindings in this file to override the defaults
 [
   // ..
@@ -137,7 +135,7 @@ To bind a keyboard shortcut to a task, we have to set its `command` to `workbenc
 
 I am going to use `ctrl-alt-S` to play (`sp-run`) and `ctrl-alt-A` to stop (`sp-stop`).
 
-```json title="keybindings.json"
+```json {% title="keybindings.json" %}
 // Place your key bindings in this file to override the defaults
 [
   // ..
@@ -162,7 +160,7 @@ I am going to use `ctrl-alt-S` to play (`sp-run`) and `ctrl-alt-A` to stop (`sp-
 
 To make sure this works, add the following to your `music.rb`:
 
-```ruby title="music.rb"
+```ruby {% title="music.rb" %}
 live_loop :main do
   play :E4
   sleep 1
@@ -181,7 +179,7 @@ Terminal will be reused by tasks, press any key to close it.
 
 If it works, try making a change. For example:
 
-```ruby title="music.rb"
+```ruby {% title="music.rb" %}
 live_loop :main do
   play :C4 # <- changed
   sleep 1

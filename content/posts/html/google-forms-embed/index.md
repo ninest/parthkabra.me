@@ -4,8 +4,6 @@ description: Unlimited form submissions for free!
 date: 2021-05-29
 ---
 
-import { images } from "./posts/html/google-forms-embed/assets"
-
 Google Forms lets us embed forms in our website, but we cannot customize the styling. Today we'll learn how to submit a Google Form from a `<form>` in our HTML.
 
 While it's always been possible to embed Google Forms into your website, we're not able to change the styling to match that of our website.
@@ -17,11 +15,11 @@ Before we get into the tutorial, you might be wondering why you'd want to embed 
 
 If you do not want to do this, you can always work with Google App Scripts and Sheets.
 
-<Alert title="This guide may look complex ...">
+{% alert %}
 
-But trust me, once you do it once, it's quite simple to do, really!
+This may look complex, but trust me, once you do it once, it's quite simple to do, really!
 
-</Alert>
+{% /alert %}
 
 ## 1. Create your form
 
@@ -36,27 +34,19 @@ In this example, I'm going to create a simple contact form which has four fields
 
 The Google form looks like this:
 
-
-<Image {...images.gForm} />
+  ![Google form](/images/html/google-forms-embed/g-form.png)
 
 At this stage, it is possible to directly embed the form in your website using an `iframe`. You can get the the code to do so by pressing the "**Send**" button:
 
-
-
-<Image {...images.send} />
+![send](/images/html/google-forms-embed/send.png)
 
 While this may be fine, it may look out of place depending on the design of your website. We can do better.
 
 ## 2. Find the form's submission URL
 
-import { AiOutlineEye } from "react-icons/ai"
-import { Icon } from "@/components/Icon"
+First, find the link to your form. Do this by clicking on the "**Preview**" button:
 
-First, find the link to your form. Do this by clicking on the "**Preview**" button (<Icon icon={AiOutlineEye} />)
-
-
-
-<Image {...images.preview} />
+![preview](/images/html/google-forms-embed/preview.png)
 
 In my case, the URL of the form is https://docs.google.com/forms/d/e/1FAIpQLSdQpUznw-tN64bOSBZejxeoyNTiqeofS_Oh6NZjmVCGqXixAA/viewform.
 
@@ -144,9 +134,6 @@ There are five options in the rating (1 being the worst, 5 being the best). Five
 
 Now put all these inside the form.
 
-<details>
-<summary>Click here to see the full form.</summary>
-
 ```html
 <form
   action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSdQpUznw-tN64bOSBZejxeoyNTiqeofS_Oh6NZjmVCGqXixAA/formResponse"
@@ -205,8 +192,6 @@ Now put all these inside the form.
 
 I'm using sections to make it easier to understand.
 
-</details>
-
 But we can't submit the form just yet. For each input or textarea, we need to find the form's `name` property.
 
 ## 4. Finding each input's name
@@ -219,9 +204,7 @@ Open the form again, the view the page's source (`cmd-alt-U` on Mac). Press `cmd
 
 You will see something like this:
 
-
-
-<Image {...images.source} />
+![Source](/images/html/google-forms-embed/source.png)
 
 The first part is important:
 
@@ -272,7 +255,7 @@ I'm going to put it here again, but with only the useful information. I'm going 
 
 What have I done here? Just take the string, and keep the 10 digit number found **_after_** it.
 
-<Alert title="How exactly do you get the Entry IDs?">
+{% alert title="How exactly do you get the Entry IDs?" %}
 
 Let's the take the first line as an example:
 
@@ -289,7 +272,7 @@ So we get this Entry ID:
 "Name" 1703190952
 ```
 
-</Alert>
+{% /alert %}
 
 Can you see the pattern? **All strings are the field names on Google Forms**. Note that the 5 strings under "Ratings" are the checkbox options (1 through 5).
 
@@ -314,7 +297,7 @@ The get the input's `name` property, add `entry.` at the start of the Entry ID, 
 
 So the label and input looks like this now:
 
-```html /1703190952/
+```html {% highlightedLines=[2] %}
 <label for="name">Name</label>
 <input name="entry.1703190952" type="text" id="name" required />
 <!--               ^ Entry ID added               -->
@@ -322,7 +305,7 @@ So the label and input looks like this now:
 
 Let's do the same for the Message field. The Entry ID is `246314205`, so the label and textarea should look like this:
 
-```html /246314205/
+```html {% highlightedLines=[2] %}
 <label for="message">Message</label>
 <textarea name="entry.246314205" id="message" required></textarea>
 <!--                  ^ Entry ID added                  -->
@@ -330,7 +313,7 @@ Let's do the same for the Message field. The Entry ID is `246314205`, so the lab
 
 You can do the same with the phone number to get
 
-```html /1350082266/
+```html {% highlightedLines=[2] %}
 <label for="ph-number">Phone number</label>
 <input name="entry.1350082266" type="number" id="ph-number" />
 <!--               ^ Entry ID added               -->
@@ -338,7 +321,7 @@ You can do the same with the phone number to get
 
 Last, we have the radio checkbox for Rating. The Entry ID is `1093513613`, so we have to add `name="entry.1093513613` to all the inputs:
 
-```html /1093513613/
+```html {% highlightedLines=[4, 10] %}
 <p class="label">Rating</p>
 
 <div>
@@ -357,8 +340,7 @@ Last, we have the radio checkbox for Rating. The Entry ID is `1093513613`, so we
 ...
 ```
 
-<details>
-<summary>Putting the completed form together, we get this (click to reveal)</summary>
+Putting the completed form together, we get this:
 
 ```html
 <form
@@ -413,23 +395,17 @@ Last, we have the radio checkbox for Rating. The Entry ID is `1093513613`, so we
 </form>
 ```
 
-</details>
-
 ## 5. Testing it out
 
 Let's try it out:
 
-
-
-<Image {...images.formTest} />
+![form test](/images/html/google-forms-embed/form-test.png)
 
 Hit **Submit**.
 
 Now go to the **Responses** section in your Google Form:
 
-
-
-<Image {...images.response} />
+![response](/images/html/google-forms-embed/response.png)
 
 The response has been recorded! As you can see, they also have a pretty chart for the checkbox response!
 

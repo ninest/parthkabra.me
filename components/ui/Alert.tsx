@@ -30,6 +30,7 @@ export const Alert = ({
       "bg-primary-lightest": variant == "primary",
       "bg-gray-100": variant == "gray",
       "bg-warning-light": variant == "warning",
+      "bg-error-light": variant == "error",
     },
     props.className
   );

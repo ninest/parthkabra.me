@@ -23,7 +23,7 @@ const asc = posts.sort((postA, postB) => postA.date.getTime() - postB.date.getTi
 const desc = posts.sort((postA, postB) => postB.date.getTime() - postA.date.getTime())
 ```
 
-<Alert title="What do the arguments in .sort mean?" open={false}>
+{% alert title="What do the arguments in .sort mean?"}
 The above code can be made easier to understand using `a` and `z` instead of `postA` and `postB`.
 
 ```ts
@@ -50,9 +50,9 @@ In short,
 
 I personally find it easier to understand because "a to z" is ascending while "z to a" id descending.
 
-</Alert>
+{% /alert %}
 
-<Alert title="Why use .getTime?" open={false}>
+{% alert title="Why use .getTime?" %}
 
 
 JavaScript implicitly coerces dates to numbers when trying to subtract one from another, so using `.getTime()` and subtracting numbers is more efficient. 
@@ -63,4 +63,5 @@ Additionally, if you try sorting dates in typescript like `dates.sort((a, z) => 
 The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type
 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type
 ```
-</Alert>
+
+{% /alert %}

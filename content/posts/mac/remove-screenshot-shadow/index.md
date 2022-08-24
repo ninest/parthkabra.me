@@ -5,9 +5,9 @@ date: 2021-06-07
 showContents: false
 ---
 
-import { images } from "./posts/mac/remove-screenshot-shadow/assets"
 
-<Alert variant="primary" title="Summary">
+
+{% alert variant="primary" title="Summary" open=true %}
 
 To **disable** the screenshot shadow, run
 
@@ -21,12 +21,12 @@ And to **enable** the screenshot shadow, run
 defaults write com.apple.screencapture disable-shadow -bool false; killall SystemUIServer
 ```
 
-</Alert>
+{% /alert %}
 
 By default, when you take a cropped screenshot of a window (with `command-shift-4`), the screenshot has a shadow:
 
 
-<Image {...images.shadow} />
+![shadow](/images/mac/remove-screenshot-shadow/shadow.png)
 
 To **disable** this shadow, run the following commands in Terminal:
 
@@ -38,7 +38,7 @@ killall SystemUIServer
 Screenshots should not have the shadow anymore:
 
 
-<Image {...images.noShadow} />
+![no-shadow](/images/mac/remove-screenshot-shadow/no-shadow.png)
 
 To **re-enable** shadows on screenshots, run the following commands:
 

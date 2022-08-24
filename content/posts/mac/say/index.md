@@ -35,7 +35,7 @@ To list out all voices, use
 say -v '?'
 ```
 
-<Alert open={false} title="Finding voices from system preferences">
+{% alert title="Finding voices from system preferences" %}
 
 There is another way to find voices.
 
@@ -47,9 +47,7 @@ Open that dropdown and note down the voice names you see (but don't change them!
 - Deranged
 - ...
 
-import spokenContent from './posts/mac/say/images/spoken_content.png'
-
-<Image src={spokenContent} width={657} height={479} />
+![spoken content](/images/mac/say/spoken_content.png)
 
 For example, 
 
@@ -57,26 +55,22 @@ For example,
 say "This is the deranged voice" -v "Deranged"
 ```
 
-</Alert>
+{% /alert %}
 
 
-<Alert open={false} title="Testing out different voices">
+{% alert title="Testing out different voices" %}
 
 Go to the **System Preferences** app. Open **Accessibility** > **Spoken Content**. You will see the **System Voice** dropdown.
 
 Scroll to the bottom and click the "Customize" button:
 
-import customize from './posts/mac/say/images/customize.png'
-
-<Image src={customize} width={653} height={477} />
+![customize](/images/mac/say/customize.png)
 
 You can now browse through all voices, and click "Play" to test them out:
 
-import browse from './posts/mac/say/images/browse.png'
+![browse](/images/mac/say/browse.png)
 
-<Image src={browse} width={657} height={478} />
-
-</Alert>
+{% /alert %}
 
 ## Reading from a file
 
@@ -85,7 +79,7 @@ Use the `--input-file` (`-f`) to specify the file to read from.
 Say you have this file:
 
 
-```txt title="song.txt"
+```txt {% title="song.txt" %}
 We're no strangers to love
 You know the rules and so do I
 A full commitment's what I'm thinking of
@@ -112,11 +106,11 @@ For example,
 say "I am in a rush!" -r 500
 ```
 
-<Alert title="What is the default rate?">
+{%alert title="What is the default rate?" %}
 
 See this question on AskDifferent: [What is the default speaking rate for the speech synthesis program?](https://apple.stackexchange.com/q/96808/419233)
 
-</Alert>
+{% /alert %}
 
 ## Saving as mp4 or aiff
 
@@ -128,7 +122,7 @@ say "Happy birthday!" -o birthday.mp3
 
 Note that some audios may not support one of the formats.
 
-<Alert title="Saving as mp3">
+{% alert title="Saving as mp3" %}
 
 If you try to save the output as an `mp3` file (example: `say "hello" -o voice.mp3`), you may see this error: 
 
@@ -147,4 +141,4 @@ Install lame with `brew install lame`.
 
 Credits to [this answer on stackoverflow](https://stackoverflow.com/q/16501663/8677167).
 
-</Alert>
+{% /alert %}

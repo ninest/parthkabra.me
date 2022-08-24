@@ -1,6 +1,5 @@
 import { formatDate, startEndYear } from "@/lib/date";
 import { LinkItem } from "@/types";
-import { format } from "date-fns";
 import { MarkdownPage } from ".";
 
 export const mdToLink = (page: MarkdownPage): LinkItem => {

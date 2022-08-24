@@ -27,17 +27,11 @@ Open Terminal, then copy and paste the following commands to play the game:
 
 Open Terminal, type in `emacs -q --no-splash -f tetris`, and hit Return:
 
-import exampleCommand from './posts/mac/terminal-games/images/example-command.png'
+{% div class="flex items-center justify-between space-x-base" %}
+![example command](/images/mac/terminal-games/example-command.png)
 
-import tetrisSquare from './posts/mac/terminal-games/images/tetris-square.png'
-
-<div className="flex items-center justify-between space-x-base">
-
-<Image src={exampleCommand} width={634} height={636} />
-
-<Image src={tetrisSquare} width={634} height={634} />
-
-</div>
+![tetris square](/images/mac/terminal-games/tetris-square.png)
+{% /div %}
 
 ### Pong
 
@@ -45,9 +39,7 @@ import tetrisSquare from './posts/mac/terminal-games/images/tetris-square.png'
 emacs -q --no-splash -f pong
 ```
 
-import pong from './posts/mac/terminal-games/images/pong.png'
-
-<Image src={pong} width={730} height={466} />
+![](/images/mac/terminal-games/images/pong.png)
 
 To control the
 
@@ -60,11 +52,7 @@ To control the
 emacs -q --no-splash -f snake
 ```
 
-
-
-import snake from './posts/mac/terminal-games/images/snake.png'
-
-<Image src={snake} width={730} height={466} />
+![](/images/mac/terminal-games/images/snake.png)
 
 ### Doctor
 
@@ -72,11 +60,9 @@ import snake from './posts/mac/terminal-games/images/snake.png'
 emacs -q --no-splash -f doctor
 ```
 
-Speak to a <strike>doctor</strike> psychotherapist.
+Speak to a ~~doctor~~ psychotherapist.
 
-import doctor from './posts/mac/terminal-games/images/doctor.png'
-
-<Image src={doctor} width={730} height={466} />
+![](/images/mac/terminal-games/images/doctor.png)
 
 ### Dunnet
 
@@ -86,6 +72,4 @@ emacs -q --no-splash -f doctor
 
 Dunnet is a text-based adventure game.
 
-import dunnet from './posts/mac/terminal-games/images/dunnet.png'
-
-<Image src={dunnet} width={730} height={466} />
+![](/images/mac/terminal-games/images/dunnet.png)

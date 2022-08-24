@@ -9,15 +9,13 @@ links:
 showContents: false
 ---
 
-import { images } from "./posts/meta/redesign-3/assets"
-
 Before this redesign, my website looked like this (the 2020 version):
 
-<Image {...images.main20} border />
+![Main 20](/images/meta/redesign/2020-main.png) {% .bordered %}
 
 And now, in 2021, it looks like this:
 
-<Image {...images.main21} border />
+![Main 21](/images/meta/redesign/2021-main.png) {% .bordered %}
 
 When I first made my website in 2020, all I wanted to do was show off my projects. I wanted to have something that looked like a resume or like my GitHub profile, but with more information. Each project had its own page, and there was no blog.
 

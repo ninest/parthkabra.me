@@ -17,6 +17,4 @@ Once installed, restart your terminal and run
 cmatrix
 ```
 
-import one from './posts/cli/cmatrix/images/one.png'
-
-<Image src={one} width={1364} height={1060} />
+![cmatrix](/images/cli/cmatrix/one.png)

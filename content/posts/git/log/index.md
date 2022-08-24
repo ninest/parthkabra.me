@@ -14,7 +14,8 @@ links:
     title: Last N commits
 ---
 
-<Alert variant="primary" title="Summary" open>
+
+{% alert variant="primary" title="Summary" open=true &}
 
 To see a summarized view of the previous commits, use
 
@@ -22,11 +23,11 @@ To see a summarized view of the previous commits, use
 git log --oneline
 ```
 
-</Alert>
+{% alert %}
 
 `git log` Shoes a list of all commits including their hash, author, data, and message.
 
-```shell title="git log"
+```shell {% title="git log" %}
 commit 2c6dceefade99a83198aceb3bb21eb85f43ffa71 (HEAD -> main, origin/main)
 Author: ninest <parth.kabra@gmail.com>
 Date:   Thu Dec 30 22:39:32 2021 +0800
@@ -54,7 +55,7 @@ Date:   Thu Dec 30 22:10:00 2021 +0800
 This will show a summarized view with the hash and commit message only
 
 
-```shell title="git log --oneline"
+```shell {% title="git log --oneline" %}
 d7163ec Fix themes
 cff4bc8 Remove next-themes
 e69a82c Add icons for previous posts
@@ -71,7 +72,7 @@ d342008 Add all blog posts
 
 Shows the last *N* commits. For example, `git log -5` will only show the last 5 commits, and `git log --oneline -5` will show a summarized view of the last 5 commits.
 
-```bash title="git log --oneline -5"
+```bash {% title="git log --oneline -5" %}
 2c6dcee (HEAD -> main, origin/main) Fix type
 2e4f41b Complete mini-projects section
 e441503 Minor styling improvements

@@ -15,7 +15,7 @@ links:
     title: Number of commits per author on all branches
 ---
 
-<Alert variant="primary" title="Summary">
+{% alert variant="primary" title="Summary" open=true &}
 
 To view a list of users and their commit count:
 
@@ -23,12 +23,12 @@ To view a list of users and their commit count:
 git shortlog -s -n --all --no-merges
 ```
 
-</Alert>
+{% alert %}
 
 `git shortlog` summarizes the output from `git log`, grouping each commit by user:
 
 
-```shell title="git shortlog"
+```shell {% title="git shortlog" %}
 anotheruser (1):
   Fix bug
 
@@ -47,7 +47,7 @@ ninest (5):
 
 Sort by number of commits per user:
 
-```shell title="git shortlog -n"
+```shell {% title="git shortlog -n" %}
 ninest (5):
   First commit
   Second commit
@@ -82,7 +82,7 @@ git shortlog -s -n --all --no-merges
 
 The output of the command looks like
 
-```bash title="git shortlog -s -n --all --no-merges"
+```bash {% title="git shortlog -s -n --all --no-merges" %}
   5 ninest
   1 anotheruser
 ```
