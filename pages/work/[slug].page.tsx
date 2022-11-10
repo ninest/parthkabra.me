@@ -72,11 +72,10 @@ const WorkPage = ({
               { title: "Work", href: `/work` },
               { title: page.frontmatter.title, href: page.href },
             ]}
-            // sidebarSections={sidebarSections}
           />
         }
         title={page.frontmatter.title}
-        description={page.frontmatter.title}
+        description={page.frontmatter.description}
         date={
           <>
             {page.frontmatter.location},{" "}
@@ -90,23 +89,8 @@ const WorkPage = ({
         }
         hasNavbar={false}
         hasSidebar={false}
-        // sidebar={
-        //   <>
-        //     <Links links={[{ href: work.website, title: "Website" }]} />
-        //     {work.projects && <Links title="Projects" links={work.projects} />}
-        //     {work.showContents && <TOC />}
-        //   </>
-        // }
+        sidebar={<></>}
       >
-        {/* <div className="lg:hidden">
-          {work.projects && (
-            <>
-              <MiniTitle>Links</MiniTitle>
-              <Links showTitle={false} links={work.projects} />
-            </>
-          )}
-          <Spacer size="lg" />
-        </div> */}
         <article className="prose">{renderedContent}</article>
       </PageRightSidebarLayout>
     </>

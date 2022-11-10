@@ -37,16 +37,6 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/project/typer",
-        destination: "/mini-project/typer",
-        permanent: true,
-      },
-      {
-        source: "/project/uniquecode",
-        destination: "/mini-project/uniquecode",
-        permanent: true,
-      },
-      {
         source: "/current",
         destination: "/about",
         permanent: true,
@@ -62,8 +52,8 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/project/nsr",
-        destination: "/project/national-service-resources",
+        source: "/project/national-service-resources",
+        destination: "/project/nsr",
         permanent: true,
       },
       {

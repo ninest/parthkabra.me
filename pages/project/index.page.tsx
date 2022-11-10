@@ -1,18 +1,21 @@
-import { allProjects, Project } from "@/.contentlayer/generated";
 import { PageBar, PageTitleBanner, SmartLink, Spacer } from "@/components";
 import { ProjectLink } from "@/components/ui/Project";
-import { featuredProjectSlugs } from "@/content/map";
-import { sortByDate } from "@/lib/content";
+import { MarkdownPage } from "@/lib/content/markdown";
+import { featuredProjects, getProjectPages, projects } from "@/lib/content/markdown/project";
+import { mdsToLinks } from "@/lib/content/markdown/transformers";
+
 import { GetStaticProps } from "next";
 import { NextSeo } from "next-seo";
 
 export const getStaticProps: GetStaticProps = () => {
   return {
-    props: { projects: sortByDate(allProjects) },
+    props: { projects: mdsToLinks(getProjectPages(projects)) },
   };
 };
 
-const ProjectsListPage = ({ projects }: { projects: Project[] }) => {
+const ProjectsListPage = ({ projects }: { projects: MarkdownPage[] }) => {
+  console.log(projects);
+  
   return (
     <>
       <NextSeo
@@ -48,9 +51,9 @@ const ProjectsListPage = ({ projects }: { projects: Project[] }) => {
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg md:gap-2xl">
           {projects.map((project) => (
             <ProjectLink
-              key={project._id}
+              key={project.href}
               project={project}
-              highlighted={featuredProjectSlugs.includes(project.slug)}
+              // highlighted={featuredProjects.map(fp => fp.slug)}
             />
           ))}
         </section>

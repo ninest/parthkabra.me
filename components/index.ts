@@ -22,7 +22,6 @@ export * from "./ui/MiniTitle";
 export * from "./ui/Navbar";
 export * from "./ui/PageBar";
 export * from "./ui/PageTitleBanner";
-export * from "./ui/PostList";
 export * from "./ui/Project";
 export * from "./ui/Sidebar";
 export * from "./ui/SimpleList";

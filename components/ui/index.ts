@@ -10,7 +10,6 @@ export * from "./MiniTitle";
 export * from "./Navbar";
 export * from "./PageBar";
 export * from "./PageTitleBanner";
-export * from "./PostList";
 export * from "./Project";
 export * from "./Sidebar";
 export * from "./SimpleList";

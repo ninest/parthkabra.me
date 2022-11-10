@@ -12,14 +12,13 @@ links:
 showContents: false
 ---
 
-import { images } from "./projects/uniquecode/assets"
-
 Unique Code lets you copy and paste 𝗿𝗶𝗰𝗵 𝒕𝒆𝒙𝒕 into fields that only support plain text.
 
-<div className="flex space-x-base">
-  <Image {...images.one} border />
-  <Image {...images.two} border />
-</div>
+{% div className="flex space-x-base" %}
+  ![One](/images/projects/uniquecode/1.png) {% .border %}
+
+  ![One](/images/projects/uniquecode/2.png) {% .border %}
+{% /div %}
 
 For example,
 
@@ -30,6 +29,8 @@ For example,
 
 However, the use of these "unicode fonts" may impede accessibility. Screen readers can read "𝗛" as "mathematical character bold H" rather than "H". 
 
+{% alert open=true %}
+
 To make this website, I took reference from the following websites:
 
 - [victoria.dev/blog/a-unicode-substitution-cipher-algorithm/](https://victoria.dev/blog/a-unicode-substitution-cipher-algorithm/)
@@ -37,3 +38,4 @@ To make this website, I took reference from the following websites:
 - [www.rapidtables.com/convert/number/hex-to-decimal.html](https://www.rapidtables.com/convert/number/hex-to-decimal.html)
 - [boldtext.io/](https://boldtext.io)
 
+{% /alert %}

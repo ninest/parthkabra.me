@@ -14,21 +14,20 @@ links:
      href: https://nine-nine.now.sh
 ---
 
-import { images } from './projects/ninenine/assets';
-
 This was my first successful web and mobile app, that enabled me to learn all of what it takes to publish on the Play Store and App Store.
 
 
-<div className="flex space-x-base md:w-4/6 m-auto">
-  <Image {...images.main} border />
-  <Image {...images.favorites} border />
-</div>
+{% div className="flex space-x-base md:w-4/6 m-auto" %}
+  ![Main light](/images/projects/ninenine/main.png) {% .border %}
 
-<Image {...images.desktop} border />
+  ![Favorites](/images/projects/ninenine/favorites.png) {% .border %}
+{% /div %}
 
-<Alert variant="primary">
+![Favorites](/images/projects/ninenine/desktop.png) {% .border %}
+
+{% alert variant="primary" open=true %}
 The Android app garnered over **12,000** installs.
-</Alert>
+{% /alert %}
 
 ## Why I created it
 

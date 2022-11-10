@@ -26,11 +26,6 @@ The sidebar is always present on the desktop view. I thought that this would mak
 
 I also wanted to add "highlighted" links, which would be resources or links accessed often by students. At the start of the spring semester of 2022, every student was required to take a COVID-19 test every week. I thought that it would be incredibly convenient to have the link to schedule a test on the sidebar, always in view.
 
-<div className="flex space-x-lg">
-  <Image {...images.mobileLight} border />
-
-  <p> On the mobile view of the website, there is a top navigation bar, and the sidebar is hidden behind a menu button. I did not plan to have this navbar on mobile, but at the same I did want "highlighted" links to always be in view.</p>
-</div>
 
 {% div class="flex space-x-lg" %}
 ![Mobile light view](/images/blog/working-on-husker/mobile-light.png) {% .bordered %}

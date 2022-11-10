@@ -1,6 +1,4 @@
-import {
-  PageBar, Spacer
-} from "@/components";
+import { PageBar, Spacer } from "@/components";
 
 import { PageRightSidebarLayout } from "@/layouts";
 
@@ -10,8 +8,9 @@ import { markdocComponents } from "@/lib/markdoc/components";
 import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
 import Markdoc from "@markdoc/markdoc";
 import type {
-  GetStaticPaths, GetStaticPropsContext,
-  InferGetStaticPropsType
+  GetStaticPaths,
+  GetStaticPropsContext,
+  InferGetStaticPropsType,
 } from "next";
 import { NextSeo } from "next-seo";
 import React from "react";
@@ -38,7 +37,6 @@ export const getStaticProps = ({ params }: GetStaticPropsContext) => {
   };
 };
 
-
 const PostPage = ({
   cat,
   serializedPage,
@@ -48,20 +46,6 @@ const PostPage = ({
   const renderedContent = Markdoc.renderers.react(page.content, React, {
     components: markdocComponents,
   });
-
-  // const mobileSidebarSections = [];
-  // if (post.links) mobileSidebarSections.push(<Links links={post.links} />);
-  // if (post.showContents) mobileSidebarSections.push(<TOC />);
-
-  // if (!!collectionPosts)
-  //   mobileSidebarSections.push(
-  //     <div>
-  //       <MiniTitle>In this series</MiniTitle>
-  //       <div className="mt-xs space-y-xs">
-  //         <PostList items={collectionPosts} />
-  //       </div>
-  //     </div>
-  //   );
 
   return (
     <>

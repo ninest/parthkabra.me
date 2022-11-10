@@ -11,9 +11,7 @@ links:
      href: https://nsr.now.sh
 ---
 
-import { images } from './projects/nsr/assets';
-
-<Image {...images.desktop} border />
+![desktop](/images/projects/nsr/desktop.png) {% .border %}
 
 Enlisting into National Service is a big and emotional event in every Singaporean family’s life. To make it less daunting, I wanted to do my part by helping those out there.
 
@@ -21,10 +19,10 @@ Having an older brother doing NS just two years before, it was a bit easier for 
 
 The website does not have any of its own content, rather it only brings all relevant information out there under a common and easy to use portal.
 
-
+{% alert open=true %}
 - The Reddit post announcing this website was the most upvoted post in the community for over 3 months after being posted.
 - The portal receives over 500 monthly views.
-
+{% /alert %}
 
 ## Technologies used
 

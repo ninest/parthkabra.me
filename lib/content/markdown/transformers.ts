@@ -4,6 +4,7 @@ import { MarkdownPage } from ".";
 
 export const mdToLink = (page: MarkdownPage): LinkItem => {
   const linkItem = {
+    slug: page.slug,
     title: page.frontmatter.title,
     href: page.href,
     description: page.frontmatter.description,

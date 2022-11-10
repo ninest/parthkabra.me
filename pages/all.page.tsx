@@ -2,22 +2,33 @@ import {
   Links,
   PageBar,
   PageTitleBanner,
-  PostList,
+  SimpleList,
   SmartLink,
-  Spacer,
+  Spacer
 } from "@/components";
-import { allCats, CatName } from "@/content/map";
-import { getPostsMonthsList } from "@/lib/content";
+import {
+  cats as allCats,
+  getPagesByMonths,
+  getPostPages,
+  posts
+} from "@/lib/content/markdown/post";
+import { InferGetStaticPropsType } from "next";
+
 import { NextSeo } from "next-seo";
 
-export default function AllPostsPage() {
-  const blogPosts = getPostsMonthsList();
+export const getStaticProps = async () => {
+  const fullBlogPages = getPostPages(posts);
+  const blogPagesByMonth = getPagesByMonths(fullBlogPages);
 
-  const catLinks = Object.keys(allCats).map((catName) => ({
-    title: allCats[catName as CatName].title,
-    href: `/${catName}`,
-  }));
+  return {
+    props: { blogPagesByMonth, cats: allCats },
+  };
+};
 
+export default function AllPostsPage({
+  blogPagesByMonth,
+  cats,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <>
       <NextSeo
@@ -26,8 +37,6 @@ export default function AllPostsPage() {
       />
 
       <PageBar items={[{ title: "Projects", href: `/project` }]} />
-
-      {/* <pre>{JSON.stringify(blogPosts2, null, 2)}</pre> */}
 
       <Spacer size="xl" />
 
@@ -46,7 +55,10 @@ export default function AllPostsPage() {
             <p className="">Every single blog post I{"'"}ve written so far</p>
 
             <Spacer />
-            <Links showTitle={false} links={catLinks} />
+            <Links
+              showTitle={false}
+              links={cats.map((cat) => ({ ...cat, href: `/${cat.slug}` }))}
+            />
           </div>
         </div>
         <Spacer size="xl" />
@@ -57,13 +69,11 @@ export default function AllPostsPage() {
       <div className="space flex flex-col-reverse md:space-y-0 md:space-x-3xl md:flex-row">
         <section className="lg:w-4/6 xl:w-3/6 max-w-6xl">
           <div className="space-y-xl">
-            {blogPosts.map((monthPosts) => (
-              <div key={monthPosts.order}>
-                <h3 className="font-extrabold text-xl">{monthPosts.month}</h3>
+            {blogPagesByMonth.map((mp) => (
+              <div key={mp.order}>
+                <h3 className="font-extrabold text-xl">{mp.month}</h3>
                 <Spacer size="xs" />
-                <section className="space-y-xs">
-                  <PostList items={monthPosts.posts} showCat />
-                </section>
+                <SimpleList items={mp.posts} />
               </div>
             ))}
           </div>

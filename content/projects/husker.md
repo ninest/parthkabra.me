@@ -14,26 +14,30 @@ links:
     href: /blog/better-university-website
 ---
 
-import { images } from "./projects/husker/assets"
 
 Northeastern University has great websites, but at times I felt that they lacking in terms speed and the level of useful information provided. For instance, I often found myself relying on Reddit for useful information.
 
-<div className="flex space-x-lg md:w-3/4 mx-auto">
-  <Image {...images.mobileDark} />
-  <Image {...images.mobileLight} border />
-</div>
+{% div className="flex space-x-lg md:w-3/4 mx-auto" %}
 
-<Alert>
+  ![Mobile dark](/images/projects/husker/mobile-dark.png)
+
+![Mobile ligt](/images/projects/husker/mobile-light.png) {% .border %}
+{% /div %}
+
+{% alert open=true %}
+
 Read my [blog post](/blog/better-university-website) about this project!
-</Alert>
+
+{% /alert %}
 
 Another issue was that it was often difficult to access important links, such as the course registration portal or housing information, at a glance.
 
-<Image {...images.mainLight} border />
+
+![Main light](/images/projects/husker/main-light.png) {% .border %}
 
 I decided to make a website similar to the [National Service Resources website](/project/nsr), which aims to be a consolidated portal of links, resources, and for students of Northeastern University.
 
-<Image {...images.mainDark} />
+![Main dark](/images/projects/husker/main-dark.png) {% .border %}
 
 ## Current status
 

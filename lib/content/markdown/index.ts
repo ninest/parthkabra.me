@@ -48,8 +48,5 @@ export const getMarkdownPages = ({
   folder,
   pageInfos,
   hrefFn = defaultHrefFn,
-}: GetMarkdownPagesParams): MarkdownPage[] => {
-  return pageInfos.map((pageInfo) =>
-    getMarkdownPage({ folder, pageInfo, hrefFn })
-  );
-};
+}: GetMarkdownPagesParams): MarkdownPage[] =>
+  pageInfos.map((pageInfo) => getMarkdownPage({ folder, pageInfo, hrefFn }));

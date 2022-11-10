@@ -7,19 +7,18 @@ links:
     href: https://github.com/ninest/typer
     title: GitHub
   - source: web
-    href:  https://typer.now.sh
+    href: https://typer.now.sh
     title: Website
 showContents: false
 ---
 
-import { images } from "./projects/typer/assets"
-
 Typer is a simple typing game to test out your typing speed and compete with friends.
 
-<div className="flex space-x-base">
-  <Image {...images.start} />
-  <Image {...images.game} />
-</div>
+{% div className="flex space-x-base" %}
+![Start](/images/projects/typer/start.png)
+
+![Game](/images/projects/typer/game.png)
+{% /div %}
 
 The game is quite simple. You start with 10 seconds, and for every word you type correctly, you get one second more, or two if you're lucky. There is also a chance of the text field becoming a password field to further increase the difficulty!
 

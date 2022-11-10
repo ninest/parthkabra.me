@@ -1,14 +1,24 @@
-import { Links, mdxComponents, PageBar, TOC } from "@/components";
+import { PageBar } from "@/components";
 import { PageRightSidebarLayout } from "@/layouts";
-import { getMePage, getMePages, MePage } from "@/lib/content/me";
-import { parseMarkdoc, serializeMarkdoc } from "@/lib/markdoc/parse";
+import { MarkdownPage } from "@/lib/content/markdown";
+import { getMePage, getMePages, mePages } from "@/lib/content/markdown/me";
+
+import { mdsToLinks } from "@/lib/content/markdown/transformers";
+import { formatDateFull } from "@/lib/date";
+import { markdocComponents } from "@/lib/markdoc/components";
+import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
+import Markdoc from "@markdoc/markdoc";
+
 import { GetStaticPaths, GetStaticProps } from "next";
 import { NextSeo } from "next-seo";
+import React from "react";
 
 export const getStaticPaths: GetStaticPaths = () => {
-  const mePages = getMePages();
+  const mes = mdsToLinks(getMePages(mePages));
+  console.log(mes);
+
   return {
-    paths: mePages.map((mePage) => ({ params: { slug: mePage.slug } })),
+    paths: mes.map((mePage) => mePage.href),
     fallback: false,
   };
 };
@@ -18,54 +28,50 @@ export const getStaticProps: GetStaticProps = ({ params }) => {
 
   return {
     props: {
-      serializedPage: serializeMarkdoc(getMePage(pageSlug)),
+      slug: pageSlug,
+      serializedPage: serializeMarkdownPage(getMePage({ slug: [pageSlug] })),
     },
   };
 };
 
-const Page = ({ serializedPage }: { serializedPage: string }) => {
-  const page = parseMarkdoc(serializedPage);
-
-  const mobileSidebarSections = [];
-  // if (page.links) mobileSidebarSections.push(<Links links={page.links} />);
-  // if (page.showContents) mobileSidebarSections.push(<TOC />);
-  // mobileSidebarSections.push(
-  //   <div>
-  //     <MiniTitle>More about me</MiniTitle>
-  //     <div className="mt-xs space-y-xs">
-  //       <PostList items={collectionPosts} />
-  //     </div>
-  //   </div>
-  // );
-
+const Page = ({ slug, serializedPage }: { serializedPage: string }) => {
+  const page = parseMarkdownPage(serializedPage);
+  const renderedContent = Markdoc.renderers.react(page.content, React, {
+    components: markdocComponents,
+  });
   return (
     <>
-      <NextSeo title={page.frontmatter.title} description={page.frontmatter.description} />
+      <NextSeo
+        title={page.frontmatter.title}
+        description={page.frontmatter.description}
+      />
 
-      {/* <PageRightSidebarLayout
+      <PageRightSidebarLayout
         top={
           <PageBar
-            items={[{ title: page.frontmatter.title, href: `/me/${page.slug}` }]}
-            // sidebarSections={mobileSidebarSections}
-            fullWidth={!!collectionPosts}
+            items={[
+              { title: "Projects", href: `/project` },
+              { title: page.frontmatter.title, href: `/me/${slug}` },
+            ]}
           />
         }
-        title={page.title}
-        description={page.description}
-        hasNavbar={true}
-        collectionPosts={collectionPosts}
-        hasSidebar={!!page.links || page.showContents}
-        sidebar={
-          <>
-            {page.links && <Links links={page.links} />}
-            {page.showContents && <TOC />}
-          </>
-        }
+        title={page.frontmatter.title}
+        description={page.frontmatter.description}
+        hasNavbar={false}
+        hasSidebar={false}
+        sidebar={<></>}
       >
-        <article className="prose">
-          <MDX components={mdxComponents} />
-        </article>
-      </PageRightSidebarLayout> */}
+        {/* <div className="lg:hidden">
+          {project.links && (
+            <>
+              <MiniTitle>Links</MiniTitle>
+              <Links showTitle={false} links={project.links} />
+            </>
+          )}
+          <Spacer size="lg" />
+        </div> */}
+        <article className="prose">{renderedContent}</article>
+      </PageRightSidebarLayout>
     </>
   );
 };

@@ -1,9 +1,13 @@
+import { formatDate, formatDateMonthYear } from "@/lib/date";
+import { LinkItem } from "@/types";
 import {
   getMarkdownPage,
   getMarkdownPages,
   HrefFunction,
+  MarkdownPage,
   MarkdownPageInfo,
 } from ".";
+import { mdToLink } from "./transformers";
 
 interface CatInfo {
   slug: string;
@@ -73,9 +77,42 @@ export const getPostPage = (pageInfo: MarkdownPageInfo) =>
     hrefFn: postHrefFn,
   });
 
-export const getPostPages = (pageInfos: MarkdownPageInfo[]) =>
-  getMarkdownPages({
+export const getPostPages = (pageInfos: MarkdownPageInfo[]) => {
+  const pages = getMarkdownPages({
     folder: "posts",
     pageInfos,
     hrefFn: postHrefFn,
+  }).sort(
+    (a, b) => b.frontmatter.date!.getTime() - a.frontmatter.date!.getTime()
+  );
+  return pages;
+};
+
+interface MonthPosts {
+  month: string;
+  posts: LinkItem[];
+  // year * 100 + month so that MonthPosts[] can be sorted by time
+  order: number;
+}
+export const getPagesByMonths = (pages: MarkdownPage[]): MonthPosts[] => {
+  const pagesByMonth: MonthPosts[] = [];
+
+  pages.forEach((page) => {
+    const date = page.frontmatter.date!;
+    const monthYear = formatDateMonthYear(date);
+
+    const monthPages = pagesByMonth.find((mp) => mp.month === monthYear);
+    if (monthPages) {
+      monthPages.posts.push(mdToLink(page));
+    } else {
+      // Create and add
+      pagesByMonth.push({
+        month: monthYear,
+        posts: [mdToLink(page)],
+        order: date.getFullYear() * 100 + date.getMonth(),
+      });
+    }
   });
+
+  return pagesByMonth.sort((mpA, mpZ) => mpZ.order - mpA.order);
+};

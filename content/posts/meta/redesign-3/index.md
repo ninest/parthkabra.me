@@ -1,7 +1,7 @@
 ---
 title: Redesign 3
 description: Yet another website redesign!
-date: 2022-05-5
+date: 2022-05-05
 links:
   - source: self
     href: https://2020.parthkabra.me

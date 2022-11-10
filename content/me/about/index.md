@@ -6,11 +6,11 @@ showContents: false
 
 ## Hello!
 
-<Alert className="md:w-3/4 lg:w-3/5">
+{% alert open=true %}
 
 This page is still a work in progress ...
 
-</Alert>
+{% /alert %}
 
 I'm a computer science student at **Northeastern University**, in Boston, MA. I hope to share guides on simple but interesting topics on [my blog](/blog).
 

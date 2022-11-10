@@ -23,6 +23,11 @@ export const miniProjects = [
   { slug: ["commonapp-celebrate"] },
 ];
 
+export const projects = [
+  ...featuredProjects,
+  ...miniProjects
+]
+
 const projectHrefFn: HrefFunction = (folder, pageInfo) =>
   `/project/${pageInfo.slug[0]}`;
 

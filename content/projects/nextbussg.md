@@ -3,40 +3,41 @@ title: NextBus SG
 description: Bus timings in a simplified manner
 date: 2020-03-01
 links:
-   - title: GitHub
-     source: github
-     href: https://github.com/ninest/nextbussg
-   - title: App Store
-     source: appstore
-     href: https://apps.apple.com/my/app/nextbus-sg/id1509167028
-   - title: Play Store
-     source: playstore
-     href: https://play.google.com/store/apps/details?id=com.themindstorm.nextbussg
-   - title: Website
-     source: web
-     href: https://nextbus.now.sh
+  - title: GitHub
+    source: github
+    href: https://github.com/ninest/nextbussg
+  - title: App Store
+    source: appstore
+    href: https://apps.apple.com/my/app/nextbus-sg/id1509167028
+  - title: Play Store
+    source: playstore
+    href: https://play.google.com/store/apps/details?id=com.themindstorm.nextbussg
+  - title: Website
+    source: web
+    href: https://nextbus.now.sh
 ---
 
 I was never happy with the bus apps I used. All I needed was a list of bus timings in a simple interface. Since none of the existing solutions filled my needs, I decided to work on my own.
 
-import { images } from './projects/nextbussg/assets';
+{% div className="flex space-x-xl md:w-4/6 m-auto" %}
 
-<div className="flex space-x-xl md:w-4/6 m-auto">
-  <Image {...images.mainScreen} border />
-  <Image {...images.favorites} border />
-</div>
+![Main](/images/projects/nextbussg/main-view.png) {% .border %}
 
+![Favorites](/images/projects/nextbussg/favorites.png) {% .border %}
 
+{% /div %}
 
 All other solutions required too many interactions, and it always used to take me a minute or more to find what I was looking for. It was quite frustrating to me that there was nothing that could get you the information you want at your fingertips.
 
-<Alert variant="primary" title="Achievements">
+{% alert variant="primary" title="Achievements" open=true %}
 
 My code received rave reviews by the [Learn Flutter Code](https://www.youtube.com/watch?v=IoueVJmXvsc) YouTube channel for the UI design and backend.
 
 The project has 80+ stars on GitHub.
 
-</Alert>
+{% /alert %}
+
+
 
 ## Problems solved by NextBus SG
 
@@ -58,11 +59,12 @@ My app provides the key functionalities of a public transport app in a simplifie
 
    NextBus SG shows you only the information you need – nothing more, nothing less.
 
+{% div className="flex space-x-xl md:w-4/6 m-auto" %}
 
-<div className="flex space-x-xl md:w-4/6 m-auto">
-  <Image  {...images.search} border />
-  <Image  {...images.dark} />
-</div>
+  ![Search](/images/projects/nextbussg/search.png) {% .border %}
+
+![Dark](/images/projects/nextbussg/dark.png)
+{% /div %}
 
 ## Technologies
 

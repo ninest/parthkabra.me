@@ -6,11 +6,11 @@ import {
 } from ".";
 
 export const mePages: MarkdownPageInfo[] = [
-  { slug: ["me", "about"] },
-  { slug: ["me", "resume"] },
+  { slug: ["about"] },
+  { slug: ["resume"] },
 ];
 
-const mePageHrefFn: HrefFunction = (folder, pageInfo) => `/${pageInfo.slug[1]}`;
+const mePageHrefFn: HrefFunction = (folder, pageInfo) => `/me/${pageInfo.slug[0]}`;
 
 export const getMePage = (pageInfo: MarkdownPageInfo) =>
   getMarkdownPage({
@@ -21,7 +21,7 @@ export const getMePage = (pageInfo: MarkdownPageInfo) =>
 
 export const getMePages = (pageInfos: MarkdownPageInfo[]) =>
   getMarkdownPages({
-    folder: "posts",
+    folder: "me",
     pageInfos,
     hrefFn: mePageHrefFn,
   });
