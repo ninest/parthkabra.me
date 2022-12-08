@@ -9,7 +9,7 @@ import { markdocComponents } from "@/lib/markdoc/components";
 import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
 import Markdoc from "@markdoc/markdoc";
 
-import { GetStaticPaths, GetStaticProps } from "next";
+import { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import { NextSeo } from "next-seo";
 import React from "react";
 
@@ -34,7 +34,10 @@ export const getStaticProps: GetStaticProps = ({ params }) => {
   };
 };
 
-const Page = ({ slug, serializedPage }: { serializedPage: string }) => {
+const Page = ({
+  slug,
+  serializedPage,
+}: InferGetStaticPropsType<typeof getStaticProps>) => {
   const page = parseMarkdownPage(serializedPage);
   const renderedContent = Markdoc.renderers.react(page.content, React, {
     components: markdocComponents,
@@ -50,7 +53,7 @@ const Page = ({ slug, serializedPage }: { serializedPage: string }) => {
         top={
           <PageBar
             items={[
-              { title: "Projects", href: `/project` },
+              { title: "Me", href: `/` },
               { title: page.frontmatter.title, href: `/me/${slug}` },
             ]}
           />

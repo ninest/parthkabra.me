@@ -39,6 +39,7 @@ export const posts: MarkdownPageInfo[] = [
   { slug: ["blog", "account-hacked"] },
   { slug: ["blog", "better-university-website"] },
   { slug: ["blog", "working-on-husker"] },
+  { slug: ["blog", "bad-roommate"] },
   // CLI
   { slug: ["cli", "asciiquarium"] },
   { slug: ["cli", "cmatrix"] },
@@ -82,9 +83,11 @@ export const getPostPages = (pageInfos: MarkdownPageInfo[]) => {
     folder: "posts",
     pageInfos,
     hrefFn: postHrefFn,
-  }).sort(
-    (a, b) => b.frontmatter.date!.getTime() - a.frontmatter.date!.getTime()
-  );
+  })
+    .sort(
+      (a, b) => b.frontmatter.date!.getTime() - a.frontmatter.date!.getTime()
+    )
+    .filter((post) => post.frontmatter.draft != true);
   return pages;
 };
 

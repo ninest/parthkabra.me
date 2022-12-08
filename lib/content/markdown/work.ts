@@ -1,6 +1,7 @@
 import { getMarkdownPage, getMarkdownPages, MarkdownPageInfo } from ".";
 
 export const works: MarkdownPageInfo[] = [
+  { slug: ["ninja-van"] },
   { slug: ["ourfinals"] },
   { slug: ["saf"] },
   { slug: ["h3zoomai"] },

@@ -7,6 +7,8 @@ import { image } from "./nodes/image";
 import { link } from "./nodes/links";
 import { div } from "./tags/div";
 import { alert } from "./tags/alert";
+import { chat } from "./tags/chat";
+import { span } from "./tags/span";
 
 const config: Config = {
   nodes: {
@@ -16,7 +18,18 @@ const config: Config = {
   },
   tags: {
     div,
+    span,
     alert,
+    chat,
+    keyboard: {
+      render: "Keyboard",
+    },
+    mouse: {
+      render: "Mouse",
+    },
+    "pee-seat": {
+      render: "PeeSeat",
+    },
   },
 };
 

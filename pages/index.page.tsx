@@ -112,7 +112,7 @@ export default function IndexPage({
             className={clsx(
               "flex flex-col space-y-xl lg:space-y-0",
               "lg:flex-row lg:space-x-24",
-              "lg:w-9/12 xl:w-7/12 max-w-7xl"
+              "lg:w-11/12 xl:w-8/12 max-w-7xl"
             )}
           >
             <div className="lg:w-1/2">

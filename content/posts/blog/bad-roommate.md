@@ -5,17 +5,12 @@ date: 2022-05-20
 draft: true
 ---
 
-<div className="hidden">
+{% div className="hidden" %}
 
 - read so many stories of bad roommates, proud to be part of that community
 - little did I know I would be writing about them
 
-</div>
-
-import { Chat } from "@/components/Chat";
-import { PeeSeat } from "@/components/single/PeeSeat";
-import { Keyboard } from "@/components/single/Keyboard";
-import { Mouse } from "@/components/single/Mouse";
+{% /div %}
 
 > I stayed in a Hotel for a semester in university, but I did not enjoy it.
 
@@ -45,7 +40,7 @@ This is how our first conversation went:
 
 But I couldn't. I don't think he took off his headphones for the rest of the day.
 
-While I was unpacking my stuff, I quickly found out that this guy wasn't clean. 
+While I was unpacking my stuff, I quickly found out that this guy wasn't clean.
 
 I love Chex Mix, and I was surprised to find it in my room! Only problem, it was on the floor near my bed along with other crumbs. Obviously I didn't eat it, I'm pretty sure it was wet.
 
@@ -59,15 +54,15 @@ Classes hadn't started yet. So I guess he'd leave the room when then?
 
 I usually spend a few minutes cleaning the bathroom every 2-3 days. I am in no way a clean freak or anything, but I do prefer the surfaces, especially in the bathroom, to be dry if possible.
 
-<div className="flex items-center space-x-lg">
-  <div>
-  <PeeSeat />
-  </div>
+{% div className="flex items-center space-x-lg" %}
+{% div %}
+{% pee-seat / %}
+{% /div %}
 
-  <div>
-  But the seat was pretty wet and yellow. This wasn't your typical _accidental poor aim_ of pee. It really looked like someone completely unloaded their bladder and discolored the white seat.
-  </div>
-</div>
+{% div %}
+But the seat was pretty wet and yellow. This wasn't your typical _accidental poor aim_ of pee. It really looked like someone completely unloaded their bladder and discolored the white seat.
+{% /div %}
+{% /div %}
 
 If there's one color I hate seeing in the bathroom, it has to be yellow. And brown too I guess.
 
@@ -83,27 +78,22 @@ At 9 AM, he was still fast asleep. Understandable, classes hadn't started yet.
 
 I had to leave the room to grab lunch. I knew I wasn't going to be back until late, so I messaged him instead.
 
-<Chat messages={[{
-me: true, text: "Hi, may I know on what days you clean the bathroom?",
-},{
-me: true, text: "Do let me know so we can set up a schedule for both of us to clean",
-},{
-me: false, text: "The school will clean it regularly.",
-},{
-me: false, text: "Someone will clean the toilet for us. You can use the vacuum if you feel dirty.",
-},]}/>
+{% chat messages=[
+  {me: true, text: "Hi, may I know on what days you clean the bathroom?",},
+  {me: true, text: "Do let me know so we can set up a schedule for both of us to clean",},
+  {me: false, text: "The school will clean it regularly."},
+  {me: false, text: "Someone will clean the toilet for us. You can use the vacuum if you feel dirty."}
+]/ %}
 
-To be fair, he wasn't wrong. We were living in a hotel that semester, and a housekeeper was sent regularly to clean the bathroom and ensure we aren't keeping it too dirty. But they were sent only once or twice a month, and I don't want to wait that long for his pee to be cleaned off of the seat. Vacuuming the bathroom isn't enough to keep it clean. 
+To be fair, he wasn't wrong. We were living in a hotel that semester, and a housekeeper was sent regularly to clean the bathroom and ensure we aren't keeping it too dirty. But they were sent only once or twice a month, and I don't want to wait that long for his pee to be cleaned off of the seat. Vacuuming the bathroom isn't enough to keep it clean.
 
 I tried to explain that that isn't enough. Again, I'm not a clean freak and all I was asking for him to spend a few minutes cleaning the bathroom every week and not make a mess.
 
-<Chat messages={[{
-me: true, text: "True, but that's only twice a month", replyTo: "The school will clean it regularly."
-},{
-me: true, text: "We should make schedule. One of us can clean the bathroom every 3 days, how does that sound?",
-},{
-me: false, text: "No I'm good. The only cleaning we need to do is taking out the trash.",
-},]}/>
+{% chat messages={[
+  {me: true, text: "True, but that's only twice a month", replyTo: "The school will clean it regularly."},
+  {me: true, text: "We should make schedule. One of us can clean the bathroom every 3 days, how does that sound?"},
+  {me: false, text: "No I'm good. The only cleaning we need to do is taking out the trash."}
+]} %}
 
 That night, when I reached home, he was luckily not wearing headphones so I spoke about our conversation. I also took him to the bathroom and pointed out his fresh yellow pee on the toilet, the wet floors, and the counter and said, this is what need to be cleaned.
 
@@ -119,7 +109,7 @@ But as we'll see soon, to him, it was more of a roommate "suggestion".
 
 I woke up at 11 PM to the sounds of a helicopter. Yeah I guess living in Downtown is cool and all, but ...
 
-Wati, it's actually my roommate's gaming laptop
+Wait, it's actually my roommate's gaming laptop
 
 It's cooling fans make a helicopter-like sound for 30 seconds and then are quiet for 10 seconds. This cycle keeps repeating.
 
@@ -133,9 +123,9 @@ I was certain he isn't cleaning the bathrooms. This morning I woke up to a pee d
 
 He wasn't awake yet and I had to leave for classes, so I messaged him as I left for school.
 
-<Chat messages={[{
-me: true, text: "Have you cleaned the bathroom in the past week?"
-}]}/>
+{% chat messages=[
+  {me: true, text: "Have you cleaned the bathroom in the past week?"}
+] / %}
 
 He didn't reply. I am an introvert so I was a little hesitant to keep bringing this up.
 
@@ -145,20 +135,20 @@ I was a little uncomfortable with bringing this up, so I just let it go. After a
 
 I really want to wake up early tomorrow to go for a run. But it's 1 AM and I'm still wide awake.
 
-I shouldn't be the only one to experience this  helicopter + mechanical electrical keyboard orchestra, so you can try it for yourself too. Click on the keys below to hear the calm soothing noises that instantly put you to sleep. <span className="hidden lg:block">If your device has a keyboard, try smashing the keys.</span>
+I shouldn't be the only one to experience this helicopter + mechanical electrical keyboard orchestra, so you can try it for yourself too. Click on the keys below to hear the calm soothing noises that instantly put you to sleep. {% span className="invisible lg:visible" %}If your device has a keyboard, try smashing the keys.{% /span %}
 
-<div className="md:w-4/6 mx-auto flex justify-center items-end space-x-xl">
-<Keyboard />
-  <div className="hidden md:block mb-base">
-    <Mouse />
-  </div>
-</div>
+{% div className="md:w-4/6 mx-auto flex justify-center items-end space-x-xl" %}
+{% keyboard / %}
+  {% div className="hidden md:block mb-base" %}
+    {% mouse / %}
+  {% /div %}
+{% /div %}
 
 ## Day 13
 
-At 11 AM, before going to sleep, I talked to my roommate and asked him two things. "Can you please keep it down? I have a test tomorrow?" He said okay. I also asked, "Can you please turn off your lamp? It's really difficult to sleep". 
+At 11 AM, before going to sleep, I talked to my roommate and asked him two things. "Can you please keep it down? I have a test tomorrow?" He said okay. I also asked, "Can you please turn off your lamp? It's really difficult to sleep".
 
-And he did. 
+And he did.
 
 Wow, that was easy
 
@@ -192,12 +182,12 @@ It's so hot. It's winter, and less than 0ºC outside, but my room is so hot that
 
 The room feels as hot as Singapore again. This time, he's not wearing his headphones, so I asked him, "Is 24ºC a fine temperature for you?" He replied, "Sure" without looking at me.
 
-But two minutes after I set it to 24ºC, he set it back to the highest temperature possible. I asked him about it. 
+But two minutes after I set it to 24ºC, he set it back to the highest temperature possible. I asked him about it.
 
 > Why did you put the temperature back up? Didn't you say you were okay with 24? \
-> *I feel cold.* \
+> _I feel cold._ \
 > Can we try to come to a compromise on the temperature? Can we keep it a little but cooler? \
-> *No*. \
-> *I feel cold. You can open the window.*
+> _No_. \
+> _I feel cold. You can open the window._
 
-And so I did. I have opened it previously a 
+And so I did. I have opened it previously a

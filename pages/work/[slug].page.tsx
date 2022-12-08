@@ -1,26 +1,18 @@
 import {
-  Links,
-  mdxComponents,
-  MiniTitle,
-  PageBar,
-  Spacer,
-  TOC,
+  PageBar
 } from "@/components";
-import { PageRightSidebarLayout, RightSidebarLayout } from "@/layouts";
+import { PageRightSidebarLayout } from "@/layouts";
 import { getWorkPage, works } from "@/lib/content/markdown/work";
 import { startEndYear } from "@/lib/date";
 import { markdocComponents } from "@/lib/markdoc/components";
 import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
 import Markdoc from "@markdoc/markdoc";
 import type {
-  GetStaticPaths,
-  GetStaticProps,
-  GetStaticPropsContext,
-  InferGetStaticPropsType,
+  GetStaticPaths, GetStaticPropsContext,
+  InferGetStaticPropsType
 } from "next";
 
 import { NextSeo } from "next-seo";
-import Link from "next/link";
 import React from "react";
 
 export const getStaticPaths: GetStaticPaths = () => {

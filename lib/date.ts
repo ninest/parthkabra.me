@@ -25,6 +25,6 @@ export const startEndYear = ({ start, end }: StartEndYearParams): string => {
           .toString()
           .substring(2)}`;
   } else {
-    return `${startDate.getFullYear().toString()}-`;
+    return `${startDate.getFullYear().toString()}-Present`;
   }
 };
