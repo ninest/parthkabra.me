@@ -1,4 +1,4 @@
-import { MiniTitle, Spacer } from "@/components";
+import { Alert, MiniTitle, Spacer } from "@/components";
 import clsx from "clsx";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -66,13 +66,19 @@ const TOCLinks = ({
 
 export const TOC = () => {
   return (
-    <div className="rounded-md">
-      <MiniTitle>Contents</MiniTitle>
-      <Spacer size="xs" />
+    <Alert title="Contents" size="sm" border open={false}>
       <TOCLinks
         listParentClassName="space-y-sm"
         listItemClassName="text-sm text-gray"
       />
-    </div>
+    </Alert>
+    // <div className="rounded-md">
+    //   <MiniTitle>Contents</MiniTitle>
+    //   <Spacer size="xs" />
+    //   <TOCLinks
+    //     listParentClassName="space-y-sm"
+    //     listItemClassName="text-sm text-gray"
+    //   />
+    // </div>
   );
 };

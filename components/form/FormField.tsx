@@ -51,7 +51,7 @@ export const FormField = ({
       {description ? (
         <>
           <div className="text-sm text-gray">{description}</div>
-          <Spacer size="sm" />
+          <Spacer size="xs" />
         </>
       ) : null}
 

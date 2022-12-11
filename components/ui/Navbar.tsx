@@ -1,4 +1,5 @@
 import { Icon, SmartLink } from "@/components";
+import { useRouter } from "next/router";
 import { ReactNode } from "react";
 
 import { FaFileAlt } from "react-icons/fa";

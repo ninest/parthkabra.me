@@ -16,23 +16,25 @@ export const PageTitleBanner = (props: Props) => {
     return <div className={className}>{props.children}</div>;
   } else {
     return (
-      <div className={clsx(className, "px-xs", "text-center")}>
-        <Spacer size="3xl" />
-        <h1 className="font-display text-5xl font-black text-gray-dark">
-          {props.title}
-        </h1>
-        <Spacer size="sm" />
+      <div className={className}>
+        <div className="space md:text-center">
+          <Spacer size="3xl" />
+          <h1 className="font-display leading-snug text-5xl font-black text-gray-dark">
+            {props.title}
+          </h1>
+          <Spacer size="sm" />
 
-        <p className="font-medium text-gray">{props.description}</p>
+          <p className="font-medium text-gray">{props.description}</p>
 
-        <Spacer size="xs" />
+          <Spacer size="xs" />
 
-        {props.date && (
-          <div className="text-sm text-gray-light font-medium">
-            {props.date}
-          </div>
-        )}
-        <Spacer size="3xl" />
+          {props.date && (
+            <div className="text-sm text-gray-light font-medium">
+              {props.date}
+            </div>
+          )}
+          <Spacer size="3xl" />
+        </div>
       </div>
     );
   }

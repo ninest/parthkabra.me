@@ -1,6 +1,7 @@
 import { PageBar, Spacer } from "@/components";
 
 import { PageRightSidebarLayout } from "@/layouts";
+import { PostLayout } from "@/layouts/PostLayout";
 
 import { cats, getPostPage, posts } from "@/lib/content/markdown/post";
 import { formatDateFull } from "@/lib/date";
@@ -54,7 +55,24 @@ const PostPage = ({
         description={page.frontmatter.description}
       />
 
-      <PageRightSidebarLayout
+      <PostLayout
+        top={
+          <PageBar
+            items={[
+              { title: cat!.title, href: `/${cat?.slug}` },
+              { title: page.frontmatter.title, href: page!.href },
+            ]}
+          />
+        }
+        title={page.frontmatter.title}
+        description={page.frontmatter.description}
+        date={formatDateFull(new Date(page.frontmatter.date!))}
+        showContents={page.frontmatter.showContents ?? true}
+      >
+        <div className="prose">{renderedContent}</div>
+      </PostLayout>
+
+      {/* <PageRightSidebarLayout
         top={
           <PageBar
             items={[
@@ -73,8 +91,8 @@ const PostPage = ({
         hasSidebar={false}
         sidebar={
           <>
-            {/* {post.links && <Links links={post.links} />}
-            {post.showContents && <TOC />} */}
+             {post.links && <Links links={post.links} />}
+            {post.showContents && <TOC />} 
           </>
         }
         // hasNavbar={!!collectionPosts}
@@ -85,9 +103,9 @@ const PostPage = ({
         <div className="prose">{renderedContent}</div>
         <div className="lg:hidden">
           <Spacer size="xl" />
-          {/* {post.links && <Links links={post.links} />} */}
+           {post.links && <Links links={post.links} />} 
         </div>
-      </PageRightSidebarLayout>
+      </PageRightSidebarLayout> */}
     </>
   );
 };

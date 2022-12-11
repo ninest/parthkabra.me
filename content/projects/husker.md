@@ -1,6 +1,6 @@
 ---
 title: Husker
-description: A portal for Northeastern University students
+description: A informational portal and links aggregator for Northeastern University students
 date: 2021-09-01
 links:
   - title: GitHub

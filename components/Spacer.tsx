@@ -16,24 +16,8 @@ export const Spacer = ({
   return <div className={clsx(`${prefix}-${size}`, className)}></div>;
 };
 
-// So Tailwind can read it
-// TODO: fix
-const _ = [
-  "h-md",
-  "h-base",
-  "h-sm",
-  "h-xs",
-  "h-xl",
-  "h-2xl",
-  "h-3xl",
-  "h-lg",
-  "w-md",
-  "w-base",
-  "w-sm",
-  "w-xs",
-  "w-xl",
-  "w-lg",
-  "w-xl",
-  "w-2xl",
-  "w-3xl",
-] as const;
+// // So Tailwind can read it
+// // TODO: fix
+// const _ = [
+//   ,
+// ] as const;

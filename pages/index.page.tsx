@@ -64,7 +64,7 @@ export default function IndexPage({
             <section className="w-5/6 lg:w-3/6 space-y-base">
               <p>
                 Computer science student at <b>Northeastern University</b>,
-                Boston with significant experience in app development.
+                with significant experience in app development.
               </p>
               <div className="text-gray-light space-x-base">
                 {socialLinks.map((link) => (
@@ -117,7 +117,7 @@ export default function IndexPage({
           >
             <div className="lg:w-1/2">
               <h2 className="font-display font-bold text-lg">Projects</h2>
-              <SimpleList items={featuredProjectPages} />
+              <SimpleList items={featuredProjectPages} showDate={false} />
               <Spacer size="xs" />
               <div className="flex">
                 <Button

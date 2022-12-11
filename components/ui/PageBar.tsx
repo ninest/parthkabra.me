@@ -35,15 +35,14 @@ export const PageBar = ({
     }
   };
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <>
       <header
         className={clsx(
           // z-index only works on non static elements
-          "z-10",
+          // "z-10 max-w-[150ch] mx-auto",
           { space: !fullWidth, "space lg:px-3xl": fullWidth },
+          // "w-[100ch] mx-auto",
           "sticky top-0 bg-light opacity-95 flex justify-between items-center z-10",
           "mt-xl",
 
@@ -52,12 +51,6 @@ export const PageBar = ({
           }
         )}
       >
-        <Sidebar
-          isOpen={sidebarOpen}
-          close={() => setSidebarOpen(false)}
-          sections={sidebarSections}
-        />
-
         {/* text-gray-light is for ellipsis */}
         <div
           className={clsx("line-clamp-1", {
@@ -122,14 +115,6 @@ export const PageBar = ({
           >
             <Icon icon={WiMoonAltThirdQuarter} className="text-gray" />
           </button>
-          {!!sidebarSections.length && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden border border-gray-lightest p-xs rounded-md"
-            >
-              <Icon icon={FaGripLines} className="text-gray" />
-            </button>
-          )}
         </div>
       </header>
     </>

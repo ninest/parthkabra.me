@@ -3,19 +3,26 @@ import { LinkItem } from "@/types";
 
 interface Props {
   items: LinkItem[];
+  showDate?: boolean;
 }
 
-export const SimpleList = ({ items }: Props) => {
+export const SimpleList = ({ items, showDate = true }: Props) => {
   return (
     <>
       {items.map((item) => (
-        <SimpleListItem key={item.href} listItem={item} />
+        <SimpleListItem key={item.href} listItem={item} showDate={showDate} />
       ))}
     </>
   );
 };
 
-const SimpleListItem = ({ listItem }: { listItem: LinkItem }) => {
+const SimpleListItem = ({
+  listItem,
+  showDate,
+}: {
+  listItem: LinkItem;
+  showDate: boolean;
+}) => {
   const listItemClassNames =
     "flex items-top justify-between py-xs md:py-1 group space-x-base";
 
@@ -24,9 +31,11 @@ const SimpleListItem = ({ listItem }: { listItem: LinkItem }) => {
       <div className="group-hover:text-primary group-hover:underline">
         {listItem.title}
       </div>
-      <div className="flex-none text-gray-light tabular-nums">
-        {listItem.date}
-      </div>
+      {showDate && (
+        <div className="flex-none text-gray-light tabular-nums">
+          {listItem.date}
+        </div>
+      )}
     </>
   );
 

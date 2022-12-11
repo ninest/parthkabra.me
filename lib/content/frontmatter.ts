@@ -5,5 +5,6 @@ export interface Frontmatter {
   startDate?: Date;
   endDate?: Date;
   location?: string;
+  showContents?: boolean;
   draft: boolean;
 }
