@@ -61,6 +61,7 @@ const Page = ({
         }
         title={page.frontmatter.title}
         description={page.frontmatter.description}
+        links={page.frontmatter.links}
       >
         <div className="prose">{renderedContent}</div>
       </PostLayout>

@@ -1,7 +1,11 @@
 import { PageBar, PageTitleBanner, SmartLink, Spacer } from "@/components";
 import { ProjectLink } from "@/components/ui/Project";
 import { MarkdownPage } from "@/lib/content/markdown";
-import { featuredProjects, getProjectPages, projects } from "@/lib/content/markdown/project";
+import {
+  featuredProjects,
+  getProjectPages,
+  projects,
+} from "@/lib/content/markdown/project";
 import { mdsToLinks } from "@/lib/content/markdown/transformers";
 
 import { GetStaticProps } from "next";
@@ -15,7 +19,7 @@ export const getStaticProps: GetStaticProps = () => {
 
 const ProjectsListPage = ({ projects }: { projects: MarkdownPage[] }) => {
   console.log(projects);
-  
+
   return (
     <>
       <NextSeo
@@ -53,6 +57,7 @@ const ProjectsListPage = ({ projects }: { projects: MarkdownPage[] }) => {
             <ProjectLink
               key={project.href}
               project={project}
+              // highlighted={featuredProjects.some((p) => p.slug == project.slug)}
               // highlighted={featuredProjects.map(fp => fp.slug)}
             />
           ))}

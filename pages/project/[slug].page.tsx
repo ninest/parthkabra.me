@@ -62,6 +62,7 @@ const ProjectPage = ({
         title={page.frontmatter.title}
         description={page.frontmatter.description}
         date={formatDateFull(new Date(page.frontmatter.date!))}
+        links={page.frontmatter.links}
         showContents={page.frontmatter.showContents ?? true}
       >
         <div className="prose">{renderedContent}</div>

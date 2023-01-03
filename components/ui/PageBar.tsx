@@ -1,25 +1,20 @@
+import { PostLink } from "@/lib/content/frontmatter";
 import { useScrollPosition } from "@/lib/scroll/useScrollPosition";
 import { useSettings } from "@/lib/settings";
 import clsx from "clsx";
 import { useRouter } from "next/router";
-import { ReactNode, useState } from "react";
-import { FaGripLines } from "react-icons/fa";
+import { ReactNode } from "react";
 import { WiMoonAltThirdQuarter } from "react-icons/wi";
 import { Icon } from "../Icon";
 import { SmartLink } from "../SmartLink";
 import { Spacer } from "../Spacer";
-import { Sidebar } from "./Sidebar";
 interface Props {
   items?: { title: string; href?: string }[];
   sidebarSections?: ReactNode[];
   fullWidth?: boolean;
 }
 
-export const PageBar = ({
-  items,
-  sidebarSections = [],
-  fullWidth = false,
-}: Props) => {
+export const PageBar = ({ items }: Props) => {
   const scrollPosition = useScrollPosition();
   const haveScrolledBelowTitle = scrollPosition > 135;
 
@@ -39,15 +34,13 @@ export const PageBar = ({
     <>
       <header
         className={clsx(
-          // z-index only works on non static elements
-          // "z-10 max-w-[150ch] mx-auto",
-          { space: !fullWidth, "space lg:px-3xl": fullWidth },
-          // "w-[100ch] mx-auto",
+          "space",
+          // { space: isHome, "max-w-[80ch] mx-auto": !isHome },
           "sticky top-0 bg-light opacity-95 flex justify-between items-center z-10",
           "mt-xl",
 
           {
-            "border-b md:border-none": !fullWidth && haveScrolledBelowTitle,
+            // "border-b md:border-none": !fullWidth && haveScrolledBelowTitle,
           }
         )}
       >

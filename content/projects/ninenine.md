@@ -17,7 +17,7 @@ links:
 This was my first successful web and mobile app, that enabled me to learn all of what it takes to publish on the Play Store and App Store.
 
 
-{% div className="flex space-x-base md:w-4/6 m-auto" %}
+{% div className="flex space-x-base md:w-4/6" %}
   ![Main light](/images/projects/ninenine/main.png) {% .border %}
 
   ![Favorites](/images/projects/ninenine/favorites.png) {% .border %}

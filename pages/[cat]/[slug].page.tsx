@@ -69,6 +69,7 @@ const PostPage = ({
         description={page.frontmatter.description}
         date={formatDateFull(new Date(page.frontmatter.date!))}
         showContents={page.frontmatter.showContents ?? true}
+        links={page.frontmatter.links}
       >
         <div className="prose">{renderedContent}</div>
       </PostLayout>

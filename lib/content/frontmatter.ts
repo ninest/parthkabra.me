@@ -7,4 +7,11 @@ export interface Frontmatter {
   location?: string;
   showContents?: boolean;
   draft: boolean;
+  links: PostLink[];
+}
+
+export interface PostLink {
+  title: string;
+  source: string;
+  href: string;
 }
