@@ -1,6 +1,5 @@
 import { GoRepoForked } from "react-icons/go";
 import { FaRegStar, FaStar } from "react-icons/fa";
-import { Project } from "@/.contentlayer/generated";
 import { Icon } from "../Icon";
 import { SmartLink } from "../SmartLink";
 import { Spacer } from "../Spacer";
@@ -10,7 +9,7 @@ export const ProjectLink = ({
   project,
   highlighted = false,
 }: {
-  project: Project;
+  project: any;
   highlighted?: boolean;
 }) => {
   return (

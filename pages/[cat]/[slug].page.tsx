@@ -1,6 +1,5 @@
 import { PageBar, Spacer } from "@/components";
 
-import { PageRightSidebarLayout } from "@/layouts";
 import { PostLayout } from "@/layouts/PostLayout";
 
 import { cats, getPostPage, posts } from "@/lib/content/markdown/post";
@@ -48,6 +47,8 @@ const PostPage = ({
     components: markdocComponents,
   });
 
+  const isDraft = page.frontmatter.draft;
+
   return (
     <>
       <NextSeo
@@ -64,7 +65,7 @@ const PostPage = ({
             ]}
           />
         }
-        title={page.frontmatter.title}
+        title={`${isDraft ? "[DRAFT] " : ""}${page.frontmatter.title}`}
         description={page.frontmatter.description}
         date={formatDateFull(new Date(page.frontmatter.date!))}
         showContents={page.frontmatter.showContents ?? true}

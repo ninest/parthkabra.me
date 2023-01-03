@@ -10,7 +10,7 @@ export const mdxComponents = {
     const border = props.border;
     const narrower = props.narrower;
 
-    const { width, height } = imageSize(src);
+    // const { width, height } = imageSize(src);
 
     return (
       <div
@@ -23,8 +23,8 @@ export const mdxComponents = {
         <Image
           className={className}
           {...props}
-          width={width}
-          height={height}
+          // width={width}
+          // height={height}
           src={src}
         />
       </div>

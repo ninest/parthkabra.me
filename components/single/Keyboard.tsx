@@ -13,7 +13,9 @@ const playKeyPress = () => {
     "seven",
     "eight",
   ];
+
   const randomSound = pickRandom(sounds);
+  console.log(randomSound);
   const fileName = `/sounds/keyboard/${randomSound}.mp3`;
 
   const audio = new Audio(fileName);

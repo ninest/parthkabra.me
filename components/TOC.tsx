@@ -46,8 +46,8 @@ const TOCLinks = ({
     <>
       <ul className={listParentClassName}>
         {headings &&
-          headings.map((heading) => (
-            <li key={heading.slug} className={listItemClassName}>
+          headings.map((heading,index) => (
+            <li key={index} className={listItemClassName}>
               <a
                 className={clsx("block", {
                   "ml-base": heading.level === 2,

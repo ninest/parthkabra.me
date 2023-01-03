@@ -1,5 +1,6 @@
 import { PageBar } from "@/components";
-import { PageRightSidebarLayout } from "@/layouts";
+import { PostLayout } from "@/layouts/PostLayout";
+
 import { MarkdownPage } from "@/lib/content/markdown";
 import { getMePage, getMePages, mePages } from "@/lib/content/markdown/me";
 
@@ -49,7 +50,22 @@ const Page = ({
         description={page.frontmatter.description}
       />
 
-      <PageRightSidebarLayout
+      <PostLayout
+        top={
+          <PageBar
+            items={[
+              { title: "Me", href: `/` },
+              { title: page.frontmatter.title, href: `/me/${slug}` },
+            ]}
+          />
+        }
+        title={page.frontmatter.title}
+        description={page.frontmatter.description}
+      >
+        <div className="prose">{renderedContent}</div>
+      </PostLayout>
+
+      {/* <PageRightSidebarLayout
         top={
           <PageBar
             items={[
@@ -63,8 +79,8 @@ const Page = ({
         hasNavbar={false}
         hasSidebar={false}
         sidebar={<></>}
-      >
-        {/* <div className="lg:hidden">
+      > */}
+      {/* <div className="lg:hidden">
           {project.links && (
             <>
               <MiniTitle>Links</MiniTitle>
@@ -73,8 +89,8 @@ const Page = ({
           )}
           <Spacer size="lg" />
         </div> */}
-        <article className="prose">{renderedContent}</article>
-      </PageRightSidebarLayout>
+      {/* <article className="prose">{renderedContent}</article>
+      </PageRightSidebarLayout> */}
     </>
   );
 };

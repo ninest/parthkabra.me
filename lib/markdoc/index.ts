@@ -9,12 +9,14 @@ import { div } from "./tags/div";
 import { alert } from "./tags/alert";
 import { chat } from "./tags/chat";
 import { span } from "./tags/span";
+import { headingNode } from "./nodes/heading";
 
 const config: Config = {
   nodes: {
     image,
     link,
     fence,
+    heading: headingNode,
   },
   tags: {
     div,

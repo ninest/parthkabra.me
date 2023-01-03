@@ -1,16 +1,5 @@
-import { Post, PostInfo } from "./post";
 
-export interface CollectionInfo {
-  slug: string;
-  title: string;
-  description: string;
-  posts: PostInfo[];
-}
-
-export interface Collection extends CollectionInfo {
-  posts: Post[];
-}
-export const collections: CollectionInfo[] = [
+export const collections = [
   {
     slug: "husker",
     title: "Husker",

@@ -1,15 +1,15 @@
-import {
-  PageBar
-} from "@/components";
-import { PageRightSidebarLayout } from "@/layouts";
+import { PageBar } from "@/components";
+
+import { PostLayout } from "@/layouts/PostLayout";
 import { getProjectPage, projects } from "@/lib/content/markdown/project";
 import { formatDateFull } from "@/lib/date";
 import { markdocComponents } from "@/lib/markdoc/components";
 import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
 import Markdoc from "@markdoc/markdoc";
 import type {
-  GetStaticPaths, GetStaticPropsContext,
-  InferGetStaticPropsType
+  GetStaticPaths,
+  GetStaticPropsContext,
+  InferGetStaticPropsType,
 } from "next";
 
 import { NextSeo } from "next-seo";
@@ -50,7 +50,7 @@ const ProjectPage = ({
         description={page.frontmatter.description}
       />
 
-      <PageRightSidebarLayout
+      <PostLayout
         top={
           <PageBar
             items={[
@@ -62,21 +62,10 @@ const ProjectPage = ({
         title={page.frontmatter.title}
         description={page.frontmatter.description}
         date={formatDateFull(new Date(page.frontmatter.date!))}
-        hasNavbar={false}
-        hasSidebar={false}
-        sidebar={<></>}
+        showContents={page.frontmatter.showContents ?? true}
       >
-        {/* <div className="lg:hidden">
-          {project.links && (
-            <>
-              <MiniTitle>Links</MiniTitle>
-              <Links showTitle={false} links={project.links} />
-            </>
-          )}
-          <Spacer size="lg" />
-        </div> */}
-        <article className="prose">{renderedContent}</article>
-      </PageRightSidebarLayout>
+        <div className="prose">{renderedContent}</div>
+      </PostLayout>
     </>
   );
 };

@@ -1,15 +1,15 @@
-import {
-  PageBar
-} from "@/components";
-import { PageRightSidebarLayout } from "@/layouts";
+import { PageBar } from "@/components";
+
+import { PostLayout } from "@/layouts/PostLayout";
 import { getWorkPage, works } from "@/lib/content/markdown/work";
 import { startEndYear } from "@/lib/date";
 import { markdocComponents } from "@/lib/markdoc/components";
 import { parseMarkdownPage, serializeMarkdownPage } from "@/lib/markdoc/parse";
 import Markdoc from "@markdoc/markdoc";
 import type {
-  GetStaticPaths, GetStaticPropsContext,
-  InferGetStaticPropsType
+  GetStaticPaths,
+  GetStaticPropsContext,
+  InferGetStaticPropsType,
 } from "next";
 
 import { NextSeo } from "next-seo";
@@ -57,7 +57,7 @@ const WorkPage = ({
         description={page.frontmatter.description}
       />
 
-      <PageRightSidebarLayout
+      <PostLayout
         top={
           <PageBar
             items={[
@@ -79,12 +79,10 @@ const WorkPage = ({
             })}
           </>
         }
-        hasNavbar={false}
-        hasSidebar={false}
-        sidebar={<></>}
+        showContents={page.frontmatter.showContents ?? true}
       >
-        <article className="prose">{renderedContent}</article>
-      </PageRightSidebarLayout>
+        <div className="prose">{renderedContent}</div>
+      </PostLayout>
     </>
   );
 };
