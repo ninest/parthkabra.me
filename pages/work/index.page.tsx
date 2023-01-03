@@ -32,7 +32,7 @@ const WorkListPage = ({
         description="A timeline and summary of my professional work experience"
       />
 
-      <PageBar items={[{ title: "Projects", href: `/project` }]} />
+      <PageBar items={[{ title: "Work", href: `/work` }]} />
 
       <Spacer size="xl" />
 
@@ -56,9 +56,21 @@ const WorkListPage = ({
 
       <Spacer size="3xl" />
 
-      <div className="space">
-        <div className="ml-lg border-l-4 pl-2xl space-y-2xl">
+      <div className="space max-w-[120ch]">
+        <div className="space-y-lg">
           {workPosts.map((work: LinkItem) => (
+            <SmartLink
+              key={work.href}
+              href={work.href}
+              className="block bg-gray-50 p-base rounded-lg"
+            >
+              <h2 className="text-lg font-bold">
+                {work.title} <span className="text-gray-400">{work.date}</span>
+              </h2>
+              <div>{work.description}</div>
+            </SmartLink>
+          ))}
+          {/* {workPosts.map((work: LinkItem) => (
             <SmartLink
               key={work.href}
               href={work.href}
@@ -75,7 +87,7 @@ const WorkListPage = ({
               <Spacer size="xs" />
               <p>{work.description}</p>
             </SmartLink>
-          ))}
+          ))} */}
         </div>
       </div>
     </>

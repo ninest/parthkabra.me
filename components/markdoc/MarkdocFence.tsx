@@ -14,7 +14,7 @@ export const MarkdocFence = ({
   return (
     <div className={lineNumbers ? "line-numbers" : ""}>
       {title && (
-        <div className="fence-title font-mono text-sm text-gray-300 bg-gray-900 px-5 py-2 rounded-t-lg">
+        <div className="fence-title font-mono text-sm px-5 py-2 rounded-t-lg border-t border-x">
           {title}
         </div>
       )}

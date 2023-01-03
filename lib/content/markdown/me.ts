@@ -10,7 +10,7 @@ export const mePages: MarkdownPageInfo[] = [
   { slug: ["resume"] },
 ];
 
-const mePageHrefFn: HrefFunction = (folder, pageInfo) => `/me/${pageInfo.slug[0]}`;
+const mePageHrefFn: HrefFunction = (folder, pageInfo) => `/~/${pageInfo.slug[0]}`;
 
 export const getMePage = (pageInfo: MarkdownPageInfo) =>
   getMarkdownPage({

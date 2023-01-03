@@ -2,6 +2,13 @@
 title: Resume
 description: Education, skills, and work experience
 showContents: true
+links:
+  - title: GitHub
+    source: github
+    href: https://github.com/ninest/
+  - title: About me
+    source: self
+    href: https://parthkabra.me/about
 ---
 
 ## Education

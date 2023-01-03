@@ -1,8 +1,6 @@
-import { formatDateFull } from "@/lib/date";
-import { Links, Spacer } from "@/components";
-import { ReactNode } from "react";
-import clsx from "clsx";
+import { Spacer } from "@/components";
 import { PostLink } from "@/lib/content/frontmatter";
+import { ReactNode } from "react";
 
 interface Props {
   title?: string;
@@ -39,11 +37,11 @@ export const PageTitleBanner = (props: Props) => {
               )}
             </section>
             {props.links && (
-              <section className="mt-lg md:mt-0">
+              <section className="w-full md:w-auto min-w-[10ch] self-start mt-lg md:mt-base">
                 <div className="bg-gray-100 p-xs -m-xs md:p-sm md:-m-sm rounded-lg">
                   <ul className="text-sm text-gray-500 font-medium md:text-right">
                     {props.links.map((postLink) => (
-                      <li className="my-0.5 md:my-0 ">
+                      <li key={postLink.href} className="my-0.5 md:my-0 ">
                         <a
                           href={postLink.href}
                           className="py-0.5 md:py-0 underline"

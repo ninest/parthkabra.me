@@ -6,16 +6,17 @@ const nextConfig = {
     return [
       {
         source: "/resume",
-        destination: "/me/resume",
+        destination: "/~/resume",
       },
       {
         source: "/about",
-        destination: "/me/about",
+        destination: "/~/about",
       },
     ];
   },
   async redirects() {
     return [
+      { source: "/me/:slug*", destination: "/~/:slug*", permanent: true },
       {
         source: "/projects/:slug*",
         destination: "/project/:slug*",
