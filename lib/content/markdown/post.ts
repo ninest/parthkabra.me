@@ -40,6 +40,7 @@ export const posts: MarkdownPageInfo[] = [
   { slug: ["blog", "better-university-website"] },
   { slug: ["blog", "working-on-husker"] },
   { slug: ["blog", "bad-roommate"] },
+  { slug: ["blog", "northeastern-gym"] },
   // CLI
   { slug: ["cli", "asciiquarium"] },
   { slug: ["cli", "cmatrix"] },
