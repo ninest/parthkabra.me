@@ -2,7 +2,6 @@
 title: The Northeastern Gym
 description: Escaping the crowd
 date: 2023-01-10
-draft: true
 ---
 
 My university has two gyms, both of which are usually crowded. One of the gyms is pretty big, but because our university over-enrolled, all machines are taken.
@@ -21,4 +20,13 @@ This gave me an idea: why not scrape this data, save it, and display it in a cal
   ![Commit graph](/images/blog/northeastern-gym-time/commit-graph.png)
 {% /div %}
 
-Track the progress of [this project](https://github.com/husker-nu/gymtime)!
+Apart from this, there are many other visualizations that can be made to help students find the best time to go to the gym.
+
+Track the progress of [this project](https://github.com/husker-nu/gymtime)! This project aims to answer the following questions:
+
+- At what times is the gym usually crowded?
+- How many people are currently in the gym?
+- Is the gym going to get more crowded in the next hour or two?
+- On average, how crowded is the gym at 5 PM on Sunday?
+- Is 5 PM usually a good time to go to the gym?
+- Is 5 PM (on Monday) usually a good time to go to the gym?
