@@ -1,7 +1,7 @@
 ---
 title: Husker Gym 1
 description: Creating a website to help find the best time to go to the gym
-date: 2023-01-15
+date: 2023-01-14
 showContents: false
 ---
 
