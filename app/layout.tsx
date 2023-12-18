@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Karla, Rubik } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/app/_components/providers/theme-provider";
+import { Provider } from "jotai";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
@@ -19,9 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${inter.variable} ${jetbrains.variable} ${rubik.variable} font-sans h-full text-foreground dark:text-foreground`}
       >
-        <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <Provider>
+          <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
+        </Provider>
       </body>
     </html>
   );

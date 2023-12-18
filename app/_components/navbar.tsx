@@ -1,20 +1,23 @@
 "use client";
 
 import { useScrollPosition } from "@/app/_hooks/use-scroll-position";
+import { useSidebar } from "@/app/_hooks/use-sidebar";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { LuChevronRight, LuMoon } from "react-icons/lu";
+import { LuChevronRight, LuMoon, LuPanelRight, LuSliders } from "react-icons/lu";
 
 interface NavbarProps {
+  showSidebarToggle?: boolean;
   crumbs?: { title: string; href: string }[];
   onlyVisibleOnScroll?: boolean;
 }
 
-export function Navbar({ crumbs, onlyVisibleOnScroll }: NavbarProps) {
+export function Navbar({ showSidebarToggle = false, crumbs, onlyVisibleOnScroll }: NavbarProps) {
   const { theme, setTheme } = useTheme();
-
+  const { sidebarOpen, setSidebarOpen } = useSidebar();
   const scrollPosition = useScrollPosition();
+
   const haveScrolledBelowTitle = scrollPosition > 100;
 
   const show = haveScrolledBelowTitle || !onlyVisibleOnScroll;
@@ -22,14 +25,19 @@ export function Navbar({ crumbs, onlyVisibleOnScroll }: NavbarProps) {
   return (
     <>
       {show && (
-        <header className="sticky top-0 z-50 px-5 py-4 flex items-center justify-between bg-background/75 lg:bg-transparent">
+        <header className="sticky top-0 z-50 p-5 flex items-center justify-between bg-background/75 lg:bg-transparent">
           <div className="flex items-center space-x-2">
+            {showSidebarToggle && (
+              <Button onClick={() => setSidebarOpen(!sidebarOpen)} variant={"outline"} size={"icon"}>
+                <LuPanelRight />
+              </Button>
+            )}
             <Link href="/" className="block font-bold">
               Parth Kabra
             </Link>
             {crumbs &&
               crumbs.map((crumb) => (
-                <Link href={crumb.href} className="flex items-center text-sm">
+                <Link key={crumb.href} href={crumb.href} className="flex items-center text-sm">
                   <LuChevronRight className="mr-1" />
                   {crumb.title}
                 </Link>

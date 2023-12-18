@@ -63,7 +63,12 @@ export function ContentLayout({ bannerColor, icon, title, description, links, ke
               {links.map((link) => {
                 const target = link.href.startsWith("/") ? "_self" : "_blank";
                 return (
-                  <Link href={link.href} target={target} className="block text-muted-foreground underline">
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    target={target}
+                    className="block text-muted-foreground underline"
+                  >
                     {link.name}
                   </Link>
                 );

@@ -41,8 +41,11 @@ export async function getProject(slug: string) {
 
 export async function getAllPosts() {
   const postSlugs = await reader.collections.posts.list();
+  return await getPostsFromSlugs(postSlugs);
+}
+async function getPostsFromSlugs(slugs: string[]) {
   const posts = await Promise.all(
-    postSlugs.map(async (slug) => ({ slug, ...(await reader.collections.posts.readOrThrow(slug)) }))
+    slugs.map(async (slug) => ({ slug, ...(await reader.collections.posts.readOrThrow(slug)) }))
   );
   posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   return posts.filter((post) => !post.draft);
@@ -70,4 +73,25 @@ export async function getAllCategories() {
 export async function getCategory(slug: string) {
   const cat = await reader.collections.categories.readOrThrow(slug);
   return { slug, ...cat };
+}
+
+export async function getPostCollections(cat: string, slug: string) {
+  const collectionSlugs = await reader.collections.postCollections.list();
+  const allCollections = await Promise.all(
+    collectionSlugs.map(async (slug) => ({ slug, ...(await reader.collections.postCollections.readOrThrow(slug)) }))
+  );
+
+  const filteredCollections = allCollections.filter((pc) => pc.posts.includes(`${cat}/${slug}`));
+
+  // Remove content
+  const collections = filteredCollections.map(({ content, ...rest }) => rest);
+
+  // Get all posts
+  return Promise.all(
+    collections.map(async (c) => {
+      // Get posts, remove content
+      const posts = (await getPostsFromSlugs([...c.posts])).map(({ content, ...rest }) => rest);
+      return { ...c, posts };
+    })
+  );
 }

@@ -60,7 +60,7 @@
 
 @layer utilities {
   .space-x {
-    @apply px-5 md:px-0 max-w-[45rem] mx-auto;
+    @apply px-5 md:px-0 max-w-[48rem] mx-auto;
   }
 
   .sibling-div-space > div + div {
