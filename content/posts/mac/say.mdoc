@@ -1,0 +1,136 @@
+---
+title: How To Use The Say Command
+description: Using the built-in MacOS say command, and customizing the voice
+links:
+  - name: Say man page
+    href: https://ss64.com/osx/say.html
+  - name: Default speaking rate of speech synthesis program
+    href: https://apple.stackexchange.com/q/96808/419233
+  - name: Mac say command to mp3
+    href: https://stackoverflow.com/q/16501663/8677167
+showContents: false
+icon:
+  discriminant: emoji
+  value: 💬
+createdAt: '2021-05-31'
+updatedAt: '2023-12-18'
+draft: false
+---
+To have your computer speak to you open your terminal and enter:
+
+```
+say "Your Text Here"
+```
+
+## Customizing the voice
+
+Pass in `--voice` (or `-v`). For example:
+
+```
+say "Jelly" -v "Albert"
+```
+
+To list out all voices, use
+
+```
+say -v '?'
+```
+
+{% alert
+   variant="secondary"
+   title="Finding voices from system preferences" %}
+There is another way to find voices.
+
+Go to the **System Preferences** app. Open **Accessibility** > **Spoken Content**. You will see the **System Voice** dropdown.
+
+Open that dropdown and note down the voice names you see (but don't change them!). Here are a list of voices I see:
+
+- Daniel
+- Kate
+- Deranged
+- ...
+
+![](/images/mac/say/spoken_content.png)
+
+For example,
+
+```
+say "This is the deranged voice" -v "Deranged"
+```
+{% /alert %}
+
+{% alert variant="secondary" title="Testing out different voices" %}
+Go to the **System Preferences** app. Open **Accessibility** > **Spoken Content**. You will see the **System Voice** dropdown.
+
+Scroll to the bottom and click the "Customize" button:
+
+![](/images/mac/say/customize.png)
+
+You can now browse through all voices, and click "Play" to test them out:
+
+![](/images/mac/say/browse.png)
+{% /alert %}
+
+## Reading from a file
+
+Use the `--input-file` (`-f`) to specify the file to read from.
+
+Say you have this file, `say.txt`:
+
+```
+We're no strangers to love
+You know the rules and so do I
+A full commitment's what I'm thinking of
+You wouldn't get this from any other guy
+```
+
+Have your computer sing with
+
+```
+say -f song.text
+```
+
+You an also use the pipe operator: `cat song.text | say`.
+
+## Rate
+
+Use `--rate` (`-r`) to control the rate in **words per minute** of the sound.
+
+For example,
+
+```
+say "I am in a rush!" -r 500
+```
+
+{% alert variant="secondary" title="What's the default rate?" %}
+See this question on AskDifferent: [What is the default speaking rate for the speech synthesis program?](https://apple.stackexchange.com/q/96808/419233)
+{% /alert %}
+
+## Saving as mp4 or aiff
+
+Pass in the `--output-file` (`-o`) to pass an output file. For example:
+
+```
+say "Happy birthday!" -o birthday.mp3
+```
+
+Note that some audios may not support one of the formats.
+
+{% alert variant="secondary" %}
+If you try to save the output as an `mp3` file (example: `say "hello" -o voice.mp3`), you may see this error:
+
+```
+Specifying ExtAudioFileRef failed: -50
+```
+
+To save as `mp3`, first save as `aiff`, then use the lame encoder to convert it to `mp3`:
+
+```
+say "Never gonna give you up" -o voice.aiff
+lame -m m voice.aiff voice.mp3
+```
+
+Install lame with `brew install lame`.
+
+Credits to [this answer on stackoverflow](https://stackoverflow.com/q/16501663/8677167).
+{% /alert %}

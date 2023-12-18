@@ -1,19 +1,123 @@
-import { Chat } from "@/components/special/chat";
-import { Keyboard } from "@/components/special/keyboard";
+import { MiniThemeToggleButton } from "@/app/_components/mini-theme-toggle-button";
+import { Navbar } from "@/app/_components/navbar";
+import { PostsList } from "@/app/_components/post";
+import { ProjectsList } from "@/app/_components/project-block";
+import { WorkList } from "@/app/_components/work-block";
+import { Spacer } from "@/components/spacer";
+import { Button } from "@/components/ui/button";
+import { getAllPosts, getAllProjects, getAllWork } from "@/modules/keystatic";
+import { Metadata } from "next";
+import Link from "next/link";
+import { ComponentProps } from "react";
 
-export default function Home() {
+export default async function Home() {
+  const featuredWork = await getAllWork({ featured: true });
+  const allWork = await getAllWork();
+
+  const featuredProjects = await getAllProjects({ featured: true });
+  const allProjects = await getAllProjects();
+
+  const posts = await getAllPosts();
+  const displayPosts = posts.filter((post) => !post.slug.startsWith("leetcode")).slice(0, 10);
+
   return (
-    <main>
-      <Keyboard />
+    <>
+      <Navbar onlyVisibleOnScroll={true} />
+      <main className="space-x my-10">
+        <div>
+          <div className="flex items-center justify-between">
+            <h1 className="text-primary font-black text-3xl">Parth Kabra</h1>
+            <MiniThemeToggleButton />
+          </div>
+          <h1 className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</h1>
+          <h1 className="text-muted-foreground font-extrabold text-lg">Northeastern University, Boston, MA</h1>
+        </div>
 
-      <Chat
-        messages={[
-          { me: true, text: "Hi, may I know on what days you clean the bathroom?" },
-          { me: true, text: "Do let me know so we can set up a schedule for both of us to clean" },
-          { me: false, text: "The school will clean it regularly." },
-          { me: false, text: "Someone will clean the toilet for us. You can use the vacuum if you feel dirty." },
-        ]}
-      />
-    </main>
+        <Spacer className="h-4" />
+
+        <div className="flex items-center space-x-3">
+          <Button asChild variant={"outline"} size={"sm"}>
+            <Link href={"https://github.com/ninest"} target="_blank">
+              GitHub
+            </Link>
+          </Button>
+          <Button asChild variant={"outline"} size={"sm"}>
+            <Link href={"https://www.linkedin.com/in/parth-kabra/"} target="_blank">
+              LinkedIn
+            </Link>
+          </Button>
+          <Button asChild variant={"outline"} size={"sm"}>
+            <Link href={"/contact"}>Contact</Link>
+          </Button>
+        </div>
+
+        <Spacer className="h-6" />
+
+        <p>
+          I'm a computer science student at Northeastern University in Boston, MA looking for internships and full-time
+          roles in 2024/2025.{" "}
+          <Link href={"/about"} className="text-primary">
+            Read more
+          </Link>
+        </p>
+
+        <Spacer className="h-8" />
+
+        <ul className="list-disc ml-4">
+          <li>
+            <Link href={"/work"}>
+              <span className="text-primary">Work</span>{" "}
+              <span className="text-sm tabular-nums">({allWork.length})</span>
+            </Link>
+          </li>
+          <li>
+            <Link href={"/projects"}>
+              <span className="text-primary">Projects</span>{" "}
+              <span className="text-sm tabular-nums">({allProjects.length})</span>
+            </Link>
+          </li>
+          <li>
+            <Link href={"/"}>
+              <span className="text-primary">Blog posts</span>{" "}
+              <span className="text-sm tabular-nums">({posts.length})</span>
+            </Link>
+          </li>
+        </ul>
+
+        <hr className="my-8" />
+
+        <Title>Work</Title>
+        <Spacer className="h-6" />
+
+        <WorkList works={featuredWork} />
+        <Link href={"/work"} className="block mt-3 font-semibold text-primary">
+          See all ({allWork.length})
+        </Link>
+
+        <Spacer className="h-12" />
+
+        <Title>Projects</Title>
+        <Spacer className="h-4" />
+
+        <ProjectsList projects={featuredProjects} />
+        <Link href={"/projects"} className="block mt-3 font-semibold text-primary">
+          See all ({allProjects.length})
+        </Link>
+
+        <Spacer className="h-12" />
+
+        <Title>Blog</Title>
+        <Spacer className="h-4" />
+
+        <PostsList posts={displayPosts}/>
+        <Link href={"/all"} className="block mt-3 font-semibold text-primary">
+          See all ({posts.length})
+        </Link>
+      </main>
+    </>
   );
+}
+
+function Title({ children }: ComponentProps<"h2">) {
+  return <h2 className="font-bold text-lg text-muted-foreground">{children}</h2>;
 }

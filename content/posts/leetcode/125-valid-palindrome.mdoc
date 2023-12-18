@@ -1,0 +1,80 @@
+---
+title: 125. Valid Palindrome
+description: Solving the easy valid palindrome LeetCode problem
+links:
+  - name: 'LeetCode #125'
+    href: https://leetcode.com/problems/valid-palindrome/
+showContents: false
+icon:
+  discriminant: none
+createdAt: '2023-07-12'
+updatedAt: '2023-12-18'
+---
+A phrase is a **palindrome** if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.
+
+Given a string `s`, return `true` if it is a **palindrome**, or `false` otherwise.
+
+Examples:
+
+```
+Input: s = "A man, a plan, a canal: Panama"
+Output: true
+Explanation: "amanaplanacanalpanama" is a palindrome.
+```
+
+```
+Input: s = "race a car"
+Output: false
+Explanation: "raceacar" is not a palindrome.
+```
+
+```
+Input: s = " "
+Output: true
+Explanation: s is an empty string "" after removing non-alphanumeric characters.
+Since an empty string reads the same forward and backward, it is a palindrome.
+```
+
+## Solution 1
+
+```
+class Solution:
+    def isPalindrome(self, s: str) -> bool:
+        new_string = ""
+
+        # remove all non-alphanumeric
+        for char in s:
+            if char.isalnum():
+                new_string += char.lower()
+        
+        return new_string == new_string[::-1]
+```
+
+The solution uses extra memory by building a new string and then reversing it.
+
+## Solution 2: two pointers
+
+Using constant memory (O(1)) using two pointers. Continuously increment the left and decrement the right pointer until they meet in the middle/pass each other
+
+```
+class Solution:
+    def isPalindrome(self, s: str) -> bool:
+        left, right = 0, len(s) - 1
+
+        while left < right:
+            # ensure that left does not pass right
+            while left < right and not self.isAlphaNum(s[left]):
+                left += 1
+            while right > left and not self.isAlphaNum(s[right]):
+                right -= 1
+
+            if s[left].lower() != s[right].lower():
+                return False
+
+            left, right = left + 1, right - 1
+
+        return True
+
+    def isAlphaNum(self, c):
+        return ord('A') <= ord(c) <= ord('Z') or ord('a') <= ord(c) <= ord('z') or ord('0') <= ord(c) <= ord('9')
+```

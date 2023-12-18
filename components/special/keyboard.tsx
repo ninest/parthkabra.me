@@ -74,7 +74,7 @@ function Key({
       onClick={thisKeyPressed}
       className={cn(
         bgClassName,
-        "text-[#eee] capitalize shadow transition-all text-xs md:text-sm rounded-md flex items-center justify-center font-system",
+        "text-[#eee] capitalize shadow transition-all text-xs md:text-sm rounded-sm flex items-center justify-center font-system",
         "h-7 md:h-9",
         {
           "w-7 md:w-9": !space,

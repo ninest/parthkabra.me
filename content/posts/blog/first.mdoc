@@ -1,26 +1,76 @@
 ---
 title: First
-description: Test.
+description: The first post
 links:
   - name: First
     href: https://first.com/one/two
 showContents: false
+color: '#000000'
+icon:
+  discriminant: emoji
+  value: ✨
 createdAt: '2001-01-01'
 updatedAt: '2001-01-01'
 ---
 ## Hello!
 
-{% alert variant="default" title="Hello!" %}
-This is the alert content
+Regular alert with a title:
+
+{% alert
+   variant="default"
+   title="This is a primary alert with a title and a body" %}
+This is the body of the alert.
 {% /alert %}
 
-{% alert variant="secondary" title="F" %}
-This is the Fir content
+Alert without a title:
+
+{% alert variant="secondary" %}
+This is a secondary alert without a title but with a body, obviously.
 {% /alert %}
 
-{% keyboard /%}
+{% alert variant="default" %}
+This is a default one.
+{% /alert %}
 
-The above is a keyboard.
+Chat interface:
 
 {% chat
    messages=[{me: true, text: "Hello!"}, {me: false, text: "Yo!"}, {me: true, text: "What're you up to today", replyTo: "Yo!"}, {me: false, text: "Nothing much, you?", replyTo: "What're you up to today"}, {me: true, text: "Amazing", replyTo: "Nothing much, you?"}] /%}
+
+Some more special components: the keyboard:
+
+{% keyboard /%}
+
+This is a longer alert:
+
+{% alert variant="default" %}
+This is a pretty long alert
+
+## It has a title!
+
+- And a list of points because why not
+- Let's make another one
+- We love nested points
+
+```javascript
+const a = 1
+// javascript rocks
+```
+
+## Section two
+
+This just goes on.
+
+Do not nest alerts.
+
+Yeah. It's long.
+{% /alert %}
+
+This is some more code:
+
+```markdown
+## Hello
+
+- this is a code block
+- it is cool
+```

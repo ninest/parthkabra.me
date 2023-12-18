@@ -5,6 +5,7 @@ import { Keyboard } from "@/components/special/keyboard";
 import { collection, component, config, fields } from "@keystatic/core";
 import { pick } from "lodash";
 import { ComponentProps } from "react";
+import { Tweet } from "react-tweet";
 
 const commonFields = {
   links: fields.array(
@@ -55,12 +56,27 @@ const commonFields = {
     }),
     {
       none: fields.empty(),
-      emoji: fields.text({ label: "Emoji", validation: { length: { min: 1, max: 2 } } }),
-      image: fields.image({ label: "Image", directory: "public/images/icons", publicPath: "/images/icons" }),
+      emoji: fields.text({ label: "Emoji", validation: { length: { min: 1, max: 4 } } }),
+      image: fields.image({
+        label: "Image",
+        directory: "public/images/icons",
+        publicPath: "/images/icons",
+        validation: {
+          isRequired: true,
+        },
+      }),
     }
   ),
-  createdAt: fields.date({ label: "Created at", defaultValue: { kind: "today" } }),
-  updatedAt: fields.date({ label: "Created at", defaultValue: { kind: "today" } }),
+  createdAt: fields.date({
+    label: "Created at",
+    defaultValue: { kind: "today" },
+    validation: {
+      isRequired: true,
+    },
+  }),
+  updatedAt: fields.date({ label: "Updated at", defaultValue: { kind: "today" } }),
+  draft: fields.checkbox({ label: "Draft", defaultValue: false }),
+  featured: fields.checkbox({ label: "Featured", defaultValue: false }),
   content: fields.document({
     label: "Content",
     formatting: true,
@@ -92,7 +108,13 @@ const commonFields = {
             ],
           }),
           title: fields.text({ label: "Title" }),
-          content: fields.child({ kind: "block", componentBlocks: "inherit", placeholder: "Content ..." }),
+          content: fields.child({
+            kind: "block",
+            componentBlocks: "inherit",
+            placeholder: "Content ...",
+            formatting: "inherit",
+            links: "inherit",
+          }),
         },
         preview: ({ fields }) => (
           <Alert variant={fields.variant.value as ComponentProps<typeof Alert>["variant"]} title={fields.title.value}>
@@ -141,6 +163,15 @@ const commonFields = {
           </div>
         ),
       }),
+      tweet: component({
+        label: "Tweet",
+        schema: { id: fields.text({ label: "ID", validation: { length: { min: 1 } } }) },
+        preview: ({ fields }) => (
+          <div>
+            <Tweet id={fields.id.value} />
+          </div>
+        ),
+      }),
     },
   }),
 };
@@ -169,7 +200,32 @@ export default config({
       schema: {
         title: fields.slug({ name: { label: "Title" } }),
         description: fields.text({ label: "Description", validation: { length: { min: 5 } } }),
-        ...pick(commonFields, ["links", "showContents", "color", "icon", "createdAt", "updatedAt", "content"]),
+        ...pick(commonFields, ["links", "showContents", "color", "icon", "createdAt", "updatedAt", "draft", "content"]),
+        alternateCategories: fields.array(
+          fields.relationship({
+            label: "Alternate categories",
+            collection: "categories",
+            validation: {
+              isRequired: true,
+            },
+          }),
+          {
+            label: "Alternate categories",
+            itemLabel: (props) => props.value ?? "Select category",
+          }
+        ),
+      },
+    }),
+    metaPosts: collection({
+      label: "Meta posts",
+      entryLayout: "content",
+      slugField: "title",
+      path: "content/meta/**",
+      format: { contentField: "content" },
+      schema: {
+        title: fields.slug({ name: { label: "Title" } }),
+        description: fields.text({ label: "Description", validation: { length: { min: 5 } } }),
+        ...pick(commonFields, ["links", "showContents", "color", "icon", "createdAt", "updatedAt", "draft", "content"]),
       },
     }),
     work: collection({
@@ -196,7 +252,16 @@ export default config({
             },
           }),
         }),
-        ...pick(commonFields, ["links", "showContents", "color", "icon", "createdAt", "updatedAt", "content"]),
+        ...pick(commonFields, [
+          "links",
+          "showContents",
+          "color",
+          "icon",
+          "featured",
+          "createdAt",
+          "updatedAt",
+          "content",
+        ]),
       },
     }),
     projects: collection({
@@ -208,7 +273,34 @@ export default config({
       schema: {
         title: fields.slug({ name: { label: "Title" } }),
         description: fields.text({ label: "Description", validation: { length: { min: 5 } } }),
-        ...pick(commonFields, ["links", "showContents", "color", "icon", "createdAt", "updatedAt", "content"]),
+        ...pick(commonFields, [
+          "links",
+          "showContents",
+          "color",
+          "icon",
+          "featured",
+          "createdAt",
+          "updatedAt",
+          "content",
+        ]),
+      },
+    }),
+    postCollections: collection({
+      label: "Post collections",
+      slugField: "title",
+      path: "content/collections/**",
+      format: { contentField: "content" },
+      schema: {
+        title: fields.slug({ name: { label: "Title" } }),
+        description: fields.text({ label: "Description", validation: { length: { min: 5 } } }),
+        posts: fields.array(
+          fields.relationship({ label: "Posts", collection: "posts", validation: { isRequired: true } }),
+          {
+            label: "Posts",
+            itemLabel: (props) => props.value ?? "Select post",
+          }
+        ),
+        ...pick(commonFields, ["links", "showContents", "color", "icon", "createdAt", "updatedAt", "draft", "content"]),
       },
     }),
   },

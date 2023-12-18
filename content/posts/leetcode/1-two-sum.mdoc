@@ -1,0 +1,128 @@
+---
+title: 1. Two Sum
+description: Solving the Two Sum LeetCode problem
+links:
+  - name: 'LeetCode #1'
+    href: https://leetcode.com/problems/two-sum/
+showContents: false
+icon:
+  discriminant: none
+createdAt: '2023-07-06'
+updatedAt: '2023-12-18'
+---
+Given an array of integers `nums` and an integer `target`, return *indices* of the two numbers such that they add up to **`target`**.
+
+You may assume that each input would have **exactly one solution**, and you may not use the same element twice.
+
+You can return the answer in any order.
+
+```
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
+```
+
+```
+Input: nums = [3,2,4], target = 6
+Output: [1,2]
+```
+
+```
+# Example 3
+Input: nums = [3,3], target = 6
+Output: [0,1]
+```
+
+## Hashmap
+
+```
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
+```
+
+To find an O(n) solution, we need to go through `num` once and for each `num` in the array, check if the difference between `target` and `num` exists in `num`.
+
+```
+nums = [2,7,11,15], target = 9
+
+# iteration 1:
+num = 2, target = 9
+difference = 9 - 2 = 7
+
+7 exists
+```
+
+To check if the number (7 in the example) exists, we need to make a hashmap. The hashmap will map each number in `nums` with its index in `num`: `{ number : index }`.
+
+The same value/index cannot be used twice. For example 3 (`[3, 3], 6`), the result is `[0, 1]`, but not `[0, 0]`.
+
+```
+nums = [2,7,11,15], target = 9
+hashmap = {}
+
+# iteration 1:
+num = 2, target = 9
+difference = 9 - 2 = 7
+
+7 not in hashmap, so add 2 to it
+hashmap = { 2 : 0 }
+
+# iteration 2
+num = 7, target = 9
+difference = 9 - 7 = 2
+
+2 is in the hashmap with index 0 (no need to add 7)
+we are currently on index 1
+
+return [0, 1]
+```
+
+Another example:
+
+```
+nums = [3,2,4], target = 6
+hashmap = {}
+
+# iteration 1
+num = 3, target = 6
+difference = 3
+
+3 not in hashmap, so add 3
+hashmap = { 3 : 0 }
+
+# iteration 2
+num = 2, target = 6
+difference = 4
+
+4 not in hashmap, so add 2
+hashmap = { 3 : 0, 2 : 1 }
+
+# iteration 3
+num = 4, target = 6
+difference = 2
+
+2 is in hashmap with value 1
+index of num (4) is 2
+
+return [1, 2]
+```
+
+## Python
+
+```
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        # number : index
+        hashmap = {}
+
+        for i in range(len(nums)):
+            num = nums[i]
+
+            diff = target - num
+
+            if diff in hashmap:
+                return [i, hashmap[diff]]
+            else:
+                hashmap[num] = i
+```

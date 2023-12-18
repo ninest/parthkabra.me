@@ -1,0 +1,186 @@
+---
+title: Youtube DL Usage
+description: Learn how to use youtube-dl
+links:
+  - name: Installation
+    href: https://github.com/ytdl-org/youtube-dl/blob/master/README.md#installation
+  - name: Options
+    href: https://github.com/ytdl-org/youtube-dl/blob/master/README.md#options
+  - name: Output Template
+    href: >-
+      https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template
+  - name: AtomicParsley
+    href: https://github.com/wez/AtomicParsley
+showContents: false
+color: '#ff0000'
+icon:
+  discriminant: emoji
+  value: 📺
+createdAt: '2021-06-01'
+updatedAt: '2023-12-18'
+---
+## Download audio and video
+
+This guide aims to document the usage of youtube-dl in a simplified manner. Every section explains a flag for the CLI and provides examples.
+
+### Video
+
+Running `youtube-dl dQw4w9WgXcQ` will download the video, but we want to specify the output file name and location. We can specify the output using the `--output` (`-o`) flag:
+
+```
+youtube-dl dQw4w9WgXcQ -o '~/Downloads/%(title)s.%(ext)s'
+```
+
+This will
+
+1. Download the video to my `Downloads/` directory and
+1. Set the file name to be the `<video title>.mp3`.
+
+### Video format
+
+Pass in the `--format` (`-f`) flag to choose choose the format:
+
+- Pass in either `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, or `webm`
+- Pass `best` to select the best quality format represented by a single file with video and audio
+- Pass `bestvideo` to select the best quality video-only format
+
+See ["Format Selection"](https://github.com/ytdl-org/youtube-dl/blob/master/README.md#format-selection) in the docs for more information.
+
+{% alert variant="default" title="Examples" %}
+Download a high quality video in the `Downloads/` directory
+
+```
+youtube-dl dQw4w9WgXcQ -o '~/Downloads/%(title)s.%(ext)s' -f best
+```
+
+Download a video in the `mp4` format
+
+```
+youtube-dl dQw4w9WgXcQ -o '~/Downloads/%(title)s.%(ext)s' -f mp4
+```
+{% /alert %}
+
+### Audio
+
+Add the flag `--extract-audio` (`-x`).
+
+### Audio format
+
+We can also specify a format with the flag `--audio-format`.
+
+- Pass in `aac`, `flac`, `mp3`, `m4a`, `opus`, `vorbis`, or `wav`
+- Or pass `bestaudio` to select the best audio-only format
+
+{% alert variant="default" title="Examples" %}
+Download a song in `mp3`
+
+```
+youtube-dl dQw4w9WgXcQ -o '~/Downloads/%(title)s.%(ext)s' -x --audio-format mp3
+```
+
+Note that `--format` (`-f`) is used for video formats while `--audio-format` is used for audio formats.
+{% /alert %}
+
+### Merging the best audio and video and more examples
+
+Use `-f bestvideo+bestaudio` to download the best video-only format and the best audio-only format and merge them with ffmpeg or avonv.
+
+```
+youtube-dl dQw4w9WgXcQ -o '~/Downloads/%(title)s.%(ext)s' -f bestvideo+bestaudio
+```
+
+Note that the default format for downloading videos is `-f bestvideo+bestaudio/best`. If ffmpeg/avonv are available, it will download then merge the `bestvideo` and `bestaudio`. If not, it will download `best`.
+
+See [more examples](https://github.com/ytdl-org/youtube-dl/blob/master/README.md#format-selection-examples) in the official documentation.
+
+{% alert variant="default" title="Examples" %}
+Download the `bestvideo` and `bestaudio` but **do not** merge them
+
+```
+youtube-dl dQw4w9WgXcQ -o '~/Downloads/%(title)s.%(ext)s' -f 'bestaudio,bestvideo'
+```
+{% /alert %}
+
+### Output file name
+
+Variables from ["Output Template"](https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template) can be passed in the `--output` to customize the output file name/location.
+
+To use them, wrap the variable name in `%(` and `)s`, for instance `-o ~/%(creator)s/%(license)s/%(title)s.%(ext)s`.
+
+{% alert variant="default" title="Examples" %}
+I want to save the video with the **name**, **upload date**, and **view count** in the output file name, and keep it under a directory which is named the **channel's name** (`/Downloads/channel-name/video-name.mkv`)
+
+```
+youtube-dl dQw4w9WgXcQ -o '~/Downloads/%(creator)s/%(title)s-%(view_count)s.%(ext)s'
+```
+
+The video `Rick Astley - Never Gonna Give You Up (Video)-956123176.mkv` will be saved under the `Rick Astley/` directory.
+{% /alert %}
+
+### Metadata
+
+{% alert
+   variant="secondary"
+   title="ERROR: AtomicParsley was not found. Please install." %}
+Some commands from this section require AtomicParsley. To install it, go to [wez/AtomicParsley](https://github.com/wez/AtomicParsley) and follow the instructions, or use
+
+```
+brew install atomicparsley
+```
+
+Pass the `--write-thumbnail` flag to download the YouTube thumbnail, and `--embed-thumbnail` to embed the thumbnail image.
+
+Use `--add-metadata` to write metadata to the output video or audio.
+
+For audio, pass `--add-metadata` and `--embed-thumbdail` to embed the thumbnail.
+{%/alert%}
+
+{% alert variant="default" title="Examples" %}
+Download a video with an embedded thumbnail
+
+```
+youtube-dl L_jWHffIx5E -o '~/Downloads/%(title)s.%(ext)s' --write-thumbnail --embed-thumbnail
+```
+
+Download a song with metadata and an embedded thumbnail
+
+```
+youtube-dl L_jWHffIx5E -o '~/Downloads/THUMMBANIL%(title)s.%(ext)s' --add-metadata --embed-thumbnail -x
+```
+
+Note that the only additional flags are `--add-metadata` and `--embed-thumbnail`.
+{% /alert %}
+
+### Subtitles
+
+Pass `--write-sub` to download the subtitles as an additional file.
+
+Additionally, pass in `--embed-subs` to embed the subtitles into the video file. Note that this is only supported for `mp4`, `webm` and `mkv` videos.
+
+Use `--sub-format` with `--write-sub` to specify the subtitle format: `ass`, `srt`, `vtt`, or `best`.
+
+{% alert variant="default" title="Examples" %}
+Download a video and subtitles (if available)
+
+```
+youtube-dl L_jWHffIx5E -o '~/Downloads/%(title)s.%(ext)s' --write-sub
+```
+
+This will output two files: the video and the subtitles.
+
+Download a video and subtitles in the `srt` format (of available)
+
+```
+youtube-dl L_jWHffIx5E -o '~/Downloads/%(title)s.%(ext)s' --write-sub --sub-format srt
+```
+
+If `srt` is not available, it will fallback to `best` and download another format.
+
+Download a video with embedded subtitles (if available)
+
+```
+youtube-dl L_jWHffIx5E -o '~/Downloads/%(title)s.%(ext)s' --write-sub --embed-subs
+```
+
+This will output **one** file: the video with embedded subtitles.
+{% /alert %}

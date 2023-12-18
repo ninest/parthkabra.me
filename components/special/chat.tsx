@@ -11,6 +11,9 @@ interface Props {
 }
 
 export function Chat({ messages }: Props) {
+  const myMessageBubbleClasses = "bg-indigo-500 text-gray-50 dark:bg-indigo-600";
+  const otherMessageBubbleClasses = "bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+
   return (
     <>
       <div className="space-y-1">
@@ -50,8 +53,8 @@ export function Chat({ messages }: Props) {
                     {/* Mini bubble for quoted */}
                     <div
                       className={cn("text-xs rounded-xl p-1.5", {
-                        "bg-gray-200 text-gray-800": message.me,
-                        "bg-indigo-500 text-gray-50": !message.me,
+                        [otherMessageBubbleClasses]: message.me,
+                        [myMessageBubbleClasses]: !message.me,
                       })}
                     >
                       {message.replyTo}
@@ -67,8 +70,8 @@ export function Chat({ messages }: Props) {
               >
                 <div
                   className={cn("p-2 rounded-2xl", {
-                    "bg-gray-200 text-gray-800": !message.me,
-                    "bg-indigo-500 text-gray-50": message.me,
+                    [otherMessageBubbleClasses]: !message.me,
+                    [myMessageBubbleClasses]: message.me,
                   })}
                 >
                   <div>{message.text}</div>

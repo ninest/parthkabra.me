@@ -1,0 +1,50 @@
+---
+title: 'Husker Gym 3: Project complete'
+description: Almost finishing Husker Gym
+links:
+  - name: GitHub
+    href: https://github.com/ninest/husker-gym
+  - name: Website
+    href: https://gym.husker.nu
+showContents: false
+icon:
+  discriminant: emoji
+  value: 🏁
+createdAt: '2023-01-31'
+updatedAt: '2023-12-18'
+---
+## Charts
+
+After experimenting with different charting libraries like [Visx](https://airbnb.io/visx/), I decided to use raw D3 instead. I ran into issues integrating Visx into a Nextjs project with server components. Upon closer inspection, I found that Visx was a very thin wrapper around D3 for React, so working directly with D3 was easier.
+
+While most D3 tutorials create charts and visualizations through direct DOM manipulation, I decided to only use the "calculation" functions so I could create my chart declaratively with React. Overall, the experience was enjoyable and much smoother than I had expected.
+
+## UI
+
+Designing the main page, I drew inspiration from the clean and intuitive interface of the iOS stocks app, and I'm extremely satisfied with the result.
+
+![](/images/blog/husker-gym-3/husker-gym-final.png)
+
+Unlike the previous iteration with displayed numbers and percentages, the new interface presents information in a more visual user-fiendly way. With colors and descriptive labels, users can quickly interpret the data at a glance without having to do any mental math.
+
+## Timezones
+
+I ran into some pretty challenging timezone issues with this project. My original plan was to
+
+- scrape the data in EST
+- convert it to UTC
+- store it in the database
+- retrieve the UTC time
+- use `Date.getHours()` to get the hours in the local timezone
+
+In this case the local timezone is EST as all my users are in Boston.
+
+But I realized that React components in Nextjs 13 run on the server regardless whether they are server or client components. Adding `"use client"` are still rendered on the server.
+
+On initial load, the client components are rendered on the server too. But when you navigate within the website (going from `/` to `/gym`, for example), the client components are rendered on the client. Now when you reload the page (reload `/gym`), the client components are rendered on the server, and therefore have a different value of `Date.getHours()`.
+
+To fix this, I had to subtract 300 minutes from the UTC time to adjust for the time difference between EST and UTC. This is technically creating a UTC timestamp, which actually stores an EST time. With this, `getHours()` returns the same hour on the server and client. This isn't an ideal solution and is going to break during daylight saving time.
+
+### March 12, 2023 update
+
+We are now in daylight savings time and the clocks have been moved forward by an hour. To fix this, I had to change the the hardcoded `300` to `300 - 60`.

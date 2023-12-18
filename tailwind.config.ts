@@ -13,7 +13,7 @@ module.exports = {
       default: ["var(--font-inter)"],
       sans: ["var(--font-inter)"],
       mono: ["var(--font-jetbrains)"],
-      display: ["var(--font-karla)"],
+      display: ["var(--font-rubik)"],
     },
     container: {
       center: true,
@@ -79,5 +79,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
