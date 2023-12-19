@@ -1,5 +1,6 @@
 import { ContentLayout } from "@/app/_components/layouts/content-layout";
 import { Navbar } from "@/app/_components/navbar";
+import { createOgImageUrl } from "@/app/api/og/og-functions";
 import { getWork } from "@/modules/keystatic";
 import { getStartEndDateString } from "@/utils/date";
 
@@ -11,6 +12,9 @@ export async function generateMetadata({ params }: Params) {
   const post = await getWork(params.slug);
   return {
     title: post.title,
+    openGraph: {
+      images: [{ url: createOgImageUrl({ title: post.title, color: `${post.color}35` }) }],
+    },
   };
 }
 
@@ -23,22 +27,18 @@ export default async function WorkPage({ params }: Params) {
   );
 
   return (
-    <>
-      <main>
-        <Navbar crumbs={[{ title: "Work", href: `/work` }]} />
-        <ContentLayout
-          bannerColor={workPost.color}
-          icon={workPost.icon}
-          title={workPost.title}
-          description={
-            <>
-              {dateString} | {workPost.description} | {workPost.location}
-            </>
-          }
-          links={workPost.links}
-          keystaticContent={await workPost.content()}
-        />
-      </main>
-    </>
+    <ContentLayout
+      navbarSlot={<Navbar crumbs={[{ title: "Work", href: `/work` }]} />}
+      bannerColor={workPost.color}
+      icon={workPost.icon}
+      title={workPost.title}
+      description={
+        <>
+          {dateString} | {workPost.description} | {workPost.location}
+        </>
+      }
+      links={workPost.links}
+      keystaticContent={await workPost.content()}
+    />
   );
 }
