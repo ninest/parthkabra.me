@@ -56,6 +56,13 @@ export async function getPost(cat: string, slug: string) {
   return post;
 }
 
+export async function getMetaPosts() {
+  const metaSlugs = await reader.collections.metaPosts.list();
+  const posts = await Promise.all(
+    metaSlugs.map(async (slug) => ({ slug, ...(await reader.collections.metaPosts.readOrThrow(slug)) }))
+  );
+  return posts;
+}
 export async function getMetaPost(slug: string) {
   const post = await reader.collections.metaPosts.readOrThrow(slug);
   return post;

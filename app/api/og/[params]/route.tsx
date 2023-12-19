@@ -2,17 +2,20 @@ import { getParamsFromUrl } from "@/app/api/og/og-functions";
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
+export const revalidate = 3600;
 
 export async function GET(req: Request) {
   const params = getParamsFromUrl(req.url);
   const title = params.title;
-  const color = params.color ?? "#FFFFFF";
+
+  let color = params.color ?? "#FFFFFF";
+  if (color.length < 7) color = "#FFFFFF";
 
   const inter400 = fetch(
-    new URL(`../../../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff`, import.meta.url)
+    new URL(`../../../../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff`, import.meta.url)
   ).then((res) => res.arrayBuffer());
   const inter700 = fetch(
-    new URL(`../../../node_modules/@fontsource/inter/files/inter-latin-700-normal.woff`, import.meta.url)
+    new URL(`../../../../node_modules/@fontsource/inter/files/inter-latin-700-normal.woff`, import.meta.url)
   ).then((res) => res.arrayBuffer());
 
   return new ImageResponse(
@@ -20,7 +23,7 @@ export async function GET(req: Request) {
       <div tw="w-full h-full flex flex-col p-5" style={{ backgroundColor: color }}>
         {!!title ? (
           <div tw="flex flex-col h-full">
-            <div tw="flex-none text-[2rem]">Parth Kabra</div>
+            <div tw="flex-none text-[3rem]">Parth Kabra</div>
             <div tw="flex-1 items-center justify-center font-bold text-[5rem]">{title}</div>
           </div>
         ) : (

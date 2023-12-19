@@ -6,7 +6,6 @@ import { WorkList } from "@/app/_components/work-block";
 import { Spacer } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { getAllPosts, getAllProjects, getAllWork } from "@/modules/keystatic";
-import { Metadata } from "next";
 import Link from "next/link";
 import { ComponentProps } from "react";
 
@@ -37,14 +36,14 @@ export default async function Home() {
 
         <div className="flex items-center space-x-3">
           <Button asChild variant={"outline"} size={"sm"}>
-            <Link href={"https://github.com/ninest"} target="_blank">
+            <a href={"https://github.com/ninest"} target="_blank">
               GitHub
-            </Link>
+            </a>
           </Button>
           <Button asChild variant={"outline"} size={"sm"}>
-            <Link href={"https://www.linkedin.com/in/parth-kabra/"} target="_blank">
+            <a href={"https://www.linkedin.com/in/parth-kabra/"} target="_blank">
               LinkedIn
-            </Link>
+            </a>
           </Button>
           <Button asChild variant={"outline"} size={"sm"}>
             <Link href={"/contact"}>Contact</Link>
@@ -109,7 +108,7 @@ export default async function Home() {
         <Title>Blog</Title>
         <Spacer className="h-4" />
 
-        <PostsList posts={displayPosts}/>
+        <PostsList posts={displayPosts} />
         <Link href={"/all"} className="block mt-3 font-semibold text-primary">
           See all ({posts.length})
         </Link>

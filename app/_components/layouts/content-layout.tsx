@@ -117,6 +117,7 @@ export function ContentLayout({
                 },
                 keyboard: (props) => <Keyboard {...props} />,
                 chat: (props) => <Chat {...props} />,
+                // @ts-ignore
                 tweet: (props) => <Tweet {...props} />,
               }}
             />

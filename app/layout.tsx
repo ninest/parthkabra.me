@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Karla, Rubik } from "next/font/google";
-import "./globals.css";
 import { ThemeProvider } from "@/app/_components/providers/theme-provider";
-import { Provider } from "jotai";
 import { createOgImageUrl } from "@/app/api/og/og-functions";
+import { Provider } from "jotai";
+import type { Metadata } from "next";
+import { Inter, JetBrains_Mono, Rubik } from "next/font/google";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
@@ -18,12 +18,22 @@ export const metadata: Metadata = {
     url: "https://parthkabra.me",
     type: "profile",
   },
+  // viewport: {
+
+  // }
+  // themeColor: "#000000",
   metadataBase: new URL("https://parthkabra.me"),
 };
 
+export function generateViewport() {
+  return {
+    themeColor: "#000000",
+  };
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${jetbrains.variable} ${rubik.variable} font-sans h-full text-foreground dark:text-foreground`}
       >

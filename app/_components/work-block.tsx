@@ -16,9 +16,8 @@ export function WorkBlock({ work }: WorkBlockProps) {
           style={{ backgroundColor: `${work.color}20` }}
           className="rounded-sm h-12 w-12 flex items-center justify-center text-2xl"
         >
-          {work.icon.discriminant === "emoji" ? (
-            work.icon.value
-          ) : (
+          {work.icon.discriminant === "emoji" && work.icon.value}
+          {work.icon.discriminant === "image" && (
             <div className="p-2.5">
               <img src={work.icon.value} />
             </div>
@@ -39,10 +38,12 @@ export function WorkBlock({ work }: WorkBlockProps) {
   );
 }
 
-export function WorkList({works}:{works: Work[]}){
-  return <div className="space-y-6">
-  {works.map((we) => (
-    <WorkBlock key={we.slug} work={we} />
-  ))}
-</div>
+export function WorkList({ works }: { works: Work[] }) {
+  return (
+    <div className="space-y-6">
+      {works.map((we) => (
+        <WorkBlock key={we.slug} work={we} />
+      ))}
+    </div>
+  );
 }

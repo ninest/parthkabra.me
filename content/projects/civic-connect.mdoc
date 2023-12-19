@@ -1,0 +1,83 @@
+---
+title: CivicConnect
+description: A platform to build chatbots to enhance constituent engagement
+links:
+  - name: GitHub
+    href: https://github.com/ninest/civic-connect
+showContents: false
+color: '#B59C53'
+icon:
+  discriminant: emoji
+  value: ✨
+featured: true
+createdAt: '2023-12-20'
+updatedAt: '2023-12-20'
+---
+CivicConnect is a platform created for the [Seth Moulton Congressional Office](https://moulton.house.gov/). While it was created with Moulton's office in mind, it can be adapted to any Congressional office.
+
+{% alert variant="secondary" %}
+This is a group project created for CS 4973 AI for Impact, a special class offered at Northeastern University.
+{% /alert %}
+
+In general, constituent engagement is broken. Congressional staffers are overwhelmed with correspondence volume and citizens feel unheard. This means that people cannot get timely assistance. Our team decided to create CivicConnect to address these problems. The main objectives of our solution are:
+
+- To answer basic constituent questions
+- To reduce intake work
+- To get analytics on citizen communication
+- To integrate into existing office workflows, for example, integrate with Slack
+
+Ultimately, the aim is not for CivicConnect to completely replace Congressional staff, but rather help answer basic questions and alert staff for more sensitive queries, which account for around 80% of communication with constituents.
+
+## Features and interface
+
+### Chat
+
+![](/images/civic-connect/congressbot.png)
+
+This is the page through which constituent interact with the chatbot. The chat
+
+bot answers question through knowledge provided in the form of documents. The chatbot can also request information from the user in a conversational manner.
+
+![](/images/civic-connect/congressbot.png)
+
+### Admin dashboard: edit and documents page
+
+Rather than creating a chatbot specifically for the Moulton House, we decided to create a platform that makes it easy for anyone without much technical knowledge to create chatbots. Everything in the chatbot is customizable, from the name to the conversation starters.
+
+![](/images/civic-connect/congressbot-1.png)
+
+Administrators can provide the bot with knowledge by uploading documents. For example, for the Moulton office, we provided documents containing information from their website (about page, FAQ page, etc.).
+
+![](/images/civic-connect/congressbot-8.png)
+
+### Forms
+
+The forms are also customizable. Admins can specify the fields they want to collect from users.
+
+![](/images/civic-connect/congressbot-2.png)
+
+![](/images/civic-connect/congressbot-6.png)
+
+Form submissions can be viewed or exported.
+
+![](/images/civic-connect/congressbot-6.png)
+
+Here's an example of a user submitting the "Legislative Opinions" through the chatbot:
+
+![](/images/civic-connect/congressbot.png)
+
+The user does not have to fill out any fields and can chat naturally.
+
+### Analytics
+
+![](/images/civic-connect/congressbot-3.png)
+
+![](/images/civic-connect/congressbot-5.png)
+
+Through the analytics page, we can see a count of conversations by category and view an individual conversation.
+
+### Integrations
+
+It's important that CivicConnect integrates well with existing tools. The Slack integration allows form submissions to be sent to a Slack channel.
+
+![](/images/civic-connect/congressbot-4.png)

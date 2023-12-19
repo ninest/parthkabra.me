@@ -168,6 +168,7 @@ const commonFields = {
         schema: { id: fields.text({ label: "ID", validation: { length: { min: 1 } } }) },
         preview: ({ fields }) => (
           <div>
+            {/* @ts-ignore */}
             <Tweet id={fields.id.value} />
           </div>
         ),

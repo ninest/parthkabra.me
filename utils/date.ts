@@ -16,7 +16,7 @@ export function getStartEndDateString(startDate: Date, endDate?: null | Date) {
     endDate ? formatDateMonthYear(new Date(endDate)) : "Current"
   }`;
 
-  if (formatDateMonthYear(startDate) === formatDateMonthYear(endDate))
+  if (endDate && formatDateMonthYear(startDate) === formatDateMonthYear(endDate))
     dateString = `${formatDateMonthYear(new Date(startDate))}`;
 
   return dateString;

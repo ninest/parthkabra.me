@@ -12,6 +12,7 @@ export function ProjectBlock({ project }: ProjectBlockProps) {
       href={`/projects/${project.slug}`}
       style={{
         rotate: `${randomBetween(-2, 2)}deg`,
+        // @ts-ignore
         "--shadow-color": `${project.color}40`,
         backgroundColor: `${project.color}20`,
         borderColor: `${project.color}20`,
