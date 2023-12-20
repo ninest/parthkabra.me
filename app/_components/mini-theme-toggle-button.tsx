@@ -13,7 +13,9 @@ export function MiniThemeToggleButton() {
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", metaColors[theme]);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", theme ? metaColors[theme] : metaColors.light);
   }, [theme]);
 
   return (

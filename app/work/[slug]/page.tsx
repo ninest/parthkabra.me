@@ -11,7 +11,6 @@ interface Params {
 
 export async function generateMetadata({ params }: Params):Promise<Metadata> {
   const post = await getWork(params.slug);
-  console.log(createOgImageUrl({ title: post.title, color: `${post.color}35` }));
   return {
     title: post.title,
     description: post.description,

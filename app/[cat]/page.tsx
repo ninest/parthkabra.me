@@ -6,8 +6,18 @@ import { getAllCategories, getAllPosts } from "@/modules/keystatic";
 import { cn } from "@/utils/style";
 import Link from "next/link";
 
+export const dynamic = "force-static";
+
 interface Params {
   params: { cat: string };
+}
+
+export async function generateStaticParams() {
+  const categories = [{ slug: "all" }, ...(await getAllCategories())];
+
+  return categories.map((category) => {
+    return { cat: category.slug };
+  });
 }
 
 export default async function PostsPage({ params }: Params) {
@@ -45,6 +55,8 @@ export default async function PostsPage({ params }: Params) {
         <Spacer className="h-10" />
 
         <PostsList posts={filteredPosts} />
+
+        <Spacer className="h-28" />
       </main>
     </>
   );

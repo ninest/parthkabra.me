@@ -3,6 +3,7 @@ import { Navbar } from "@/app/_components/navbar";
 import { PostsList } from "@/app/_components/post";
 import { ProjectsList } from "@/app/_components/project-block";
 import { WorkList } from "@/app/_components/work-block";
+import { Mermaid } from "@/components/mermaid";
 import { Spacer } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { getAllPosts, getAllProjects, getAllWork } from "@/modules/keystatic";
@@ -17,12 +18,13 @@ export default async function Home() {
   const allProjects = await getAllProjects();
 
   const posts = await getAllPosts();
-  const displayPosts = posts.filter((post) => !post.slug.startsWith("leetcode")).slice(0, 10);
+  const displayPosts = posts.filter((post) => !post.slug.startsWith("leetcode")).slice(0, 15);
 
   return (
     <>
       <Navbar onlyVisibleOnScroll={true} />
-      <main className="space-x my-10">
+
+      <main className="space-x mb-10">
         <div>
           <div className="flex items-center justify-between">
             <h1 className="text-primary font-black text-3xl">Parth Kabra</h1>
@@ -32,25 +34,25 @@ export default async function Home() {
           <h1 className="text-muted-foreground font-extrabold text-lg">Northeastern University, Boston, MA</h1>
         </div>
 
-        <Spacer className="h-4" />
+        <Spacer className="h-6" />
 
         <div className="flex items-center space-x-3">
-          <Button asChild variant={"outline"} size={"sm"}>
+          <Button asChild variant={"outline"}>
             <a href={"https://github.com/ninest"} target="_blank">
               GitHub
             </a>
           </Button>
-          <Button asChild variant={"outline"} size={"sm"}>
+          <Button asChild variant={"outline"}>
             <a href={"https://www.linkedin.com/in/parth-kabra/"} target="_blank">
               LinkedIn
             </a>
           </Button>
-          <Button asChild variant={"outline"} size={"sm"}>
+          <Button asChild variant={"outline"}>
             <Link href={"/contact"}>Contact</Link>
           </Button>
         </div>
 
-        <Spacer className="h-6" />
+        <Spacer className="h-8" />
 
         <p>
           I'm a computer science student at Northeastern University in Boston, MA looking for internships and full-time
@@ -76,7 +78,7 @@ export default async function Home() {
             </Link>
           </li>
           <li>
-            <Link href={"/"}>
+            <Link href={"/all"}>
               <span className="text-primary">Blog posts</span>{" "}
               <span className="text-sm tabular-nums">({posts.length})</span>
             </Link>

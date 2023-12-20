@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-  const posts = await getAllPosts();
+  const posts = await getAllPosts({ all: true });
 
   return posts.map((post) => {
     const [cat, slug] = post.slug.split("/");
@@ -50,6 +50,7 @@ export default async function PostComponent({ params }: Params) {
       }
       bannerColor={post.color}
       icon={post.icon}
+      draft={post.draft}
       title={post.title}
       description={
         <>

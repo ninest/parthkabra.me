@@ -7,7 +7,7 @@ import { cn } from "@/utils/style";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { LuChevronRight, LuMoon, LuPanelRight, LuSliders } from "react-icons/lu";
+import { LuChevronRight, LuMoon, LuPanelRight, LuSliders, LuX } from "react-icons/lu";
 
 type Crumb = { title: string; href: string; classes?: string };
 
@@ -38,48 +38,51 @@ export function Navbar({
 
   return (
     <>
-      {show && (
-        <div className="sticky top-0 z-50 ">
-          <header className="p-5 flex items-center justify-between bg-background/75 lg:bg-transparent">
-            <div className="flex items-center space-x-2">
-              {/* On mobile, the close sidebar button remains in the same place, but
+      <div
+        className={cn("sticky top-0 z-50", {
+          "opacity-0 pointer-events-none": !show,
+        })}
+      >
+        <header className="p-5 flex items-center justify-between bg-background/75 lg:bg-transparent">
+          <div className="flex items-center space-x-2">
+            {/* On mobile, the close sidebar button remains in the same place, but
               on desktop, the close sidebar button is in the sidebar
               */}
-              {showSidebarToggle && (
-                <Button
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  variant={"outline"}
-                  size={"icon"}
-                  className={cn({ "md:hidden": sidebarOpen })}
-                >
-                  <LuPanelRight />
-                </Button>
-              )}
-              <CrumbList crumbs={mobileCrumbs} className="md:hidden" />
-              <CrumbList crumbs={desktopCrumbs} className="hidden md:flex" />
-            </div>
-            <div className="flex items-center space-x-2">
+            {showSidebarToggle && (
               <Button
-                onClick={theme === "dark" ? () => setTheme("light") : () => setTheme("dark")}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
                 variant={"outline"}
-                className="p-3"
+                size={"icon"}
+                className={cn({ "md:hidden": sidebarOpen })}
               >
-                <LuMoon />
+                {/* Show X when open on mobile */}
+                {sidebarOpen ? <LuX /> : <LuPanelRight />}
               </Button>
-              <Button asChild>
-                <Link href={"/contact"}>Contact</Link>
-              </Button>
-            </div>
-          </header>
+            )}
+            <CrumbList crumbs={mobileCrumbs} className="md:hidden" />
+            <CrumbList crumbs={desktopCrumbs} className="hidden md:flex" />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={theme === "dark" ? () => setTheme("light") : () => setTheme("dark")}
+              variant={"outline"}
+              className="p-3"
+            >
+              <LuMoon />
+            </Button>
+            <Button asChild>
+              <Link href={"/contact"}>Contact</Link>
+            </Button>
+          </div>
+        </header>
 
-          {/* Mobile "sidebar" */}
-          {!!mobileSidebarSlot && sidebarOpen && (
-            <aside className="md:hidden bg-background border-t border-b max-h-[50vh] overflow-y-auto">
-              {mobileSidebarSlot}
-            </aside>
-          )}
-        </div>
-      )}
+        {/* Mobile "sidebar" */}
+        {!!mobileSidebarSlot && sidebarOpen && (
+          <aside className="md:hidden bg-background border-t border-b max-h-[50vh] overflow-y-auto">
+            {mobileSidebarSlot}
+          </aside>
+        )}
+      </div>
     </>
   );
 }

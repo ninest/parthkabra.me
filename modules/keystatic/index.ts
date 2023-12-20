@@ -39,16 +39,21 @@ export async function getProject(slug: string) {
   return post;
 }
 
-export async function getAllPosts() {
+export async function getAllPosts(filters?: { all?: boolean }) {
   const postSlugs = await reader.collections.posts.list();
-  return await getPostsFromSlugs(postSlugs);
+  const posts = await getPostsFromSlugs(postSlugs);
+  posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  if (filters?.all) return posts;
+
+  const filteredPosts = posts.filter((post) => !post.draft);
+  return filteredPosts;
 }
 async function getPostsFromSlugs(slugs: string[]) {
   const posts = await Promise.all(
     slugs.map(async (slug) => ({ slug, ...(await reader.collections.posts.readOrThrow(slug)) }))
   );
-  posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  return posts.filter((post) => !post.draft);
+  return posts;
 }
 
 export async function getPost(cat: string, slug: string) {
@@ -96,8 +101,9 @@ export async function getPostCollections(cat: string, slug: string) {
   // Get all posts
   return Promise.all(
     collections.map(async (c) => {
-      // Get posts, remove content
+      // Get posts, remove content, sort
       const posts = (await getPostsFromSlugs([...c.posts])).map(({ content, ...rest }) => rest);
+      posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       return { ...c, posts };
     })
   );

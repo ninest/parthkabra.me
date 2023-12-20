@@ -20,6 +20,8 @@ export default async function WorksPage() {
         <Spacer className="h-12" />
 
         <WorkList works={allWork} />
+
+        <Spacer className="h-28"/>
       </main>
     </>
   );

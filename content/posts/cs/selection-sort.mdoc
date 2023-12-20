@@ -1,0 +1,28 @@
+---
+title: Selection Sort
+description: Selection sort in pseudocode and Python
+links: []
+showContents: false
+icon:
+  discriminant: emoji
+  value: 🔢
+createdAt: '2021-06-11'
+updatedAt: '2023-12-20'
+draft: true
+alternateCategories: []
+---
+## Steps
+
+- Loop through the array
+- Find the smallest element in the unsorted portion of the array
+- Swap the smallest element with the first element in the unsorted portion of the array
+
+*The sorted portion of the array is on the left side while the unsorted portion is on the right. In the diagrams below, the blue boxes represent the*  ***sorted***  *elements of the array, while the white boxes represent the*  ***unsorted***  *elements. Elements that are going to be swapped are shown in green boxes.*
+
+On every iteration, an element from the unsorted portion is added to the sorted portion. For example, if we start with this array:
+
+{% mermaid %}
+graph LR
+
+3 --- 5 --- 2 --- 1 --- 9 --- 6
+{% /mermaid %}

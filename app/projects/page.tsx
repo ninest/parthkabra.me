@@ -30,6 +30,8 @@ export default async function ProjectsPage() {
         <h2 className="text-3xl font-bold">All</h2>
         <Spacer className="h-8" />
         <ProjectsList projects={allProjects} className="sm:-mx-2 md:-mx-8" />
+
+        <Spacer className="h-28" />
       </main>
     </>
   );

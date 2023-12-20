@@ -2,10 +2,12 @@
 
 import { DesktopSidebar } from "@/app/_components/desktop-sidebar";
 import { Alert } from "@/components/alert";
+import { Mermaid } from "@/components/mermaid";
 import { Spacer } from "@/components/spacer";
 import { Chat } from "@/components/special/chat";
 import { Keyboard } from "@/components/special/keyboard";
 import { PostLink } from "@/modules/types";
+import { createDivisions } from "@/utils/array";
 import { randomBetween } from "@/utils/random";
 import { cn } from "@/utils/style";
 import { DocumentElement } from "@keystatic/core";
@@ -21,6 +23,7 @@ interface ContentLayoutProps {
 
   bannerColor?: string;
   icon: { discriminant: "none" } | { discriminant: "emoji"; value: string } | { discriminant: "image"; value: string };
+  draft: boolean;
   title: string;
   description: ReactNode;
   links: readonly PostLink[];
@@ -33,12 +36,22 @@ export function ContentLayout({
 
   bannerColor,
   icon,
+  draft,
   title,
   description,
   links,
   keystaticContent,
 }: ContentLayoutProps) {
   const { theme } = useTheme();
+
+  const draftLinearGradientColors = createDivisions({ start: 1, end: 99, divisions: 12 })
+    .flatMap((value, index, array) => {
+      if (index === array.length - 1) return []; // Skip the last item
+      const color = index % 2 === 0 ? "yellow" : "#222";
+      return [`${color} ${value}%`, `${color} ${array[index + 1]}%`];
+    })
+    .join(", ");
+
   return (
     <main className="flex">
       {!!sidebarSlot && <DesktopSidebar>{sidebarSlot}</DesktopSidebar>}
@@ -46,7 +59,7 @@ export function ContentLayout({
         {navbarSlot}
         <div
           style={bannerColor ? { backgroundColor: theme === "dark" ? `${bannerColor}50` : `${bannerColor}10` } : {}}
-          className="h-64 bg-gray-100 dark:bg-gray-800"
+          className="h-56 md:h-64 bg-gray-100 dark:bg-gray-800"
         ></div>
 
         <div className="space-x">
@@ -63,6 +76,14 @@ export function ContentLayout({
 
           <Spacer className="h-8" />
 
+          {draft && (
+            <div
+              style={{
+                background: `linear-gradient(-45deg, ${draftLinearGradientColors})`,
+              }}
+              className="w-full h-10 mb-8"
+            ></div>
+          )}
           <h1 className="text-5xl font-bold">{title}</h1>
 
           <Spacer className="h-6" />
@@ -119,6 +140,14 @@ export function ContentLayout({
                 chat: (props) => <Chat {...props} />,
                 // @ts-ignore
                 tweet: (props) => <Tweet {...props} />,
+                mermaid: (props) => {
+                  const code = props.code.props.node.children.map((child: any) => child.children[0].text).join("\n\n");
+                  return (
+                    <div>
+                      <Mermaid code={code} />
+                    </div>
+                  );
+                },
               }}
             />
           </article>

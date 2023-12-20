@@ -1,0 +1,88 @@
+---
+title: Mistakes Made With Husker
+description: Mistakes I made while creating Husker and possible ways to fix them
+links:
+  - name: Husker
+    href: https://www.husker.nu/
+  - name: GitHub
+    href: https://github.com/ninest/husker
+showContents: false
+icon:
+  discriminant: emoji
+  value: 🛣️
+createdAt: '2023-12-21'
+updatedAt: '2023-12-21'
+draft: true
+alternateCategories: []
+---
+[Husker](https://www.husker.nu/), overall, is a success. As of 2023, it has saved over 6,000 students from the abomination that is Northeastern's Sharepoint Student Hub. In fact, there have been 10 users on the site in the past 30 minutes. And it's the middle of winter break!
+
+That doesn't mean that there are things I would change about it. Had I restarted the project today, here are a few things I would do different.
+
+## Make it easier to edit content
+
+All content is currently stored in code. Changing a link or article involves changing files that look like this:
+
+![](/images/blog/mistakes-made-with-husker/grad.png)
+
+This isn't all that bad for me because I know what's going on, but I do wish I thought of an easier way of letting non-technical people contribute. Updating content is really annoying because it involves
+
+- Editing the content
+- Previewing it and making sure it looks right
+- Making sure the site has no errors
+- Pushing the code to GitHub
+- Wait for the site to build (1-2 minutes)
+- Make sure the site looks fine
+
+It would be so much easier if I could, for example, change something in a Google Doc and have the site update automatically.
+
+Additionally, getting user contributions is difficult. There are two ways, but none are optimal.
+
+### Contributions through Reddit/Discord
+
+Users can message me with content they'd like to add. While this is simple and works, it's not automatic and requires the contributor to have a Reddit/Discord account. Furthermore, it's not that simple because it requires the user to get out of their way to contribute. It would be amazing if a user could contribute without having to leave Husker.
+
+### Contributions through the form
+
+![](/images/blog/mistakes-made-with-husker/husker-contribute.png)
+
+The good thing about the contribution form is that it's possible to submit contributions without leaving Husker. But, this form only accepts text, so the only way to upload images is to either manually upload them to Imgur then paste an Imgur link, or to just contribute through Reddit.
+
+## Better advertise features
+
+### Favorites
+
+I've gotten some feedback on how it's not obvious that links can be favorited. This is a problem especially on mobile, where you have to open the menu to know that there is a favorites tab.
+
+![](/images/blog/mistakes-made-with-husker/favorites-where.png)
+
+Opening the favorites link will enable favorites. And when there are no links favorited, there is a guide on how to either add favorites or disable favorites.
+
+![](/images/blog/mistakes-made-with-husker/favorites-how.png)
+
+I'm still not sure if this is the best way to go about it. There is definitely too much text and I'm not sure if anyone reads all of it.
+
+So, how do we favorite a link? Right click (or long press on mobile) and click "Add to favorites". I don't think it's intuitive enough, especially since it's a website.
+
+![](/images/blog/mistakes-made-with-husker/favorites-right-click.png)
+
+One other option is to add a menu button at the end of every link button which can open this context menu to allow the user to favorite links. I had tried this, but it did make link buttons look more crowded. I may try this again soon though.
+
+### Wiki
+
+Yes, Husker has a wiki. Most people know about the [Free Stuff](https://husker.nu/services/free) page, but only because the direct link has been shared around a lot.
+
+![](/images/blog/mistakes-made-with-husker/free-stuff.png)
+
+When you open the site, it's not clear how to get to wiki articles. To get to the Free Stuff page, you have to click on the "Services" link in the sidebar, then click on the "Free Stuff" link:
+
+![](/images/blog/mistakes-made-with-husker/services-free-stuff.png)
+
+This brings up another problem: the category pages. All link are available on the main page (`husker.nu/`). Each category also has its own page of links. `husker.nu/courses` only has course-related links. Based on feedback, no one really understood why there had to be a category page when all links were accessible on the main page.
+
+My reasoning was that:
+
+1. The category page shows link descriptions, making it easier for new users to understand what the link is.
+1. The category page should also contain less frequently used links and links to wiki articles. In the image above, we can see that at the bottom of the "Services" page, there's a link to "COVID-19 Results", which is infrequently visited, and links to "Apps" and "Free", both of which are wiki articles.
+
+There definitely should be a better way to handle this because users find it too confusing.

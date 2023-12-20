@@ -1,5 +1,6 @@
 // keystatic.config.ts
 import { Alert } from "@/components/alert";
+import { Mermaid } from "@/components/mermaid";
 import { Chat } from "@/components/special/chat";
 import { Keyboard } from "@/components/special/keyboard";
 import { collection, component, config, fields } from "@keystatic/core";
@@ -172,6 +173,26 @@ const commonFields = {
             <Tweet id={fields.id.value} />
           </div>
         ),
+      }),
+      mermaid: component({
+        label: "Mermaid",
+        schema: {
+          // code: fields.text({ label: "Code", validation: { length: { min: 1 } }, multiline: true }),
+          code: fields.child({
+            kind: "block",
+            placeholder: "Code ...",
+          }),
+        },
+        preview: ({ fields }) => {
+          console.log(fields.code.element);
+          return (
+            <div>
+              <div>{fields.code.element}</div>
+              {/* <pre>{JSON.stringify(fields.code.element.children, null, 2)}</pre> */}
+              {/* <Mermaid code={fields.code.element?.toString()!} /> */}
+            </div>
+          );
+        },
       }),
     },
   }),

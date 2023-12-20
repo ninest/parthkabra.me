@@ -2,19 +2,24 @@ const metaPageSlugs = ["about", "contact"];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async rewrites() {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "mermaid.ink",
+        port: "",
+        pathname: "/svg/**",
+      },
+    ],
+  },
+
+  async redirects() {
     return metaPageSlugs.map((slug) => ({
       source: `/${slug}`,
       destination: `/me/${slug}`,
+      permanent: true,
     }));
   },
-  // async redirects() {
-  //   return metaPageSlugs.map((slug) => ({
-  //     source: `/meta/${slug}`,
-  //     destination: `/meta/${slug}`,
-  //     permanent: true,
-  //   }));
-  // },
 };
 
 module.exports = nextConfig;
