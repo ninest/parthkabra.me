@@ -23,7 +23,7 @@ interface ContentLayoutProps {
 
   bannerColor?: string;
   icon: { discriminant: "none" } | { discriminant: "emoji"; value: string } | { discriminant: "image"; value: string };
-  draft: boolean;
+  draft?: boolean;
   title: string;
   description: ReactNode;
   links: readonly PostLink[];
@@ -36,7 +36,7 @@ export function ContentLayout({
 
   bannerColor,
   icon,
-  draft,
+  draft = false,
   title,
   description,
   links,
@@ -55,12 +55,12 @@ export function ContentLayout({
   return (
     <main className="flex">
       {!!sidebarSlot && <DesktopSidebar>{sidebarSlot}</DesktopSidebar>}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         {navbarSlot}
         <div
           style={bannerColor ? { backgroundColor: theme === "dark" ? `${bannerColor}50` : `${bannerColor}10` } : {}}
           className="h-56 md:h-64 bg-gray-100 dark:bg-gray-800"
-        ></div>
+        />
 
         <div className="space-x">
           {icon.discriminant !== "none" && (
@@ -120,7 +120,7 @@ export function ContentLayout({
             className={cn(
               "prose max-w-none",
               // Code
-              "prose-code:before:hidden prose-code:after:hidden prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900",
+              "prose-code:before:hidden prose-code:after:hidden prose-pre:min-w-0 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900",
               // "md:prose-pre:-mx-5",
               "dark:prose-invert",
               "prose-img:rounded sibling-div-space"

@@ -62,6 +62,9 @@
   .space-x {
     @apply px-5 max-w-[50rem] mx-auto;
   }
+  .space-x-wider {
+    @apply px-5 max-w-[65rem] mx-auto;
+  }
 
   .sibling-div-space > div + div {
     @apply mt-6;

@@ -1,0 +1,39 @@
+---
+title: Expenses App UI
+description: Creating a UI for a personal expenses app
+links: []
+showContents: false
+icon:
+  discriminant: emoji
+  value: 🪙
+createdAt: '2023-12-25'
+updatedAt: '2023-12-25'
+draft: false
+alternateCategories: []
+---
+For the longest time, I've recorded by personal expenses using Google Sheets. Adding expenses on Google Sheets has always been clunky and difficult on my phone, so I decided to create a Google Form to make this easier.
+
+This made adding expenses way easier, especially on mobile. But being a a software and product engineer, I thought I could take this further and create a full-fledged expenses application using a [Google Forms](/html/google-forms-embed) and Google Sheets as the backend.
+
+## UI Inspiration: Apple wallet
+
+![](/images/blog/expenses-app-ui/expenses-app.png)
+
+I really like the colors and list view of Apple Wallet. I like to see a quick summary of my month's spendings with the overall colors of the Apple Card.
+
+## Initial UI
+
+![](/images/blog/expenses-app-ui/expenses-mine.png)
+
+### Left side: expenses view and summary
+
+- This view shows the spending by month.
+- The "card" on the top shows a breakdown of spending by category through the colors. In this example, the most has been spent on the "Living category".
+- Every individual expense/transaction can bee seen below.
+
+### Right side: add expense form
+
+- An amount can be entered either by typing or by using the buttons.
+  - For example, rather than typing "7.35", the user can press the "+5.00", the "+1.00" button twice, the "+0.25", then the "+0.10" button.
+  - [react-number-format](https://github.com/s-yadav/react-number-format) was helpful for the number input.
+- To enter the date, either the date picker, or the quick buttons for "yesterday" or "day-before yesterday" can be used.

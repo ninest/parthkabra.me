@@ -1,3 +1,4 @@
+import { Bento } from "@/app/_components/bento";
 import { MiniThemeToggleButton } from "@/app/_components/mini-theme-toggle-button";
 import { Navbar } from "@/app/_components/navbar";
 import { PostsList } from "@/app/_components/post";
@@ -24,96 +25,102 @@ export default async function Home() {
     <>
       <Navbar onlyVisibleOnScroll={true} />
 
-      <main className="space-x mb-10">
-        <div>
-          <div className="flex items-center justify-between">
-            <h1 className="text-primary font-black text-3xl">Parth Kabra</h1>
-            <MiniThemeToggleButton />
+      <main className="mb-10">
+        <section className="space-x">
+          <div>
+            <div className="flex items-center justify-between">
+              <h1 className="text-primary font-black text-3xl">Parth Kabra</h1>
+              <MiniThemeToggleButton />
+            </div>
+            <h1 className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</h1>
+            <h1 className="text-muted-foreground font-extrabold text-lg">Northeastern University, Boston, MA</h1>
           </div>
-          <h1 className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</h1>
-          <h1 className="text-muted-foreground font-extrabold text-lg">Northeastern University, Boston, MA</h1>
-        </div>
 
-        <Spacer className="h-6" />
+          <Spacer className="h-6" />
+          {/* 
+          <div className="flex items-center space-x-3">
+            <Button asChild variant={"outline"}>
+              <a href={"https://github.com/ninest"} target="_blank">
+                GitHub
+              </a>
+            </Button>
+            <Button asChild variant={"outline"}>
+              <a href={"https://www.linkedin.com/in/parth-kabra/"} target="_blank">
+                LinkedIn
+              </a>
+            </Button>
+            <Button asChild variant={"outline"}>
+              <Link href={"/contact"}>Contact</Link>
+            </Button>
+          </div> */}
 
-        <div className="flex items-center space-x-3">
-          <Button asChild variant={"outline"}>
-            <a href={"https://github.com/ninest"} target="_blank">
-              GitHub
-            </a>
-          </Button>
-          <Button asChild variant={"outline"}>
-            <a href={"https://www.linkedin.com/in/parth-kabra/"} target="_blank">
-              LinkedIn
-            </a>
-          </Button>
-          <Button asChild variant={"outline"}>
-            <Link href={"/contact"}>Contact</Link>
-          </Button>
-        </div>
+          {/* <Spacer className="h-8" /> */}
 
-        <Spacer className="h-8" />
+          <p>
+            I'm a computer science student at Northeastern University in Boston, MA looking for internships and
+            full-time roles in 2024/2025.{" "}
+            <Link href={"/about"} className="text-primary">
+              Read more
+            </Link>
+          </p>
+        </section>
 
-        <p>
-          I'm a computer science student at Northeastern University in Boston, MA looking for internships and full-time
-          roles in 2024/2025.{" "}
-          <Link href={"/about"} className="text-primary">
-            Read more
+        <section className="my-11 md:my-14 space-x-wider">
+          <Bento />
+        </section>
+
+        <section className="space-x">
+          <ul className="list-disc ml-4">
+            <li>
+              <Link href={"/work"}>
+                <span className="text-primary">Work</span>{" "}
+                <span className="text-sm tabular-nums">({allWork.length})</span>
+              </Link>
+            </li>
+            <li>
+              <Link href={"/projects"}>
+                <span className="text-primary">Projects</span>{" "}
+                <span className="text-sm tabular-nums">({allProjects.length})</span>
+              </Link>
+            </li>
+            <li>
+              <Link href={"/all"}>
+                <span className="text-primary">Blog posts</span>{" "}
+                <span className="text-sm tabular-nums">({posts.length})</span>
+              </Link>
+            </li>
+          </ul>
+
+          <hr className="my-8" />
+
+          <Title>Work</Title>
+          <Spacer className="h-6" />
+
+          <WorkList works={featuredWork} />
+          <Link href={"/work"} className="block mt-3 font-semibold text-primary">
+            See all ({allWork.length})
           </Link>
-        </p>
 
-        <Spacer className="h-8" />
+          <Spacer className="h-12" />
 
-        <ul className="list-disc ml-4">
-          <li>
-            <Link href={"/work"}>
-              <span className="text-primary">Work</span>{" "}
-              <span className="text-sm tabular-nums">({allWork.length})</span>
-            </Link>
-          </li>
-          <li>
-            <Link href={"/projects"}>
-              <span className="text-primary">Projects</span>{" "}
-              <span className="text-sm tabular-nums">({allProjects.length})</span>
-            </Link>
-          </li>
-          <li>
-            <Link href={"/all"}>
-              <span className="text-primary">Blog posts</span>{" "}
-              <span className="text-sm tabular-nums">({posts.length})</span>
-            </Link>
-          </li>
-        </ul>
+          <Title>Projects</Title>
+          <Spacer className="h-4" />
 
-        <hr className="my-8" />
+          <ProjectsList projects={featuredProjects} />
+          <Link href={"/projects"} className="block mt-3 font-semibold text-primary">
+            See all ({allProjects.length})
+          </Link>
 
-        <Title>Work</Title>
-        <Spacer className="h-6" />
+          <Spacer className="h-12" />
 
-        <WorkList works={featuredWork} />
-        <Link href={"/work"} className="block mt-3 font-semibold text-primary">
-          See all ({allWork.length})
-        </Link>
+          <Title>Blog</Title>
+          <Spacer className="h-4" />
 
-        <Spacer className="h-12" />
-
-        <Title>Projects</Title>
-        <Spacer className="h-4" />
-
-        <ProjectsList projects={featuredProjects} />
-        <Link href={"/projects"} className="block mt-3 font-semibold text-primary">
-          See all ({allProjects.length})
-        </Link>
-
-        <Spacer className="h-12" />
-
-        <Title>Blog</Title>
-        <Spacer className="h-4" />
-
-        <PostsList posts={displayPosts} />
-        <Link href={"/all"} className="block mt-3 font-semibold text-primary">
-          See all ({posts.length})
-        </Link>
+          <PostsList posts={displayPosts} />
+          <Link href={"/all"} className="block mt-3 font-semibold text-primary">
+            See all ({posts.length})
+          </Link>
+        </section>
       </main>
     </>
   );

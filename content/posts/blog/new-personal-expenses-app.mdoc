@@ -1,0 +1,67 @@
+---
+title: New Personal Expenses App
+description: Creating a new expenses tracker just for me
+links: []
+showContents: false
+icon:
+  discriminant: emoji
+  value: 🏦
+createdAt: '2023-12-29'
+updatedAt: '2023-12-29'
+draft: false
+alternateCategories: []
+---
+I want my expenses tracker's frontend to have two components on the main page:
+
+- **Month summary** showing a breakdown of expenses by category.
+- **New expense form** with **tip calculator + cost splitter** for the times I eat out with friends. It can get pretty complicated:
+  - Get the bill
+  - Calculate the tip and total amount payable
+  - One person pays the total bill
+  - Everyone else calculates how much they pay (amount and tip)
+
+{% alert variant="secondary" title="Tip calculation example" %}
+When I go out with friends, we do NOT split the tip equally. We divide it based on the cost of our dish.
+
+If I go out with one friend and the total bill is $100 + 20%, the tip amount is $20 making the total $120. While it's easy for me and my friend to pay $10 each, it can be quite unfair for my friend if they a bought a $10 dish, and have to pay $10 for the tip.
+
+We calculate it this way:
+
+```
+Total: $100
+Tip at 20%: $20
+Total with tip: $120
+
+Without tip: 
+  Friend amount: $10
+  My amount: $90
+
+With tip:
+  Friend amount: $10 + (10/100 * 20) = $10 + $2 = $12
+  My amount: $90 + (90/100 * 20) = $90 + $18 = $108
+```
+{% /alert %}
+
+## Version 1
+
+![](/images/blog/new-personal-expenses-app/expenses-app-2.png)
+
+A few comments about this layout:
+
+I'm using a **log scale** for the horizontal bar chart. Some categories (education, school fees) will always have a much higher total amount per month. Having one super long bar makes it difficult to compare spendings across categories.
+
+This is what the graph looks like with a regular scale:
+
+![](/images/blog/new-personal-expenses-app/expenses-app-g.png)
+
+Another issue with the layout, specifically the new expense form, is that it's too crowded. While I usually prefer being more clear and verbose when it comes to long, complex forms, this expense tracker is just for me, and I do not need all the labels.
+
+## Version 2
+
+![](/images/blog/new-personal-expenses-app/expenses-app-v2-dark.png)
+
+Removing the labels makes the form a lot simpler to me. It's completely okay if others don't immediately understand what all the fields are for because I am the only user.
+
+I'm really happy with the "summary receipt" at the bottom. I added a slight rotation and gradient to try and make it look more like a physical receipt.
+
+![](/images/blog/new-personal-expenses-app/expenses-app-2-rec.png)
