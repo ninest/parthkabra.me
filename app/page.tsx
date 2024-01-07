@@ -65,12 +65,12 @@ export default async function Home() {
           </p>
         </section>
 
-        <section className="my-11 md:my-14 space-x-wider">
+        <section className="my-11 md:my-14 space-x-wide">
           <Bento />
         </section>
 
         <section className="space-x">
-          <ul className="list-disc ml-4">
+          {/* <ul className="list-disc ml-4">
             <li>
               <Link href={"/work"}>
                 <span className="text-primary">Work</span>{" "}
@@ -91,7 +91,7 @@ export default async function Home() {
             </li>
           </ul>
 
-          <hr className="my-8" />
+          <hr className="my-8" /> */}
 
           <Title>Work</Title>
           <Spacer className="h-6" />

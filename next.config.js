@@ -14,11 +14,18 @@ const nextConfig = {
   },
 
   async redirects() {
-    return metaPageSlugs.map((slug) => ({
-      source: `/${slug}`,
-      destination: `/me/${slug}`,
-      permanent: true,
-    }));
+    return [
+      ...metaPageSlugs.map((slug) => ({
+        source: `/${slug}`,
+        destination: `/me/${slug}`,
+        permanent: true,
+      })),
+      {
+        source: "/project/:path*",
+        destination: "/projects/:path*",
+        permanent: true,
+      },
+    ];
   },
 };
 
