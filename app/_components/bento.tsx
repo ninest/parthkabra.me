@@ -86,6 +86,7 @@ export function Bento() {
       >
         {quickLinks.map((ql) => (
           <Link
+            key={ql.href}
             href={ql.href}
             className="flex items-center justify-between group hover:bg-muted -mx-2 px-2 -my-3 py-3 rounded-md"
           >

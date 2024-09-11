@@ -1,0 +1,35 @@
+---
+title: Husker Gym
+description: A realtime dashboard to monitor gym occupancy and crowd
+links:
+  - name: GitHub
+    href: https://github.com/ninest/husker-gym
+  - name: Website
+    href: https://gym.husker.nu
+showContents: false
+icon:
+  discriminant: emoji
+  value: 📊
+featured: false
+createdAt: '2023-01-25'
+updatedAt: '2024-09-10'
+---
+Husker Gym is a dashboard to monitor the crowds at the gyms in Northeastern University.
+
+![](/images/husker-gym/image.png)
+
+## Blog posts
+
+[Northeastern gyms are too crowded](/blog/husker-gym-0)
+
+[Husker Gym Log 1](/blog/husker-gym-1)
+
+[Husker Gym Log 2: UI updates](/blog/husker-gym-2)
+
+[Husker Gym Log 3: Project complete!](/blog/husker-gym-3)
+
+## Technologies
+
+- D3 for charts: I created the charts using React and SVG, along with D3 heedlessly for the math functions.
+- GitHub Actions for the cron job to scrape the live gym crowd level website
+- Turso (SQLite) as the database
