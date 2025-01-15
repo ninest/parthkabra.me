@@ -1,0 +1,78 @@
+---
+title: Husker Presentation
+description: Presentation notes and links
+links: 
+  - name: Slides
+    href: https://docs.google.com/presentation/d/1fd9O6VhCYPtyR_2zoAbdQhcHTtw96S2snGMTiId_uqc/edit#slide=id.g325312b7f40_0_95
+showContents: false
+color: '#AAAAAA'
+icon:
+  discriminant: emoji
+  value: ⌨️
+createdAt: '2025-01-15'
+updatedAt: '2025-01-15'
+draft: true
+alternateCategories: []
+---
+
+
+
+## History
+
+- Husker started as a Google Sheets back in 2021 before I joined Northeastern. 
+- I was annoyed by the number of links and resources we had the lack of good organization. MyNortheastern was cool, but did not have everything (It was shut down soon).
+
+(next slide - screenshot of husker (NEU Links) google sheet)
+
+- It started off as a Google Sheet with people commenting to add/update links
+
+(next slide - screenshot of husker v1)
+
+- I soon decided to make it a website, and I added "wiki" pages for things like apps to download or free stuff.
+
+(next slide - screenshot of husker v3)
+
+- Since then I've redesigned it twice
+- Used ShadCN UI for the latest version
+
+## Tech Stack - Husker
+
+- React + NextJS: personal preference on framework
+- ShadCN UI + TailwindCSS: useful to have copy-pasteable building apps to build your app faster and not have to worry about the smaller (but important) things like dropdowns, context menus, etc, and accessibility
+- Notion: CMS
+- Google Forms: for contribute form submissions
+- Vercel: hosting
+
+## Why ShadCN UI
+
+- Shortcut to build your own UI library using "building blocks", it provides a basic set of components like minimally styled buttons which you can customize to your liking
+- I did not customize these components all that much because I wanted Husker to feel super simple, with the UI actively getting out of your way
+- I usually do not like using libraries like MUI because it is difficult to style it to your exact liking. ShadCN UI does things differently by having you "copy paste" the components into your codebase, so you own them and are able to customize them
+- I do still think it is a good idea to learn how to use the underlying libraries (Radix UI) because you are responsible for maintaining it
+- While ShadCN's components are easy to install and use, they are pretty complicated themselves, so it's a good idea to understand how they work
+
+Select component: [https://github.com/ninest/husker/blob/main/components/ui/select.tsx#L75](https://github.com/ninest/husker/blob/main/components/ui/select.tsx#L75)
+
+(next slide - image of husker v3 showing sheet and multi-select component)
+
+## Why Notion
+
+- We've all used Notion for its organization/database capabilities, so I thought it would be a good idea to use it as a content management system
+- Using a database for links and the wiki
+- It is difficult to manage content in code, and it's especially difficult to make quick changes and let others contribute
+
+Notion APIs: [https://github.com/ninest/husker/blob/main/modules/notion/apis.ts#L32](https://github.com/ninest/husker/blob/main/modules/notion/apis.ts#L32)
+
+## Issues with Notion
+
+- 
+
+## Husker Gym
+
+- An app to show crowd levels at the gyms
+
+## Tech Stack
+
+## Husker Courses
+
+- A course viewer and planner

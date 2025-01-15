@@ -65,12 +65,12 @@ export function Bento() {
           cellClasses,
           "row-span-1 col-span-2 md:col-span-3 lg:col-span-2",
           "shadow p-5",
-          "!bg-[#6338CE] flex flex-col justify-between"
+          "!bg-red-900 flex flex-col justify-between"
         )}
       >
         <div className="text-gray-200 text-sm">Currently</div>
         <div className="text-sm font-bold text-white">
-          Software engineering intern, <b>Alignable</b>
+          Chief Technical Officer, <b>Chaos</b> (startup)
         </div>
       </div>
 
