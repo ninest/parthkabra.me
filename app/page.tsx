@@ -6,7 +6,7 @@ import { ProjectsList } from "@/app/_components/project-block";
 import { WorkList } from "@/app/_components/work-block";
 import { Mermaid } from "@/components/mermaid";
 import { Spacer } from "@/components/spacer";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { getAllPosts, getAllProjects, getAllWork } from "@/modules/keystatic";
 import Link from "next/link";
 import { ComponentProps } from "react";
@@ -32,51 +32,76 @@ export default async function Home() {
               <h1 className="text-primary font-black text-3xl">Parth Kabra</h1>
               <MiniThemeToggleButton />
             </div>
-            <h1 className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</h1>
-            <h1 className="text-muted-foreground font-extrabold text-lg">Northeastern University, Boston, MA</h1>
+            <h2 className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</h2>
+            <h2 className="text-muted-foreground font-extrabold text-lg">Boston, MA</h2>
           </div>
 
           <Spacer className="h-6" />
-          {/* 
-          <div className="flex items-center space-x-3">
-            <Button asChild variant={"outline"}>
-              <a href={"https://github.com/ninest"} target="_blank">
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              <a href={"https://github.com/ninest"} target="_blank" className={buttonVariants({ variant: "outline" })}>
                 GitHub
               </a>
-            </Button>
-            <Button asChild variant={"outline"}>
-              <a href={"https://www.linkedin.com/in/parth-kabra/"} target="_blank">
+
+              <a
+                href={"https://www.linkedin.com/in/parth-kabra/"}
+                target="_blank"
+                className={buttonVariants({ variant: "outline" })}
+              >
                 LinkedIn
               </a>
-            </Button>
-            <Button asChild variant={"outline"}>
-              <Link href={"/contact"}>Contact</Link>
-            </Button>
-          </div> */}
 
-          {/* <Spacer className="h-8" /> */}
+              <Link href={"/contact"} className={buttonVariants({ variant: "outline" })}>
+                Contact
+              </Link>
+            </div>
+            <a
+              href={"https://drive.google.com/file/d/17GM5L36CuDgM1G-CdwbmjF1NeRJxO_g1/view?usp=sharing"}
+              target="_blank"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              My resume
+            </a>
+          </div>
+
+          <Spacer className="h-8" />
 
           <p>
-            I'm a computer science student at Northeastern University in Boston, MA looking for internships and
-            full-time roles in 2024/2025.{" "}
+            I'm a computer science student at Northeastern University in Boston, MA looking for full-time roles in 2025.{" "}
             <Link href={"/about"} className="text-primary">
               Read more
             </Link>
           </p>
         </section>
 
-        <section className="my-11 md:my-14 space-x-wide">
+        {/* <section className="my-11 md:my-14 space-x-wide">
           <Bento />
-        </section>
+        </section> */}
+
+        <Spacer className="h-12" />
 
         <section className="space-x">
-          {/* <ul className="list-disc ml-4">
-            <li>
+          <Title>Work Experience</Title>
+          <Spacer className="h-6" />
+
+          <WorkList works={featuredWork} />
+          <Link href={"/work"} className="block mt-3 font-semibold text-primary">
+            See all
+          </Link>
+
+          <Spacer className="h-12" />
+
+          <Title>Other</Title>
+          <Spacer className="h-3" />
+          <ul className="list-disc ml-4">
+            {/* <li>
               <Link href={"/work"}>
                 <span className="text-primary">Work</span>{" "}
                 <span className="text-sm tabular-nums">({allWork.length})</span>
               </Link>
-            </li>
+            </li> */}
+            
             <li>
               <Link href={"/projects"}>
                 <span className="text-primary">Projects</span>{" "}
@@ -91,19 +116,7 @@ export default async function Home() {
             </li>
           </ul>
 
-          <hr className="my-8" /> */}
-
-          <Title>Work</Title>
-          <Spacer className="h-6" />
-
-          <WorkList works={featuredWork} />
-          <Link href={"/work"} className="block mt-3 font-semibold text-primary">
-            See all ({allWork.length})
-          </Link>
-
-          <Spacer className="h-12" />
-
-          <Title>Projects</Title>
+          {/* <Title>Projects</Title>
           <Spacer className="h-4" />
 
           <ProjectsList projects={featuredProjects} />
@@ -119,7 +132,7 @@ export default async function Home() {
           <PostsList posts={displayPosts} />
           <Link href={"/all"} className="block mt-3 font-semibold text-primary">
             See all ({posts.length})
-          </Link>
+          </Link> */}
         </section>
       </main>
     </>

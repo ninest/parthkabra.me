@@ -70,7 +70,7 @@ export function Bento() {
       >
         <div className="text-gray-200 text-sm">Currently</div>
         <div className="text-sm font-bold text-white">
-          Chief Technical Officer, <b>Chaos</b> (startup)
+          Founding Engineer, CTO, <b>Chaos</b> (startup)
         </div>
       </div>
 

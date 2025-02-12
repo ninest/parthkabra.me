@@ -16,7 +16,7 @@ export default async function WorksPage() {
       <Spacer className="h-8" />
 
       <main className="space-x">
-        <h1 className="text-5xl font-bold">Work</h1>
+        <h1 className="text-5xl font-bold">Work Experience</h1>
         <Spacer className="h-12" />
 
         <WorkList works={allWork} />

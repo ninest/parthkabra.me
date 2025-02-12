@@ -3,7 +3,7 @@ title: Husker Presentation
 description: Presentation notes and links
 links: 
   - name: Slides
-    href: https://docs.google.com/presentation/d/1fd9O6VhCYPtyR_2zoAbdQhcHTtw96S2snGMTiId_uqc/edit#slide=id.g325312b7f40_0_95
+    href: https://docs.google.com/presentation/d/1fd9O6VhCYPtyR_2zoAbdQhcHTtw96S2snGMTiId_uqc/edit#slide=id.p
 showContents: false
 color: '#AAAAAA'
 icon:
@@ -38,13 +38,14 @@ alternateCategories: []
 ## Tech Stack - Husker
 
 - React + NextJS: personal preference on framework
-- ShadCN UI + TailwindCSS: useful to have copy-pasteable building apps to build your app faster and not have to worry about the smaller (but important) things like dropdowns, context menus, etc, and accessibility
+- ShadCN UI + TailwindCSS: styling and components
 - Notion: CMS
 - Google Forms: for contribute form submissions
 - Vercel: hosting
 
 ## Why ShadCN UI
 
+- Useful to have copy-pasteable building apps to build your app faster and not have to worry about the smaller (but important) things like dropdowns, context menus, etc, and accessibility
 - Shortcut to build your own UI library using "building blocks", it provides a basic set of components like minimally styled buttons which you can customize to your liking
 - I did not customize these components all that much because I wanted Husker to feel super simple, with the UI actively getting out of your way
 - I usually do not like using libraries like MUI because it is difficult to style it to your exact liking. ShadCN UI does things differently by having you "copy paste" the components into your codebase, so you own them and are able to customize them
@@ -54,6 +55,11 @@ alternateCategories: []
 Select component: [https://github.com/ninest/husker/blob/main/components/ui/select.tsx#L75](https://github.com/ninest/husker/blob/main/components/ui/select.tsx#L75)
 
 (next slide - image of husker v3 showing sheet and multi-select component)
+
+## Challenge with Husker - getting users to contribute
+
+- While Husker had good number of users, I was not getting a lot of user-contributions, and it was mainly me editing and updating the content
+- I wanted users to be able to freely edit content without having to fill out a form or messaging me on reddit, so I wanted to go with a CMS
 
 ## Why Notion
 
@@ -65,7 +71,9 @@ Notion APIs: [https://github.com/ninest/husker/blob/main/modules/notion/apis.ts#
 
 ## Issues with Notion
 
-- 
+- While it has a great experience for the editor, it does not provide a great DX
+- I had to implement a lot of things on my own, such as a renderer for notion content in react
+- I do think a better option would have been to use a proper CMS that was made for these use-cases
 
 ## Husker Gym
 
@@ -73,6 +81,31 @@ Notion APIs: [https://github.com/ninest/husker/blob/main/modules/notion/apis.ts#
 
 ## Tech Stack
 
+- Using GitHub Actions for the cron job as its free and easy to use
+- Using python for web scraping and populating the database
+
+## Problems with Husker Gym
+
+- Not "simple" enough: although I learned a ton using Python and the technologies, I should have just done everything in javascript to make it simpler
+- Not great dev setup for the databases, I should have written a script to create a postgres database rather than relying on pscale for local development too
+
 ## Husker Courses
 
 - A course viewer and planner
+- Community contributions for course information and files (syllabus, notes, etc)
+- Wrote a script to scrape Banner
+
+NU Courses (scripts to scrape banner): [https://github.com/ninest/nu-courses](https://github.com/ninest/nu-courses)
+
+## Why didn't I publish this?
+
+- Not much time to work on it third year onwards
+- I got caught up in trying to make it "perfect" even though it worked fine
+
+## Tips for your projects
+
+- Make a decision and stick to it: research your options, make a decision, and commit
+- Don't let perfect me the enemy of good
+- Keep it simple: make your dev setup simple. If you were to come back in a year to make an update, how easy will it be? Document everything
+- Document everything
+- Make sure others know what you're doing
