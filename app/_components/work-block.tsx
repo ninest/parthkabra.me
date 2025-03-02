@@ -1,6 +1,7 @@
 import { Work } from "@/modules/types";
 import { getStartEndYear } from "@/utils/date";
 import Link from "next/link";
+import { format } from 'date-fns'
 
 interface WorkBlockProps {
   work: Work;
@@ -29,7 +30,7 @@ export function WorkBlock({ work }: WorkBlockProps) {
         <div className="flex items-center space-x-2">
           <div className="font-semibold">{work.title}</div>
           <div className="text-xs rounded p-0.5 bg-gray-200 dark:bg-gray-800">
-            {getStartEndYear(new Date(work.date.start), work.date.end ? new Date(work.date.end) : null)}
+            {format(new Date(work.date.start), 'MMM yyyy')} – {work.date.end ? format(new Date(work.date.end), 'MMM yyyy') : 'Present'}
           </div>
         </div>
         <div className="mt-1 text-sm">{work.description}</div>

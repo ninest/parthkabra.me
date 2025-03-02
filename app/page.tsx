@@ -1,15 +1,12 @@
-import { Bento } from "@/app/_components/bento";
 import { MiniThemeToggleButton } from "@/app/_components/mini-theme-toggle-button";
 import { Navbar } from "@/app/_components/navbar";
-import { PostsList } from "@/app/_components/post";
-import { ProjectsList } from "@/app/_components/project-block";
 import { WorkList } from "@/app/_components/work-block";
-import { Mermaid } from "@/components/mermaid";
 import { Spacer } from "@/components/spacer";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { getAllPosts, getAllProjects, getAllWork } from "@/modules/keystatic";
 import Link from "next/link";
 import { ComponentProps } from "react";
+import { LuArrowUpRight, LuArrowRight } from "react-icons/lu";
 
 export default async function Home() {
   const featuredWork = await getAllWork({ featured: true });
@@ -32,13 +29,18 @@ export default async function Home() {
               <h1 className="text-primary font-black text-3xl">Parth Kabra</h1>
               <MiniThemeToggleButton />
             </div>
-            <h2 className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</h2>
-            <h2 className="text-muted-foreground font-extrabold text-lg">Boston, MA</h2>
+            <p className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</p>
+            <p className="text-muted-foreground font-extrabold text-lg">Boston, MA</p>
+
+            <div className="mt-3 flex flex-col gap-1">
+              <a href="mailto:parth.kabra@gmail.com">parth.kabra@gmail.com</a>
+              <a href="tel:18573342428">+1 (857) 334-2428</a>
+            </div>
           </div>
 
           <Spacer className="h-6" />
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col  gap-3">
             <div className="flex items-center space-x-3">
               <a href={"https://github.com/ninest"} target="_blank" className={buttonVariants({ variant: "outline" })}>
                 GitHub
@@ -52,25 +54,37 @@ export default async function Home() {
                 LinkedIn
               </a>
 
-              <Link href={"/contact"} className={buttonVariants({ variant: "outline" })}>
+              <a
+                href={"https://drive.google.com/file/d/17GM5L36CuDgM1G-CdwbmjF1NeRJxO_g1/view?usp=sharing"}
+                target="_blank"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Resume
+              </a>
+
+              {/* <Link href={"/contact"} className={buttonVariants({ variant: "outline" })}>
                 Contact
-              </Link>
+              </Link> */}
             </div>
-            <a
-              href={"https://drive.google.com/file/d/17GM5L36CuDgM1G-CdwbmjF1NeRJxO_g1/view?usp=sharing"}
-              target="_blank"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              My resume
-            </a>
           </div>
 
           <Spacer className="h-8" />
 
           <p>
-            I'm a computer science student at Northeastern University in Boston, MA looking for full-time roles in 2025.{" "}
-            <Link href={"/about"} className="text-primary">
-              Read more
+            I'm Python and TypeScript programmer with a Bachelors in computer scientist from Northeastern University in
+            Boston, MA looking for full-time roles in the fields of software engineering, data science, or AI. I have
+            previously interned at{" "}
+            <Link href={"/work/alignable"} className="underline">
+              Alignable
+            </Link>{" "}
+            and the{" "}
+            <Link href={"/work/boston-red-sox"} className="underline">
+              Boston Red Sox
+            </Link>{" "}
+            as a full-stack engineer.
+            <br />
+            <Link href={"/about"} className="mt-1 font-bold text-primary flex items-center gap-1">
+              Read more <LuArrowRight />
             </Link>
           </p>
         </section>
@@ -101,7 +115,7 @@ export default async function Home() {
                 <span className="text-sm tabular-nums">({allWork.length})</span>
               </Link>
             </li> */}
-            
+
             <li>
               <Link href={"/projects"}>
                 <span className="text-primary">Projects</span>{" "}
