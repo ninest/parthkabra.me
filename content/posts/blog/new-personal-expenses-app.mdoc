@@ -7,7 +7,7 @@ icon:
   discriminant: emoji
   value: 🏦
 createdAt: '2023-12-29'
-updatedAt: '2023-12-29'
+updatedAt: '2025-06-18'
 draft: false
 alternateCategories:
   - ui
@@ -66,3 +66,15 @@ Removing the labels makes the form a lot simpler to me. It's completely okay if 
 I'm really happy with the "summary receipt" at the bottom. I added a slight rotation and gradient to try and make it look more like a physical receipt.
 
 ![](/images/blog/new-personal-expenses-app/expenses-app-2-rec.png)
+
+## Update: 2025
+
+I used this for the entire year of 2024, and ... I ended up going back to using Google Forms in 2025.
+
+I made a mistake of making it too hard to add an expense. I used basic auth, so that I wouldn't have to deal with sessions/JWTs or keep a database. This made it suck though, because I'd have to manually type out my password every time I wanted to add an expense. I guess this is also an issue with Safari to an extent, because I don't believe there's a way to save basic auth credentials.
+
+I also didn't really end up using the "Split" features at all. While I thought it could be cool to send everyone a personalized link to pay me back easily, the tip (and tax) calculation proved to be more confusing that I anticipated. All restaurants had taxes (which I forgot about while building this), and some had gratuity fees, or other random fees that my app didn't take into account.
+
+Overall, I'm glad I built this because I sill think it looks cool and it was to work through. 
+
+I guess the one thing that came from it is that I can share the link [pay.parthkabra.me](https://pay.parthkabra.me/) if I want someone to venmo me!

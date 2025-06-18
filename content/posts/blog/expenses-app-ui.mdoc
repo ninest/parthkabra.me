@@ -7,7 +7,7 @@ icon:
   discriminant: emoji
   value: 🪙
 createdAt: '2023-12-25'
-updatedAt: '2023-12-25'
+updatedAt: '2025-06-18'
 draft: false
 alternateCategories:
   - ui
@@ -38,3 +38,15 @@ I really like the colors and list view of Apple Wallet. I like to see a quick su
   - For example, rather than typing "7.35", the user can press the "+5.00", the "+1.00" button twice, the "+0.25", then the "+0.10" button.
   - [react-number-format](https://github.com/s-yadav/react-number-format) was helpful for the number input.
 - To enter the date, either the date picker, or the quick buttons for "yesterday" or "day-before yesterday" can be used.
+
+## Update: 2025 Revisit
+
+I ended up creating the project and using it. [Check out the blog post about it](/blog/new-personal-expenses-app)!
+
+As for this specific design, I definitely think I got a few things right. I do like the colors to show categories. While they don't look as pretty as what the Apple Card has, I do find that it is slightly useful to see an "at a glance view" that shows me where most of my money has gone for the month. The Apple Card UI looks great, but it doesn't tell me all that much other than a very rough estimate.
+
+I do like how, rather than having a solid dominant button, I used dotted-line border for the "New Expense" button. I haven't really seen this done all that much. I think it makes sense, because the button is directly where a new expense will be added to the UI. I also wanted this UI to be mainly for viewing my trends and understanding where I spent my money, so I didn't want a dominant primary button to distract from that.
+
+And as for things I would now do different, the first would probably be the overall layout of each expense. It's a little crowded because there are four pieces of data: the category, the data, the amount, and a the description. I think it would make sense to have some separation, for example, the category and description on the left, and the date and amount on the right. 
+
+I think it would also benefit by grouping expenses by week. That way, I can quickly check at a glance how much I've spent in a week. It would also add some breathing room to the UI.
