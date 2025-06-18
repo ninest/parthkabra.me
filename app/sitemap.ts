@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
     changeFrequency: "monthly",
   }));
-  const workPages = (await getAllWork()).map((work) => ({
+  const workPages: MetadataRoute.Sitemap = (await getAllWork()).map((work) => ({
     url: `${BASE_URL}/work/${work.slug}`,
     lastModified: work.updatedAt ?? work.createdAt,
     priority: 0.8,
