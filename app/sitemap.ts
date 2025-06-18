@@ -1,4 +1,4 @@
-import { getAllPosts, getAllProjects } from "@/modules/keystatic";
+import { getAllPosts, getAllProjects, getAllWork } from "@/modules/keystatic";
 import { MetadataRoute } from "next";
 
 const BASE_URL = "https://parthkabra.me";
@@ -16,6 +16,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
     changeFrequency: "monthly",
   }));
+  const workPages = (await getAllWork()).map((work) => ({
+    url: `${BASE_URL}/work/${work.slug}`,
+    lastModified: work.updatedAt ?? work.createdAt,
+    priority: 0.8,
+    changeFrequency: "monthly",
+  }));
+
   return [
     {
       url: BASE_URL,
@@ -37,5 +44,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...projectPages,
     ...blogPages,
+    ...workPages,
   ];
 }
