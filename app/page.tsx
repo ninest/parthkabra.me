@@ -29,7 +29,7 @@ export default async function Home() {
               <h1 className="text-primary font-black text-3xl">Parth Kabra</h1>
               <MiniThemeToggleButton />
             </div>
-            <p className="text-secondary-foreground font-extrabold text-lg">Software Engineer and Data Scientist</p>
+            <p className="text-secondary-foreground font-extrabold text-lg">Software and AI Engineer</p>
             <p className="text-muted-foreground font-extrabold text-lg">Boston, MA</p>
 
             <div className="mt-3 flex flex-col gap-1">
@@ -55,7 +55,7 @@ export default async function Home() {
               </a>
 
               <a
-                href={"https://drive.google.com/file/d/17GM5L36CuDgM1G-CdwbmjF1NeRJxO_g1/view?usp=sharing"}
+                href={"https://drive.google.com/file/d/1Oob8O_fSaiX4MFCQ3K3bCufLcOOutlvF/view?usp=sharing"}
                 target="_blank"
                 className={buttonVariants({ variant: "outline" })}
               >
@@ -71,17 +71,26 @@ export default async function Home() {
           <Spacer className="h-8" />
 
           <p>
-            I'm Python and TypeScript programmer with a Bachelors in computer scientist from Northeastern University in
-            Boston, MA looking for full-time roles in the fields of software engineering, data science, or AI. I have
-            previously interned at{" "}
+            I'm a Python and TypeScript programmer with a Bachelors in computer science from Northeastern University in
+            Boston, MA looking for full-time roles in the fields of software engineering or AI. I have previously
+            interned at{" "}
             <Link href={"/work/alignable"} className="underline">
               Alignable
             </Link>{" "}
             and the{" "}
             <Link href={"/work/boston-red-sox"} className="underline">
               Boston Red Sox
+            </Link>
+            , and I'm currently working on{" "}
+            <Link className="underline" href="/projects/hyperlocal">
+              Hyperlocal
             </Link>{" "}
-            as a full-stack engineer.
+            and{" "}
+            <Link className="underline" href="/work/chaos">
+              Chaos
+            </Link>
+            , two initiatives that have received funding. I'm looking for a software and AI engineering position that'll
+            let me work alongside product management.
             <br />
             <Link href={"/about"} className="mt-1 font-bold text-primary flex items-center gap-1">
               Read more <LuArrowRight />
