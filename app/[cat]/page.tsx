@@ -9,7 +9,7 @@ import Link from "next/link";
 export const dynamic = "force-static";
 
 interface Params {
-  params: { cat: string };
+  params: Promise<{ cat: string }>;
 }
 
 export async function generateStaticParams() {
@@ -20,7 +20,8 @@ export async function generateStaticParams() {
   });
 }
 
-export default async function PostsPage({ params }: Params) {
+export default async function PostsPage(props: Params) {
+  const params = await props.params;
   const posts = await getAllPosts();
 
   const categories = [{ title: "All", slug: "all" }, ...(await getAllCategories())];

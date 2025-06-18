@@ -5,10 +5,11 @@ import { getMetaPost, getMetaPosts } from "@/modules/keystatic";
 import { Metadata } from "next";
 
 interface Params {
-  params: { cat: string; slug: string };
+  params: Promise<{ cat: string; slug: string }>;
 }
 
-export async function generateMetadata({ params }: Params):Promise<Metadata> {
+export async function generateMetadata(props: Params):Promise<Metadata> {
+  const params = await props.params;
   const post = await getMetaPost(params.slug);
   return {
     title: post.title,
@@ -27,7 +28,8 @@ export async function generateStaticParams() {
   });
 }
 
-export default async function WorkPage({ params }: Params) {
+export default async function WorkPage(props: Params) {
+  const params = await props.params;
   const post = await getMetaPost(params.slug);
 
   return (

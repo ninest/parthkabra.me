@@ -6,10 +6,11 @@ import { getStartEndDateString } from "@/utils/date";
 import { Metadata } from "next";
 
 interface Params {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: Params):Promise<Metadata> {
+export async function generateMetadata(props: Params):Promise<Metadata> {
+  const params = await props.params;
   const post = await getWork(params.slug);
   return {
     title: post.title,
@@ -28,7 +29,8 @@ export async function generateStaticParams() {
   });
 }
 
-export default async function WorkPage({ params }: Params) {
+export default async function WorkPage(props: Params) {
+  const params = await props.params;
   const workPost = await getWork(params.slug);
 
   let dateString = getStartEndDateString(
