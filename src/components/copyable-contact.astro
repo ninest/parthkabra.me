@@ -1,0 +1,30 @@
+---
+interface Props {
+  value: string;
+  href: string;
+}
+
+const { value, href } = Astro.props;
+---
+
+<li>
+  <div class="w-full flex items-center justify-between">
+    <a href={href}>{value}</a>
+    <button data-copy-value={value} class="underline cursor-pointer">copy</button>
+  </div>
+</li>
+
+<script>
+  const $copyButtons = document.querySelectorAll<HTMLButtonElement>("[data-copy-value]");
+
+  $copyButtons.forEach(($btn) => {
+    $btn.addEventListener("click", async () => {
+      const value = $btn.dataset.copyValue!;
+      await navigator.clipboard.writeText(value);
+      $btn.textContent = "copied";
+      setTimeout(() => {
+        $btn.textContent = "copy";
+      }, 2000);
+    });
+  });
+</script>

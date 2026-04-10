@@ -1,6 +1,7 @@
 ---
 import SidebarLayout from "../components/sidebar-layout.astro";
 import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
+import CopyableContact from "../components/copyable-contact.astro";
 import { getCollection } from "astro:content";
 import { validateRelatedLinks } from "../utils/validate-related";
 import { routes, getCategoryUrl, getPostUrl, getProjectUrl } from "../utils/links";
@@ -44,16 +45,8 @@ const posts = (await getCollection("posts"))
   <section class="mt-8">
     <h2 class="font-bold">Contact</h2>
     <ul class="ml-5 mt-1">
-      <li>
-        <button class="w-full flex items-center justify-between">
-          <div>parth.kabra@gmail.com</div> <div class="underline">copy</div></button
-        >
-      </li>
-      <li>
-        <button class="w-full flex items-center justify-between">
-          <div>+1 (857) 334 2427</div> <div class="underline">copy</div></button
-        >
-      </li>
+      <CopyableContact value="parth.kabra@gmail.com" href="mailto:parth.kabra@gmail.com" />
+      <CopyableContact value="+1 (857) 334 2427" href="tel:+18573342427" />
     </ul>
   </section>
 
