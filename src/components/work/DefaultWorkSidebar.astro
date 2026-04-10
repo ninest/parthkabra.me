@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+import { getWorkUrl } from "../../utils/links";
+
+interface Props {
+  entry: CollectionEntry<"workExperience">;
+}
+
+const { entry } = Astro.props;
+
+const work = (await getCollection("workExperience")).sort(
+  (a, b) => (b.data.order ?? 0) - (a.data.order ?? 0),
+);
+const i = work.findIndex((w) => w.id === entry.id);
+const prev = i >= 0 ? work[i + 1] ?? null : null;
+const next = i >= 0 ? work[i - 1] ?? null : null;
+---
+
+{
+  (prev || next) && (
+    <nav class="mt-8 rounded-md overflow-hidden flex flex-col gap-1">
+      {next && (
+        <a href={getWorkUrl(next.id)} class="block bg-muted py-1 px-2">
+          <div class="text-sm font-gray-500">Next</div>
+          <div class="mt-1 font-semibold">
+            {next.data.title}
+          </div>
+        </a>
+      )}
+      {prev && (
+        <a href={getWorkUrl(prev.id)} class="block bg-muted py-1 px-2">
+          <div class="text-sm font-gray-500">Previous</div>
+          <div class="mt-1 font-semibold">
+            {prev.data.title}
+          </div>
+        </a>
+      )}
+    </nav>
+  )
+}

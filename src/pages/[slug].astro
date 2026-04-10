@@ -1,0 +1,97 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import CategoryList from "../components/category-list.astro";
+import SidebarLayout from "../components/sidebar-layout.astro";
+import DefaultMetaPageLayout from "../components/pages/DefaultMetaPageLayout.astro";
+import { getPostUrl } from "../utils/links";
+
+export const getStaticPaths = (async () => {
+  const categories = await getCollection("categories");
+  const pages = await getCollection("pages");
+  const posts = (await getCollection("posts")).sort(
+    (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
+  );
+
+  const categorySlugs = new Set(categories.map((c) => c.id));
+  for (const page of pages) {
+    if (categorySlugs.has(page.id)) {
+      throw new Error(
+        `[slug] Page "${page.id}" conflicts with category "${page.id}". ` +
+          `Both resolve to "/${page.id}". Rename one to avoid the collision.`,
+      );
+    }
+  }
+
+  const categoryPaths = categories.map((category) => ({
+    params: { slug: category.id },
+    props: {
+      type: "category" as const,
+      category,
+      posts: posts.filter((post) => post.data.categories.includes(category.id)),
+    },
+  }));
+
+  const pagePaths = pages.map((entry) => ({
+    params: { slug: entry.id },
+    props: {
+      type: "page" as const,
+      entry,
+    },
+  }));
+
+  return [...categoryPaths, ...pagePaths];
+}) satisfies GetStaticPaths;
+
+const props = Astro.props;
+
+const skinModules = import.meta.glob<{ default: any }>(
+  "../components/pages/skins/*.astro",
+  { eager: true },
+);
+
+function resolvePageSkin(name: string | undefined) {
+  if (!name) return null;
+  const key = `../components/pages/skins/${name}.astro`;
+  const mod = skinModules[key];
+  if (!mod) {
+    throw new Error(
+      `[skins] page references theme "${name}" but ${key} does not exist. ` +
+        `Available: ${Object.keys(skinModules).join(", ") || "(none)"}`,
+    );
+  }
+  return mod.default;
+}
+---
+
+{props.type === "category" ? (
+  <SidebarLayout
+    head={{ title: props.category.data.title }}
+    breadcrumbs={[
+      { label: "Parth Kabra", href: "/" },
+      { label: props.category.data.title },
+    ]}
+  >
+    <h1 class="text-3xl font-black">{props.category.data.title} ({props.posts.length})</h1>
+
+    <section class="mt-8">
+      <ul class="space-y-2">
+        {
+          props.posts.map((post) => (
+            <li>
+              <a href={getPostUrl(post.id)}>
+                <span class="tabular-nums">{post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}</span>
+                <span class="underline text-primary">{post.data.title}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <CategoryList slot="sidebar" />
+  </SidebarLayout>
+) : (() => {
+  const Skin = resolvePageSkin(props.entry.data.theme);
+  return Skin ? <Skin entry={props.entry} /> : <DefaultMetaPageLayout entry={props.entry} />;
+})()}

@@ -1,0 +1,37 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import DefaultProjectLayout from "../../components/projects/DefaultProjectLayout.astro";
+
+export const getStaticPaths = (async () => {
+  const projects = await getCollection("projects");
+  return projects.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+
+const skinModules = import.meta.glob<{ default: any }>(
+  "../../components/projects/skins/*.astro",
+  { eager: true },
+);
+
+function resolveProjectSkin(name: string | undefined) {
+  if (!name) return null;
+  const key = `../../components/projects/skins/${name}.astro`;
+  const mod = skinModules[key];
+  if (!mod) {
+    throw new Error(
+      `[skins] project entry "${entry.id}" references theme "${name}" but ${key} does not exist. ` +
+        `Available: ${Object.keys(skinModules).join(", ") || "(none)"}`,
+    );
+  }
+  return mod.default;
+}
+
+const Skin = resolveProjectSkin(entry.data.theme);
+---
+
+{Skin ? <Skin entry={entry} /> : <DefaultProjectLayout entry={entry} />}

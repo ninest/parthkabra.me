@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import DefaultPostLayout from "../../components/posts/DefaultPostLayout.astro";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("posts");
+  return posts.map((entry) => {
+    const [categoryId, postSlug] = entry.id.split("/");
+    return {
+      params: { category: categoryId, post: postSlug },
+      props: { entry },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+
+const skinModules = import.meta.glob<{ default: any }>(
+  "../../components/posts/skins/*.astro",
+  { eager: true },
+);
+
+function resolvePostSkin(name: string | undefined) {
+  if (!name) return null;
+  const key = `../../components/posts/skins/${name}.astro`;
+  const mod = skinModules[key];
+  if (!mod) {
+    throw new Error(
+      `[skins] post entry "${entry.id}" references theme "${name}" but ${key} does not exist. ` +
+        `Available: ${Object.keys(skinModules).join(", ") || "(none)"}`,
+    );
+  }
+  return mod.default;
+}
+
+const Skin = resolvePostSkin(entry.data.theme);
+---
+
+{Skin ? <Skin entry={entry} /> : <DefaultPostLayout entry={entry} />}

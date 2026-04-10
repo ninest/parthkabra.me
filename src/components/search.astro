@@ -1,0 +1,109 @@
+---
+interface Props {
+  class?: string;
+}
+---
+
+<div class:list={["flex items-center justify-between gap-1", Astro.props.class]}>
+  <input
+    id="search-input"
+    placeholder="search"
+    autocomplete="off"
+    class="rounded-l border px-1 border-border focus:outline-none w-full h-7"
+  />
+  <button class="bg-muted px-3 h-7 rounded-r">Go</button>
+</div>
+
+<ul id="search-results" class="mt-2 space-y-0.5 rounded overflow-hidden"></ul>
+
+<script>
+  import { search, type SearchHit } from "../lib/search";
+  import { getPostUrl, getProjectUrl, getWorkUrl, getCategoryUrl, getMicroblogUrl } from "../utils/links";
+
+  const $input = document.getElementById("search-input") as HTMLInputElement;
+  const $resultsList = document.getElementById("search-results")!;
+
+  let debounceTimer: ReturnType<typeof setTimeout>;
+
+  function getResultUrl(hit: SearchHit): string {
+    const rawId = hit.id.startsWith(`${hit.type}-`) ? hit.id.slice(hit.type.length + 1) : hit.id;
+    switch (hit.type) {
+      case "post":
+        return getPostUrl(rawId);
+      case "project":
+        return getProjectUrl(rawId);
+      case "work":
+        return getWorkUrl(rawId);
+      case "category":
+        return getCategoryUrl(rawId);
+      case "microblog":
+        return getMicroblogUrl(rawId);
+      default:
+        return `/${rawId}`;
+    }
+  }
+
+  function renderResults(results: SearchHit[]) {
+    if (results.length === 0) {
+      $resultsList.innerHTML = `<li class="text-muted-foreground text-sm">No results</li>`;
+      return;
+    }
+
+    $resultsList.innerHTML = results
+      .slice(0, 15)
+      .map(
+        (r) =>
+          `<li>
+                <a href="${getResultUrl(r)}" class="flex items-center justify-between bg-muted/50 py-1 px-2">
+                    <div class="">${r.title}</div>
+                    <div class="text-sm">${r.type}</div>
+                </a>
+            </li>`,
+      )
+      .join("");
+  }
+
+  $input.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    const query = $input.value.trim();
+    if (!query) {
+      $resultsList.innerHTML = "";
+      return;
+    }
+    debounceTimer = setTimeout(async () => {
+      const results = await search(query);
+      renderResults(results);
+    }, 150);
+  });
+
+  /* Debug: flip to true to render static results */
+  const DEBUG = false;
+  if (DEBUG) {
+    renderResults([
+      {
+        id: "projects/example",
+        title: "Example Project",
+        type: "project",
+        description: "A sample project",
+        createdAt: "2026-03-15",
+        score: 5,
+      },
+      {
+        id: "blog/hello-world",
+        title: "Hello World",
+        type: "blog",
+        description: "An introductory post",
+        createdAt: "2026-01-10",
+        score: 4,
+      },
+      {
+        id: "notes/design-tokens",
+        title: "Design Tokens",
+        type: "note",
+        description: "Notes on design tokens",
+        createdAt: "2025-12-01",
+        score: 3,
+      },
+    ]);
+  }
+</script>

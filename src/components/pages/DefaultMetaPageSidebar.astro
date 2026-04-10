@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+import { getPageUrl } from "../../utils/links";
+
+interface Props {
+  entry: CollectionEntry<"pages">;
+}
+
+const { entry } = Astro.props;
+
+const allPages = (await getCollection("pages"))
+  .filter((p) => p.id !== entry.id)
+  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+---
+
+{
+  allPages.length > 0 && (
+    <nav class="mt-8">
+      <h2 class="font-bold">Pages</h2>
+      <div class="mt-1 rounded-md overflow-hidden flex flex-col gap-1">
+        {allPages.map((page) => (
+          <a href={getPageUrl(page.id)} class="block bg-muted py-1 px-2">
+            <div class="mt-1">{page.data.title}</div>
+          </a>
+        ))}
+      </div>
+    </nav>
+  )
+}

@@ -1,0 +1,33 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+import { getPostUrl } from "../../utils/links";
+
+interface Props {
+  entry: CollectionEntry<"posts">;
+}
+
+const { entry } = Astro.props;
+const [categoryId] = entry.id.split("/");
+
+const posts = await getCollection("posts");
+const categoryPosts = posts
+  .filter((p) => p.id !== entry.id && p.id.startsWith(categoryId + "/"))
+  .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
+  .slice(0, 8);
+---
+
+{
+  categoryPosts.length > 0 && (
+    <nav class="mt-8 rounded-md overflow-hidden flex flex-col gap-1">
+      {categoryPosts.map((post) => (
+        <a href={getPostUrl(post.id)} class="block bg-muted py-1 px-2">
+          <div class="text-sm text-muted-foreground">
+            {post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}
+          </div>
+          <div class="mt-1 font-semibold">{post.data.title}</div>
+        </a>
+      ))}
+    </nav>
+  )
+}

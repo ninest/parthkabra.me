@@ -1,0 +1,44 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+import SidebarLayout from "../sidebar-layout.astro";
+import ArticleLinks from "../article-links.astro";
+import DefaultProjectSidebar from "./DefaultProjectSidebar.astro";
+import { resolveRelated } from "../../utils/related";
+import { routes } from "../../utils/links";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const relatedItems = await resolveRelated(entry.data.related);
+const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+---
+
+<SidebarLayout
+  head={{ title: entry.data.title, description: entry.data.description }}
+  breadcrumbs={[
+    { label: "Parth Kabra", href: "/" },
+    { label: "Projects", href: routes.projects },
+  ]}
+>
+  <h1 class="text-3xl font-black">{entry.data.title}</h1>
+
+  <p class="mt-2 text-muted-foreground">{dateline} · {entry.data.description}</p>
+
+  <ArticleLinks
+    title="Links"
+    external
+    items={entry.data.links}
+  />
+
+  <ArticleLinks title="Related" items={relatedItems} />
+
+  <article class="mt-8 typography">
+    <Content />
+  </article>
+
+  <DefaultProjectSidebar entry={entry} slot="sidebar" />
+</SidebarLayout>

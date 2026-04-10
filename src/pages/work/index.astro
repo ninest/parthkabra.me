@@ -1,0 +1,39 @@
+---
+import { getCollection } from "astro:content";
+import SidebarLayout from "../../components/sidebar-layout.astro";
+import { getWorkUrl } from "../../utils/links";
+
+const work = (await getCollection("workExperience")).sort((a, b) => (b.data.order ?? 0) - (a.data.order ?? 0));
+---
+
+<SidebarLayout
+  head={{ title: "Work", description: "Parth Kabra's work experience" }}
+  breadcrumbs={[
+    { label: "Parth Kabra", href: "/" },
+    { label: "Work" },
+  ]}
+>
+  <h1 class="text-3xl font-black">Work experience</h1>
+
+  <section class="mt-8">
+    <ul class="space-y-4">
+      {
+        work.map((ex) => {
+          return (
+            <li>
+              <a href={getWorkUrl(ex.id)} class="block">
+                <div class="flex items-center gap-3">
+                  <span class="inline-block w-4 h-4 shrink-0">
+                    {ex.data.icon && <img src={ex.data.icon} alt="" class="w-4 h-4" />}
+                  </span>
+                  <div class="font-bold">{ex.data.title}</div>
+                </div>
+                <div class="ml-7">{ex.data.description}</div>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+</SidebarLayout>

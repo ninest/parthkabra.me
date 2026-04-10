@@ -1,0 +1,24 @@
+---
+import { getCollection } from "astro:content";
+import { routes, getCategoryUrl } from "../utils/links";
+
+const categories = await getCollection("categories");
+---
+
+<nav class="mt-8">
+  <div class="text-sm font-bold">Categories</div>
+  <ul class="mt-2 flex flex-wrap gap-1 rounded-md overflow-hidden">
+    <li class="grow min-w-[20%]">
+      <a href={routes.all} class="block bg-muted py-1 px-2 text-center">All</a>
+    </li>
+    {
+      categories.map((cat) => (
+        <li class="grow min-w-[20%]">
+          <a href={getCategoryUrl(cat.id)} class="block bg-muted py-1 px-2 text-center">
+            {cat.data.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

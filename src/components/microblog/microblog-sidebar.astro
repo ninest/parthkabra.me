@@ -1,0 +1,21 @@
+---
+import { getCollection } from "astro:content";
+import MicroblogPost from "./microblog-post.astro";
+
+const microblogs = (await getCollection("microblog"))
+  .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
+  .slice(0, 10);
+---
+
+<section>
+  <h2 class="font-bold">Microblog</h2>
+  <ul class="ml-5 mt-1 mb-10 space-y-2">
+    {
+      microblogs.map((mb) => (
+        <li>
+          <MicroblogPost mb={mb} />
+        </li>
+      ))
+    }
+  </ul>
+</section>

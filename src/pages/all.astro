@@ -1,0 +1,29 @@
+---
+import { getCollection } from "astro:content";
+import CategoryList from "../components/category-list.astro";
+import SidebarLayout from "../components/sidebar-layout.astro";
+import { getPostUrl } from "../utils/links";
+
+const posts = (await getCollection("posts")).sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
+---
+
+<SidebarLayout head={{ title: "All posts", description: "All posts on Parth Kabra's website" }} breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "All" }]}>
+  <h1 class="text-3xl font-black">All posts ({posts.length})</h1>
+
+  <section class="mt-8">
+    <ul class="space-y-2">
+      {
+        posts.map((post) => (
+          <li>
+            <a href={getPostUrl(post.id)}>
+              <span class="tabular-nums">{post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}</span>
+              <span class="underline text-primary">{post.data.title}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <CategoryList slot="sidebar" />
+</SidebarLayout>

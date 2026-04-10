@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+import { getProjectUrl } from "../../utils/links";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+}
+
+const { entry } = Astro.props;
+
+const allProjects = (await getCollection("projects"))
+  .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
+  .filter((p) => p.id !== entry.id);
+---
+
+{
+  allProjects.length > 0 && (
+    <nav class="mt-8">
+      <h2 class="font-bold">Projects</h2>
+      <div class="mt-1 rounded-md overflow-hidden flex flex-col gap-1">
+        {allProjects.map((project) => (
+          <a href={getProjectUrl(project.id)} class="block bg-muted py-1 px-2">
+            <div class="mt-1">{project.data.title}</div>
+          </a>
+        ))}
+      </div>
+    </nav>
+  )
+}

@@ -1,0 +1,34 @@
+---
+import { getCollection } from "astro:content";
+import SidebarLayout from "../../components/sidebar-layout.astro";
+import { getProjectUrl } from "../../utils/links";
+
+const projects = (await getCollection("projects")).sort(
+  (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
+);
+---
+
+<SidebarLayout
+  head={{ title: "Projects", description: "Parth Kabra's projects" }}
+  breadcrumbs={[
+    { label: "Parth Kabra", href: "/" },
+    { label: "Projects" },
+  ]}
+>
+  <h1 class="text-3xl font-black">Projects</h1>
+
+  <section class="mt-8">
+    <ul class="space-y-4">
+      {
+        projects.map((p) => (
+          <li>
+            <a href={getProjectUrl(p.id)} class="block">
+              <div class="font-bold">{p.data.title}</div>
+              <div>{p.data.description}</div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</SidebarLayout>

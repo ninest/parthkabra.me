@@ -1,0 +1,46 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+import SidebarLayout from "../sidebar-layout.astro";
+import ArticleLinks from "../article-links.astro";
+import DefaultWorkSidebar from "./DefaultWorkSidebar.astro";
+import { resolveRelated } from "../../utils/related";
+import { routes } from "../../utils/links";
+
+interface Props {
+  entry: CollectionEntry<"workExperience">;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const relatedItems = await resolveRelated(entry.data.related);
+---
+
+<SidebarLayout
+  head={{ title: entry.data.title, description: entry.data.description }}
+  breadcrumbs={[
+    { label: "Parth Kabra", href: "/" },
+    { label: "Work", href: routes.work },
+  ]}
+>
+  <div class="flex items-center gap-3">
+    {entry.data.icon && <img src={entry.data.icon} alt="" class="w-6 h-6" />}
+    <h1 class="text-3xl font-black">{entry.data.title}</h1>
+  </div>
+
+  <p class="mt-2 text-muted-foreground">{entry.data.description} · {entry.data.location} · {entry.data.dateline}</p>
+
+  <ArticleLinks
+    title="Links"
+    external
+    items={entry.data.links}
+  />
+
+  <ArticleLinks title="Related" items={relatedItems} />
+
+  <article class="mt-8 typography">
+    <Content />
+  </article>
+
+  <DefaultWorkSidebar entry={entry} slot="sidebar" />
+</SidebarLayout>

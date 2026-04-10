@@ -1,17 +1,160 @@
 ---
+import SidebarLayout from "../components/sidebar-layout.astro";
+import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
+import { getCollection } from "astro:content";
+import { validateRelatedLinks } from "../utils/validate-related";
+import { routes, getCategoryUrl, getPostUrl, getProjectUrl } from "../utils/links";
+await validateRelatedLinks();
 
+const links = (await getCollection("links")).sort((a, b) => a.data.order - b.data.order);
+
+const now = (await getCollection("status")).find((s) => s.id === "current")!.data.status;
+
+const work = (await getCollection("workExperience", (we) => we.data.featured)).sort(
+  (a, b) => (b.data.order ?? 0) - (a.data.order ?? 0),
+);
+const projects = await getCollection("projects", (p) => p.data.featured);
+const categories = await getCollection("categories");
+const posts = (await getCollection("posts"))
+  .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
+  .slice(0, 10);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<SidebarLayout>
+  <section>
+    <h2 class="font-bold">Currently</h2>
+    <p class="ml-5 mt-1">Software engineer @ Wayfair</p>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="font-bold">Links</h2>
+    <p class="ml-5 mt-1">
+      {
+        links.map((link, i) => {
+          const showComma = links.length > i + 1;
+          return (
+            // prettier-ignore
+            <span><a href={link.data.url} target="_blank" class="underline text-primary">{link.data.title}</a>{showComma && ", "}</span>
+          );
+        })
+      }
+    </p>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="font-bold">Contact</h2>
+    <ul class="ml-5 mt-1">
+      <li>
+        <button class="w-full flex items-center justify-between">
+          <div>parth.kabra@gmail.com</div> <div class="underline">copy</div></button
+        >
+      </li>
+      <li>
+        <button class="w-full flex items-center justify-between">
+          <div>+1 (857) 334 2427</div> <div class="underline">copy</div></button
+        >
+      </li>
+    </ul>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="font-bold">About</h2>
+    <p class="ml-5 mt-1">
+      I'm a Python and TypeScript programmer with a Bachelors in computer science from Northeastern University in Boston,
+      MA. <a class="text-primary underline" href="/about">Read more</a>
+    </p>
+  </section>
+
+  <section class="mt-8">
+    <div class="flex items center justify-between">
+      <h2 class="font-bold">Work</h2>
+      <a href={routes.work} class="underline text-sm text-primary">View all</a>
+    </div>
+    <table class="ml-5 mt-1 w-[calc(100%-1.25rem)] border-collapse border border-border">
+      <tbody>
+        {
+          work.map((ex, i) => (
+            <tr id={`work-${ex.id}`} class={i % 2 === 1 ? "bg-muted" : ""}>
+              <td class="border border-border py-1 px-2">
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="inline-block w-4 h-4 shrink-0">
+                    {ex.data.icon && <img src={ex.data.icon} alt="" class="w-4 h-4" />}
+                  </span>
+                  {ex.data.title}
+                </span>
+              </td>
+              <td class="border border-border py-1 px-2 text-right tabular-nums">{ex.data.dateline}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <section class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="font-bold">Projects</h2>
+      <a href={routes.projects} class="underline text-sm text-primary">View all</a>
+    </div>
+    <ul class="ml-7 mt-1 space-y-2 list-disc list-outside">
+      {
+        projects
+          .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
+          .map((p) => (
+            <li id={`project-${p.id}`}>
+              <a href={getProjectUrl(p.id)} class="underline text-primary">
+                {p.data.title}
+              </a>
+              : <span class="">{p.data.description}</span>
+            </li>
+          ))
+      }
+    </ul>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="font-bold">Categories</h2>
+
+    <p class="ml-5 mt-1">
+      <span><a href={routes.all} class="underline text-primary">All</a>, </span>
+      {
+        categories.map((cat, i) => {
+          const showComma = categories.length > i + 1;
+          return (
+            // prettier-ignore
+            <span id={`category-${cat.id}`}><a href={getCategoryUrl(cat.id)} class="underline text-primary">{cat.data.title}</a>{showComma && ", "}</span>
+          );
+        })
+      }
+    </p>
+  </section>
+
+  <section class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="font-bold">Posts</h2>
+      <a href={routes.all} class="underline text-sm text-primary">View all</a>
+    </div>
+
+    <ul class="ml-5 mt-1 space-y-1.5">
+      {
+        posts.map((post) => (
+          <li id={`post-${post.id}`}>
+            <a href={getPostUrl(post.id)} class="underline text-primary">
+              {post.data.title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section slot="sidebar" class="mt-8">
+    <h2 class="font-bold">Now</h2>
+
+    <p class="ml-5 mt-1">{now}</p>
+  </section>
+
+  <div slot="sidebar" class="mt-8">
+    <MicroblogSidebar />
+  </div>
+</SidebarLayout>

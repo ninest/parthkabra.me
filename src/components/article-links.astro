@@ -1,0 +1,39 @@
+---
+interface Item {
+  title: string;
+  url?: string | null;
+}
+
+interface Props {
+  title: string;
+  items: Item[];
+  external?: boolean;
+  linkClass?: string;
+}
+
+const { title, items, external = false, linkClass = "text-primary underline" } = Astro.props;
+---
+
+{
+  items.length > 0 && (
+    <section class="mt-7">
+      <p class="font-bold">{title}</p>
+      <div class="ml-5 flex flex-wrap gap-x-3 gap-y-1">
+        {items.map((item) =>
+          item.url ? (
+            <a
+              href={item.url}
+              class={linkClass}
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener noreferrer" : undefined}
+            >
+              {item.title}
+            </a>
+          ) : (
+            <span>{item.title}</span>
+          ),
+        )}
+      </div>
+    </section>
+  )
+}

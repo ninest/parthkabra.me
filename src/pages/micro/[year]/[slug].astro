@@ -1,0 +1,105 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection, getEntry, render } from "astro:content";
+import SidebarLayout from "../../../components/sidebar-layout.astro";
+import { getContentUrl, getMicroblogUrl } from "../../../utils/links";
+import { stripMarkdown } from "../../../utils/markdown";
+import { parseRelatedString } from "../../../utils/related";
+import { truncate } from "../../../utils/string";
+
+export const getStaticPaths = (async () => {
+  const entries = await getCollection("microblog");
+
+  return entries.map((entry) => {
+    const [year, slug] = entry.id.split("/");
+    return {
+      params: { year, slug },
+      props: { entry },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const replies = (
+  await Promise.all(
+    entry.data.reply.map(async (ref) => {
+      const parsed = parseRelatedString(ref);
+      if (!parsed) return null;
+      const replyEntry = await getEntry(parsed.collection as any, parsed.id);
+      if (!replyEntry) return null;
+      const replyData = replyEntry.data as any;
+      const replyPlain = stripMarkdown(replyEntry.body ?? "");
+      const replyDate: Date | undefined = replyData.createdAt;
+      return {
+        url: getContentUrl(parsed.collection, parsed.id),
+        title: replyData.title as string | undefined,
+        dateline: replyDate?.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+        preview: truncate(replyPlain, 220),
+      };
+    }),
+  )
+).filter((r): r is NonNullable<typeof r> => r !== null);
+
+const plain = stripMarkdown(entry.body ?? "");
+const firstSentenceMatch = plain.match(/^[^.!?]+[.!?]/);
+const firstSentence = (firstSentenceMatch ? firstSentenceMatch[0] : plain).trim();
+
+const seoTitle = entry.data.title ?? truncate(firstSentence, 60);
+const seoDescription = entry.data.description ?? truncate(plain, 155);
+
+const dateline = entry.data.createdAt.toLocaleDateString("en-US", {
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+});
+---
+
+<SidebarLayout
+  head={{ title: seoTitle, description: seoDescription }}
+  breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Microblog" }]}
+>
+  <article class="bg-muted p-2 rounded">
+    <p class="text-muted-foreground">
+      {
+        entry.data.title && (
+          <>
+            <span class="">{entry.data.title}</span> ·{" "}
+          </>
+        )
+      }{dateline}
+    </p>
+    <div class="mt-4 mb-4 typography">
+      <Content />
+    </div>
+    {
+      replies.length > 0 && (
+        <div class="flex flex-col gap-2">
+
+          {replies.map((reply) => (
+            <a
+              href={reply.url ?? "#"}
+              class="block rounded border border-gray-300 dark:border-gray-600 p-2 no-underline"
+            >
+              <p class="text-muted-foreground text-xs">
+                {reply.title && (
+                  <>
+                    <span class="font-semibold">{reply.title}</span>
+                    {reply.dateline && " · "}
+                  </>
+                )}
+                {reply.dateline}
+              </p>
+              <p class="mt-1 text-sm">{reply.preview}</p>
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </article>
+</SidebarLayout>

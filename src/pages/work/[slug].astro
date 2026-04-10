@@ -1,0 +1,37 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import DefaultWorkLayout from "../../components/work/DefaultWorkLayout.astro";
+
+export const getStaticPaths = (async () => {
+  const work = await getCollection("workExperience");
+  return work.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+
+const skinModules = import.meta.glob<{ default: any }>(
+  "../../components/work/skins/*.astro",
+  { eager: true },
+);
+
+function resolveWorkSkin(name: string | undefined) {
+  if (!name) return null;
+  const key = `../../components/work/skins/${name}.astro`;
+  const mod = skinModules[key];
+  if (!mod) {
+    throw new Error(
+      `[skins] work entry "${entry.id}" references theme "${name}" but ${key} does not exist. ` +
+        `Available: ${Object.keys(skinModules).join(", ") || "(none)"}`,
+    );
+  }
+  return mod.default;
+}
+
+const Skin = resolveWorkSkin(entry.data.theme);
+---
+
+{Skin ? <Skin entry={entry} /> : <DefaultWorkLayout entry={entry} />}

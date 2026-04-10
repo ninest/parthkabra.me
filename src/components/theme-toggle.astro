@@ -1,0 +1,51 @@
+---
+// Toggles between light and dark themes.
+// First-visit default (no localStorage entry) follows prefers-color-scheme;
+// the actual class is applied by the no-flash script in Base.astro.
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  aria-label="Toggle theme"
+  class="cursor-pointer leading-none"
+>
+  <span id="theme-toggle-icon" aria-hidden="true"></span>
+</button>
+
+<script>
+  const $themeToggle = document.getElementById("theme-toggle")!;
+  const $themeToggleIcon = document.getElementById("theme-toggle-icon")!;
+
+  const SUN = "\u2600";
+  const MOON = "\u263D";
+
+  function isDark(): boolean {
+    return document.documentElement.classList.contains("dark");
+  }
+
+  function renderIcon() {
+    $themeToggleIcon.textContent = isDark() ? SUN : MOON;
+  }
+
+  function setTheme(next: "light" | "dark") {
+    if (next === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", next);
+    const $themeColor = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    if ($themeColor) {
+      const pageColor = document.documentElement.dataset.themeColor;
+      $themeColor.content = pageColor || (next === "dark" ? "#0a0a0a" : "#ffffff");
+    }
+    renderIcon();
+  }
+
+  $themeToggle.addEventListener("click", () => {
+    setTheme(isDark() ? "light" : "dark");
+  });
+
+  renderIcon();
+</script>
