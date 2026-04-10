@@ -20,6 +20,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 
 <html lang="en" data-theme-color={themeColor}>
     <head>
+        <meta name="theme-color" content={themeColor ?? "#ffffff"} />
         <script is:inline>
             (function () {
                 try {
@@ -27,11 +28,10 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
                     var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                     var isDark = stored === "dark" || (stored !== "light" && prefersDark);
                     if (isDark) document.documentElement.classList.add("dark");
-                    var pageColor = document.documentElement.dataset.themeColor;
-                    var meta = document.createElement("meta");
-                    meta.name = "theme-color";
-                    meta.content = pageColor || (isDark ? "#0a0a0a" : "#ffffff");
-                    document.head.appendChild(meta);
+                    var meta = document.querySelector('meta[name="theme-color"]');
+                    if (meta && !document.documentElement.dataset.themeColor) {
+                        meta.content = isDark ? "#0a0a0a" : "#ffffff";
+                    }
                 } catch (e) {}
             })();
         </script>
