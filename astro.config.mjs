@@ -1,35 +1,32 @@
 // @ts-check
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, fontProviders } from "astro/config";
 
-import tailwindcss from '@tailwindcss/vite';
-import rehypeExternalLinks from 'rehype-external-links';
-import AutoImport from 'astro-auto-import';
-import mdx from '@astrojs/mdx';
+import tailwindcss from "@tailwindcss/vite";
+import rehypeExternalLinks from "rehype-external-links";
+import AutoImport from "astro-auto-import";
+import mdx from "@astrojs/mdx";
 
-import cloudflare from '@astrojs/cloudflare';
+import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://parthkabra.me',
+  site: "https://parthkabra.me",
+
+  prefetch: { prefetchAll: true },
 
   integrations: [
     AutoImport({
-      imports: [
-        './src/components/content/Alert.astro',
-        './src/components/content/Mermaid.astro',
-      ],
+      imports: ["./src/components/content/Alert.astro", "./src/components/content/Mermaid.astro"],
     }),
     mdx(),
   ],
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
   },
 
   markdown: {
-    rehypePlugins: [
-      [rehypeExternalLinks, { target: '_blank', rel: ['noopener', 'noreferrer'] }],
-    ],
+    rehypePlugins: [[rehypeExternalLinks, { target: "_blank", rel: ["noopener", "noreferrer"] }]],
   },
 
   fonts: [
@@ -48,8 +45,8 @@ export default defineConfig({
       weights: [400, 700, 900],
       styles: ["normal"],
       subsets: ["latin"],
-    }
+    },
   ],
 
-  adapter: cloudflare()
+  adapter: cloudflare(),
 });
