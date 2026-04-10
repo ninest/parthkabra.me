@@ -59,7 +59,13 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
         <meta name="twitter:description" content={pageDescription} />
     </head>
 
-    <body class="bg-background text-foreground">
-        <slot></slot>
+    <body class="bg-background text-foreground" style={themeColor ? `background-color: ${themeColor}` : undefined}>
+        {themeColor ? (
+            <div class="min-h-screen bg-background">
+                <slot></slot>
+            </div>
+        ) : (
+            <slot></slot>
+        )}
     </body>
 </html>
