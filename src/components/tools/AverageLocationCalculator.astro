@@ -8,15 +8,15 @@ import Button from "../button.astro";
     <div id="alc-locations" class="space-y-2"></div>
 
     <div class="mt-3">
-      <Button id="alc-add" variant="secondary">+ Add location</Button>
+      <Button id="alc-add" variant="secondary" class="px-3 py-1 rounded">+ Add location</Button>
     </div>
 
     <div id="alc-result" class="mt-4 hidden">
       <p class="font-bold">Average location</p>
       <div class="ml-5">
-        <p class="mt-1" id="alc-coords"></p>
-        <div class="not-typography mt-2 flex gap-x-3 gap-y-1 flex-wrap">
-          <button id="alc-copy" class="block underline cursor-pointer bg-transparent border-none p-0 text-inherit text-left">Copy address</button>
+        <p class="mt-1 font-mono text-sm/snug" id="alc-coords"></p>
+        <div class="not-typography mt-2 flex flex-wrap gap-x-3 gap-y-1">
+          <button id="alc-copy" class="block underline cursor-pointer">Copy address</button>
           <a id="alc-gmaps" class="block underline text-primary" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
           <a id="alc-amaps" class="block underline text-primary" target="_blank" rel="noopener noreferrer">Open in Apple Maps</a>
         </div>

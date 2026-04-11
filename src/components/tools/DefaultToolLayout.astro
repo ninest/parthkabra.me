@@ -33,7 +33,7 @@ const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long
           <h1 class="text-3xl font-black">{entry.data.title}</h1>
           <p class="mt-2 text-muted-foreground">{dateline} · {entry.data.description}</p>
         </div>
-        <div class="md:w-72 lg:w-84 shrink-0">
+        <div class="hidden md:block md:w-72 lg:w-84 shrink-0">
           <Search />
         </div>
       </div>
