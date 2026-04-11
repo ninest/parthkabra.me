@@ -4,7 +4,7 @@ import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
 import CopyableContact from "../components/copyable-contact.astro";
 import { getCollection } from "astro:content";
 import { validateRelatedLinks } from "../utils/validate-related";
-import { routes, getCategoryUrl, getPostUrl, getProjectUrl } from "../utils/links";
+import { routes, getCategoryUrl, getPostUrl, getProjectUrl, getWorkUrl } from "../utils/links";
 await validateRelatedLinks();
 
 const links = (await getCollection("links")).sort((a, b) => a.data.order - b.data.order);
@@ -14,7 +14,9 @@ const now = (await getCollection("status")).find((s) => s.id === "current")!.dat
 const work = (await getCollection("workExperience", (we) => we.data.featured)).sort(
   (a, b) => (b.data.order ?? 0) - (a.data.order ?? 0),
 );
-const projects = await getCollection("projects", (p) => p.data.featured);
+const projects = (await getCollection("projects", (p) => p.data.featured)).sort(
+  (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
+);
 const categories = await getCollection("categories");
 const posts = (await getCollection("posts"))
   .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
@@ -53,8 +55,8 @@ const posts = (await getCollection("posts"))
   <section class="mt-8">
     <h2 class="font-bold">About</h2>
     <p class="ml-5 mt-1">
-      I'm a Python and TypeScript programmer with a Bachelors in computer science from Northeastern University in Boston,
-      MA. <a class="text-primary underline" href="/about">Read more</a>
+      I'm a Python and TypeScript programmer with a Bachelors in computer science from Northeastern University in
+      Boston, MA. <a class="text-primary underline" href="/about">Read more</a>
     </p>
   </section>
 
@@ -68,15 +70,19 @@ const posts = (await getCollection("posts"))
         {
           work.map((ex, i) => (
             <tr id={`work-${ex.id}`} class={i % 2 === 1 ? "bg-muted" : ""}>
-              <td class="border border-border py-1 px-2">
-                <span class="inline-flex items-center gap-1.5">
-                  <span class="inline-block w-4 h-4 shrink-0">
-                    {ex.data.icon && <img src={ex.data.icon} alt="" class="w-4 h-4" />}
+              <td class="border border-border">
+                <a href={getWorkUrl(ex.id)} class="block py-1 px-2">
+                  <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-4 h-4 shrink-0">
+                      {ex.data.icon && <img src={ex.data.icon} alt="" class="w-4 h-4" />}
+                    </span>
+                    {ex.data.title}
                   </span>
-                  {ex.data.title}
-                </span>
+                </a>
               </td>
-              <td class="border border-border py-1 px-2 text-right tabular-nums">{ex.data.dateline}</td>
+              <td class="border border-border text-right tabular-nums">
+                <a href={getWorkUrl(ex.id)} class="block py-1 px-2">{ex.data.dateline}</a>
+              </td>
             </tr>
           ))
         }
@@ -91,14 +97,11 @@ const posts = (await getCollection("posts"))
     </div>
     <ul class="ml-7 mt-1 space-y-2 list-disc list-outside">
       {
-        projects
-          .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
-          .map((p) => (
+        projects.map((p) => (
             <li id={`project-${p.id}`}>
-              <a href={getProjectUrl(p.id)} class="underline text-primary">
-                {p.data.title}
-              </a>
-              : <span class="">{p.data.description}</span>
+              {/* prettier-ignore */}
+              <a href={getProjectUrl(p.id)} class="underline text-primary">{p.data.title}</a>:{" "}
+              <span class="">{p.data.description}</span>
             </li>
           ))
       }
