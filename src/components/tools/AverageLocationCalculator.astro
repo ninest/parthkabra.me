@@ -1,0 +1,344 @@
+---
+import Input from "../input.astro";
+import Button from "../button.astro";
+---
+
+<div id="avg-loc-calculator" class="flex flex-col md:flex-row gap-6">
+  <div class="md:w-1/2">
+    <div id="alc-locations" class="space-y-2"></div>
+
+    <div class="mt-3">
+      <Button id="alc-add" variant="secondary">+ Add location</Button>
+    </div>
+
+    <div id="alc-result" class="mt-4 hidden">
+      <p class="font-bold">Average location</p>
+      <div class="ml-5">
+        <p class="mt-1" id="alc-coords"></p>
+        <div class="not-typography mt-2 flex gap-x-3 gap-y-1 flex-wrap">
+          <button id="alc-copy" class="block underline cursor-pointer bg-transparent border-none p-0 text-inherit text-left">Copy address</button>
+          <a id="alc-gmaps" class="block underline text-primary" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+          <a id="alc-amaps" class="block underline text-primary" target="_blank" rel="noopener noreferrer">Open in Apple Maps</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="alc-map" class="not-typography md:w-1/2 overflow-hidden h-[25rem] md:h-auto md:min-h-[25rem]"></div>
+</div>
+
+<script>
+  import maplibregl from "maplibre-gl";
+  import "maplibre-gl/dist/maplibre-gl.css";
+  import { geocode, reverseGeocode, geographicMidpoint } from "../../utils/geolocation";
+
+  // --- DOM refs ---
+  const $container = document.getElementById("alc-locations")!;
+  const $addBtn = document.getElementById("alc-add")!;
+  const $result = document.getElementById("alc-result")!;
+  const $coords = document.getElementById("alc-coords")!;
+  const $copyBtn = document.getElementById("alc-copy")!;
+  const $gmapsLink = document.getElementById("alc-gmaps") as HTMLAnchorElement;
+  const $amapsLink = document.getElementById("alc-amaps") as HTMLAnchorElement;
+  const $mapEl = document.getElementById("alc-map")!;
+
+  // --- Types ---
+  type Location = { lat: number; lng: number; address: string };
+
+  // Compute initial bounds from URL before map creation
+  const initialLocations = readUrl();
+  let initialBounds: maplibregl.LngLatBounds | null = null;
+  if (initialLocations && initialLocations.length > 0) {
+    initialBounds = new maplibregl.LngLatBounds();
+    for (const loc of initialLocations) {
+      initialBounds.extend([loc.lng, loc.lat]);
+    }
+  }
+
+  // --- Map ---
+  const map = new maplibregl.Map({
+    container: $mapEl,
+    style: "https://tiles.openfreemap.org/styles/positron",
+    center: initialBounds ? initialBounds.getCenter().toArray() : [0, 20],
+    zoom: 10,
+    dragRotate: true,
+    pitchWithRotate: true,
+  });
+  if (initialBounds) {
+    map.fitBounds(initialBounds, { padding: 60, maxZoom: 12 });
+  }
+
+  // Dark mode
+  function applyDarkMode() {
+    const isDark = document.documentElement.classList.contains("dark");
+    const canvas = $mapEl.querySelector("canvas");
+    if (canvas) {
+      canvas.style.filter = isDark ? "invert(1) hue-rotate(180deg)" : "";
+    }
+  }
+  new MutationObserver(applyDarkMode).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+
+  // Add transit layers on load
+  map.on("load", () => {
+    applyDarkMode();
+
+    // Add transit lines (subway, light rail, tram, rail) from OpenMapTiles transportation layer
+    map.addLayer({
+      id: "transit-lines",
+      type: "line",
+      source: "openmaptiles",
+      "source-layer": "transportation",
+      filter: [
+        "any",
+        ["==", ["get", "subclass"], "subway"],
+        ["==", ["get", "subclass"], "light_rail"],
+        ["==", ["get", "subclass"], "tram"],
+        ["==", ["get", "subclass"], "rail"],
+        ["==", ["get", "class"], "transit"],
+      ],
+      paint: {
+        "line-color": "#999",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 3],
+        "line-opacity": 0.7,
+      },
+      layout: {
+        "line-cap": "round",
+        "line-join": "round",
+      },
+    });
+  });
+
+  // --- Markers ---
+  let locationMarkers: maplibregl.Marker[] = [];
+  let avgMarker: maplibregl.Marker | null = null;
+
+  // --- Row helpers ---
+  function createRow(address = "", lat = NaN, lng = NaN): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "flex items-center gap-2";
+    row.setAttribute("data-location", "");
+    if (!isNaN(lat)) row.setAttribute("data-lat", String(lat));
+    if (!isNaN(lng)) row.setAttribute("data-lng", String(lng));
+    row.innerHTML = `
+      <input type="text" placeholder="Search address..." class="border border-border focus:outline-none rounded px-2 py-1 flex-1 min-w-48" data-address />
+      <span class="text-xs text-muted-foreground shrink-0" data-geocode-status></span>
+      <button class="text-muted-foreground hover:text-foreground px-1 shrink-0" data-remove title="Remove">&times;</button>
+    `;
+    const $input = row.querySelector("[data-address]") as HTMLInputElement;
+    $input.value = address;
+    setupAddressListener($input);
+    return row;
+  }
+
+  function getRowLocations(): Location[] {
+    const locations: Location[] = [];
+    for (const row of $container.querySelectorAll("[data-location]")) {
+      const lat = parseFloat(row.getAttribute("data-lat") || "");
+      const lng = parseFloat(row.getAttribute("data-lng") || "");
+      const address = (row.querySelector("[data-address]") as HTMLInputElement)?.value || "";
+      if (!isNaN(lat) && !isNaN(lng)) {
+        locations.push({ lat, lng, address });
+      }
+    }
+    return locations;
+  }
+
+  // --- URL state ---
+  function writeUrl() {
+    const locations = getRowLocations();
+    if (locations.length === 0) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("locations");
+      history.replaceState(null, "", url.toString());
+      return;
+    }
+    const param = locations.map((l) => `${l.lat},${l.lng},${encodeURIComponent(l.address)}`).join("|");
+    const url = new URL(window.location.href);
+    url.searchParams.set("locations", param);
+    history.replaceState(null, "", url.toString());
+  }
+
+  function readUrl(): Location[] | null {
+    const param = new URLSearchParams(window.location.search).get("locations");
+    if (!param) return null;
+    const locations: Location[] = [];
+    for (const part of param.split("|")) {
+      const [latStr, lngStr, ...rest] = part.split(",");
+      const lat = parseFloat(latStr);
+      const lng = parseFloat(lngStr);
+      const address = decodeURIComponent(rest.join(","));
+      if (!isNaN(lat) && !isNaN(lng)) {
+        locations.push({ lat, lng, address });
+      }
+    }
+    return locations.length > 0 ? locations : null;
+  }
+
+  // --- Recalculate average (auto) ---
+  function recalculate() {
+    const locations = getRowLocations();
+    writeUrl();
+
+    // Update markers
+    for (const m of locationMarkers) m.remove();
+    locationMarkers = [];
+    if (avgMarker) {
+      avgMarker.remove();
+      avgMarker = null;
+    }
+
+    const bounds = new maplibregl.LngLatBounds();
+    let hasValidPoint = false;
+
+    for (const loc of locations) {
+      const marker = new maplibregl.Marker({ color: "#4f46e5" }).setLngLat([loc.lng, loc.lat]).addTo(map);
+      locationMarkers.push(marker);
+      bounds.extend([loc.lng, loc.lat]);
+      hasValidPoint = true;
+    }
+
+    // Need at least 2 points to calculate average
+    if (locations.length < 2) {
+      $result.classList.add("hidden");
+      if (hasValidPoint) {
+        map.fitBounds(bounds, { padding: 60, maxZoom: 12 });
+      }
+      return;
+    }
+
+    const { lat: avgLat, lng: avgLng } = geographicMidpoint(locations);
+
+    $coords.textContent = "Resolving address...";
+    $result.classList.remove("hidden");
+    $gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${avgLat},${avgLng}`;
+    $amapsLink.href = `https://maps.apple.com/?ll=${avgLat},${avgLng}&q=Average+Location`;
+
+    // Reverse geocode the average
+    reverseGeocode(avgLat, avgLng).then((address) => {
+      $coords.textContent = address || `${avgLat.toFixed(6)}, ${avgLng.toFixed(6)}`;
+    });
+
+    // Average marker (green)
+    const el = document.createElement("div");
+    el.style.cssText =
+      "width:1.125rem;height:1.125rem;background:#22c55e;border:0.156rem solid white;border-radius:50%;box-shadow:0 0.125rem 0.375rem rgba(0,0,0,.35);";
+    avgMarker = new maplibregl.Marker({ element: el }).setLngLat([avgLng, avgLat]).addTo(map);
+
+    bounds.extend([avgLng, avgLat]);
+    map.fitBounds(bounds, { padding: 60, maxZoom: 12 });
+  }
+
+  // --- Address input: debounced geocoding ---
+  const debounceTimers = new WeakMap<HTMLInputElement, ReturnType<typeof setTimeout>>();
+
+  function setupAddressListener(input: HTMLInputElement) {
+    input.addEventListener("input", () => {
+      const prev = debounceTimers.get(input);
+      if (prev) clearTimeout(prev);
+
+      const row = input.closest("[data-location]") as HTMLElement;
+      const $status = row.querySelector("[data-geocode-status]") as HTMLSpanElement;
+
+      const query = input.value.trim();
+      if (!query) {
+        $status.textContent = "";
+        row.removeAttribute("data-lat");
+        row.removeAttribute("data-lng");
+        recalculate();
+        return;
+      }
+
+      debounceTimers.set(
+        input,
+        setTimeout(async () => {
+          $status.textContent = "Searching...";
+          const result = await geocode(query);
+          if (result) {
+            row.setAttribute("data-lat", String(result.lat));
+            row.setAttribute("data-lng", String(result.lng));
+            $status.textContent = "";
+            recalculate();
+          } else {
+            row.removeAttribute("data-lat");
+            row.removeAttribute("data-lng");
+            $status.textContent = "Not found";
+            recalculate();
+          }
+        }, 1000),
+      );
+    });
+  }
+
+  // --- Copy address ---
+  $copyBtn.addEventListener("click", () => {
+    const text = $coords.textContent;
+    if (text) {
+      navigator.clipboard.writeText(text);
+      $copyBtn.textContent = "Copied!";
+      setTimeout(() => ($copyBtn.textContent = "Copy address"), 1500);
+    }
+  });
+
+  // --- Add row ---
+  $addBtn.addEventListener("click", () => {
+    $container.appendChild(createRow());
+  });
+
+  // --- Remove row ---
+  $container.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (target.hasAttribute("data-remove")) {
+      const rows = $container.querySelectorAll("[data-location]");
+      if (rows.length > 1) {
+        target.closest("[data-location]")?.remove();
+        recalculate();
+      }
+    }
+  });
+
+  // --- Map click: add location + reverse geocode ---
+  map.on("click", (e) => {
+    const { lat, lng } = e.lngLat;
+    const row = createRow(`${lat.toFixed(4)}, ${lng.toFixed(4)}`, lat, lng);
+    $container.appendChild(row);
+    recalculate();
+
+    // Reverse geocode to fill in address
+    const $input = row.querySelector("[data-address]") as HTMLInputElement;
+    const $status = row.querySelector("[data-geocode-status]") as HTMLSpanElement;
+    $status.textContent = "Resolving...";
+
+    reverseGeocode(lat, lng).then((address) => {
+      if (address) {
+        $input.value = address;
+        $status.textContent = "";
+        writeUrl();
+      } else {
+        $status.textContent = "";
+      }
+    });
+  });
+
+  // --- Init from URL or empty ---
+  if (initialLocations) {
+    for (const loc of initialLocations) {
+      $container.appendChild(createRow(loc.address, loc.lat, loc.lng));
+    }
+    map.on("load", () => recalculate());
+  } else {
+    $container.appendChild(createRow());
+    $container.appendChild(createRow());
+  }
+</script>
+
+<style>
+  #alc-map {
+    z-index: 0;
+  }
+  :global(.dark) #alc-map canvas {
+    filter: invert(1) hue-rotate(180deg);
+  }
+</style>

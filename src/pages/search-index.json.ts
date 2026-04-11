@@ -3,12 +3,13 @@ import { stripMarkdown } from "../utils/markdown";
 import { truncate } from "../utils/string";
 
 export async function GET() {
-  const [categories, posts, projects, workExperience, microblog] = await Promise.all([
+  const [categories, posts, projects, workExperience, microblog, tools] = await Promise.all([
     getCollection("categories"),
     getCollection("posts"),
     getCollection("projects"),
     getCollection("workExperience"),
     getCollection("microblog"),
+    getCollection("tools"),
   ]);
 
   const index = [
@@ -43,6 +44,14 @@ export async function GET() {
       description: w.data.description,
       body: w.body ? stripMarkdown(w.body) : "",
       createdAt: w.data.createdAt.toISOString(),
+    })),
+    ...tools.map((t) => ({
+      id: `tool-${t.id}`,
+      type: "tool",
+      title: t.data.title,
+      description: t.data.description,
+      body: t.body ? stripMarkdown(t.body) : "",
+      createdAt: t.data.createdAt.toISOString(),
     })),
     ...microblog.map((m) => {
       const plain = m.body ? stripMarkdown(m.body) : "";

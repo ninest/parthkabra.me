@@ -6,13 +6,14 @@ export async function validateRelatedLinks() {
   if (validated) return;
   validated = true;
 
-  const [posts, microblog, projects, work, pages, postCollections] = await Promise.all([
+  const [posts, microblog, projects, work, pages, postCollections, tools] = await Promise.all([
     getCollection("posts"),
     getCollection("microblog"),
     getCollection("projects"),
     getCollection("workExperience"),
     getCollection("pages"),
     getCollection("postCollections"),
+    getCollection("tools"),
   ]);
 
   const validIds = new Set<string>();
@@ -22,6 +23,7 @@ export async function validateRelatedLinks() {
   for (const w of work) validIds.add(`work:${w.id}`);
   for (const p of pages) validIds.add(`page:${p.id}`);
   for (const c of postCollections) validIds.add(`collection:${c.id}`);
+  for (const t of tools) validIds.add(`tool:${t.id}`);
 
   const allEntries = [
     ...posts.map((e) => ({ source: `post:${e.id}`, related: e.data.related })),
@@ -45,6 +47,10 @@ export async function validateRelatedLinks() {
     ...postCollections.map((e) => ({
       source: `collection:${e.id}`,
       related: [...e.data.related, ...e.data.items],
+    })),
+    ...tools.map((e) => ({
+      source: `tool:${e.id}`,
+      related: e.data.related,
     })),
   ];
 

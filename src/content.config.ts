@@ -103,6 +103,14 @@ const postCollections = defineCollection({
   }),
 });
 
+const tools = defineCollection({
+  loader: glob({ base: "./content/tools", pattern: "**/*.{md,mdx}" }),
+  schema: z.object({
+    title: z.string(),
+    ...contentFields,
+  }),
+});
+
 const status = defineCollection({
   loader: file("./content/status.json"),
   schema: z.object({
@@ -111,4 +119,4 @@ const status = defineCollection({
   }),
 });
 
-export const collections = { categories, links, microblog, posts, workExperience, projects, pages, postCollections, status };
+export const collections = { categories, links, microblog, posts, workExperience, projects, pages, postCollections, tools, status };

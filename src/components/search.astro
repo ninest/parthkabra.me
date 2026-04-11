@@ -1,24 +1,27 @@
 ---
+import Input from "./input.astro";
+import Button from "./button.astro";
+
 interface Props {
   class?: string;
 }
 ---
 
 <div class:list={["flex items-center justify-between gap-1", Astro.props.class]}>
-  <input
+  <Input
     id="search-input"
     placeholder="search"
     autocomplete="off"
-    class="rounded-l border px-1 border-border focus:outline-none w-full h-7"
+    class="rounded-l px-1 w-full h-7"
   />
-  <button class="bg-muted px-3 h-7 rounded-r">Go</button>
+  <Button variant="secondary" class="h-7 rounded-l-none">Go</Button>
 </div>
 
 <ul id="search-results" class="mt-2 space-y-0.5 rounded overflow-hidden"></ul>
 
 <script>
   import { search, type SearchHit } from "../lib/search";
-  import { getPostUrl, getProjectUrl, getWorkUrl, getCategoryUrl, getMicroblogUrl } from "../utils/links";
+  import { getPostUrl, getProjectUrl, getWorkUrl, getCategoryUrl, getMicroblogUrl, getToolUrl } from "../utils/links";
 
   const $input = document.getElementById("search-input") as HTMLInputElement;
   const $resultsList = document.getElementById("search-results")!;
@@ -38,6 +41,8 @@ interface Props {
         return getCategoryUrl(rawId);
       case "microblog":
         return getMicroblogUrl(rawId);
+      case "tool":
+        return getToolUrl(rawId);
       default:
         return `/${rawId}`;
     }
