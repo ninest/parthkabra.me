@@ -6,6 +6,7 @@ export const routes = {
   work: "/work",
   collections: "/collections",
   tools: "/tools",
+  admin: "/admin",
 } as const;
 
 // Per-collection URL builders

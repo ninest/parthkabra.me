@@ -1,0 +1,34 @@
+---
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import Navbar from "../components/navbar.astro";
+import { routes } from "../utils/links";
+
+interface Props {
+  title?: string;
+  breadcrumbs?: { label: string; href?: string }[];
+}
+
+const { title = "Admin", breadcrumbs } = Astro.props;
+
+const defaultBreadcrumbs = [{ label: "Parth Kabra", href: routes.home }, { label: "Admin" }];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex, nofollow" />
+    <Font cssVariable="--font-inter" />
+    <Font cssVariable="--font-mulish" />
+    <title>{title}</title>
+  </head>
+  <body class="bg-background text-foreground">
+    <div class="p-4">
+      <Navbar breadcrumbs={breadcrumbs ?? defaultBreadcrumbs} />
+      <div class="mt-6">
+        <slot />
+      </div>
+    </div>
+  </body>
+</html>
