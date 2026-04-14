@@ -21,6 +21,7 @@ const { value, href } = Astro.props;
     $btn.addEventListener("click", async () => {
       const value = $btn.dataset.copyValue!;
       await navigator.clipboard.writeText(value);
+      window.posthog?.capture('contact_copied', { contact_type: value.includes('@') ? 'email' : 'phone' });
       $btn.textContent = "copied";
       setTimeout(() => {
         $btn.textContent = "copy";

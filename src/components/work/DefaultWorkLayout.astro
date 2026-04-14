@@ -44,3 +44,11 @@ const relatedItems = await resolveRelated(entry.data.related);
 
   <DefaultWorkSidebar entry={entry} slot="sidebar" />
 </SidebarLayout>
+
+<script is:inline define:vars={{ workTitle: entry.data.title, workId: entry.id }}>
+  function trackWorkViewed() {
+    window.posthog?.capture('work_viewed', { work_title: workTitle, work_id: workId });
+  }
+  document.addEventListener('DOMContentLoaded', trackWorkViewed);
+  document.addEventListener('astro:page-load', trackWorkViewed);
+</script>

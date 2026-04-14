@@ -211,6 +211,7 @@ import Button from "../button.astro";
 
     const { lat: avgLat, lng: avgLng } = geographicMidpoint(locations);
 
+    window.posthog?.capture('tool_used', { tool: 'average_location_calculator', location_count: locations.length });
     $coords.textContent = "Resolving address...";
     $result.classList.remove("hidden");
     $gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${avgLat},${avgLng}`;

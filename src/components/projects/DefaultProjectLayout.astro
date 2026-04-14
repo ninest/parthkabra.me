@@ -42,3 +42,11 @@ const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long
 
   <DefaultProjectSidebar entry={entry} slot="sidebar" />
 </SidebarLayout>
+
+<script is:inline define:vars={{ projectTitle: entry.data.title, projectId: entry.id }}>
+  function trackProjectViewed() {
+    window.posthog?.capture('project_viewed', { project_title: projectTitle, project_id: projectId });
+  }
+  document.addEventListener('DOMContentLoaded', trackProjectViewed);
+  document.addEventListener('astro:page-load', trackProjectViewed);
+</script>

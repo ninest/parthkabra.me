@@ -14,6 +14,16 @@ interface Props {
 const { title, items, external = false, linkClass = "text-primary underline" } = Astro.props;
 ---
 
+<script>
+  // Use event delegation so external link clicks are tracked across view transitions
+  document.addEventListener('click', (e) => {
+    const $a = (e.target as HTMLElement).closest<HTMLAnchorElement>('[data-ph-external]');
+    if ($a) {
+      window.posthog?.capture('external_link_clicked', { url: $a.dataset.phExternal, link_title: $a.dataset.phLinkTitle });
+    }
+  });
+</script>
+
 {
   items.length > 0 && (
     <section class="mt-7">
@@ -26,6 +36,8 @@ const { title, items, external = false, linkClass = "text-primary underline" } =
               class={linkClass}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
+              data-ph-external={external ? item.url : undefined}
+              data-ph-link-title={external ? item.title : undefined}
             >
               {item.title}
             </a>

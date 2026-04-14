@@ -47,3 +47,11 @@ const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long
 
   <DefaultPostSidebar entry={entry} slot="sidebar" />
 </SidebarLayout>
+
+<script is:inline define:vars={{ postTitle: entry.data.title, postCategory: categoryId, postCategoryTitle: categoryTitle }}>
+  function trackPostViewed() {
+    window.posthog?.capture('post_viewed', { post_title: postTitle, category: postCategory, category_title: postCategoryTitle });
+  }
+  document.addEventListener('DOMContentLoaded', trackPostViewed);
+  document.addEventListener('astro:page-load', trackPostViewed);
+</script>
