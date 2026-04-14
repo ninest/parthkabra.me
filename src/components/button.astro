@@ -13,6 +13,6 @@ const variantClasses = {
 };
 ---
 
-<button class:list={["px-3 py-1 rounded", variantClasses[variant], className]} {...rest}>
+<button class:list={["px-3 py-1 rounded flex items-center justify-center", variantClasses[variant], className]} {...rest}>
   <slot />
 </button>
