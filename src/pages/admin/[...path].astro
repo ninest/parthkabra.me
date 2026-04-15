@@ -1,0 +1,247 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { listDirectory, getFile, listDirectorySafe } from "../../lib/github";
+import { getImagePath } from "../../config/admin";
+import type { DirEntry } from "../../lib/github";
+
+const { path } = Astro.params;
+if (!path) return Astro.redirect("/admin");
+
+const token = import.meta.env.GITHUB_TOKEN;
+if (!token) return new Response("GITHUB_TOKEN not configured", { status: 500 });
+
+const isNew = Astro.url.searchParams.has("new");
+
+// Build breadcrumbs
+const segments = path.split("/");
+const breadcrumbs = [
+  { label: "Parth Kabra", href: "/" },
+  { label: "Admin", href: "/admin" },
+  ...segments.map((seg, i) => ({
+    label: seg,
+    href: i < segments.length - 1 ? `/admin/${segments.slice(0, i + 1).join("/")}` : undefined,
+  })),
+];
+
+// Determine what we're looking at
+let isDirectory = false;
+let dirItems: DirEntry[] = [];
+let fileContent = "";
+let fileSha = "";
+let images: DirEntry[] = [];
+let imagePath: string | null = null;
+let error = "";
+
+try {
+  if (isNew) {
+    // New file mode — show empty editor in the current directory
+    isDirectory = false;
+    imagePath = null;
+  } else {
+    // Try as directory first, fall back to file
+    try {
+      dirItems = await listDirectory(token, path);
+      isDirectory = true;
+    } catch {
+      isDirectory = false;
+      const file = await getFile(token, path);
+      fileContent = file.content;
+      fileSha = file.sha;
+
+      // Load images for this file
+      imagePath = getImagePath(path);
+      if (imagePath) {
+        images = await listDirectorySafe(token, imagePath);
+      }
+    }
+  }
+} catch (e: any) {
+  error = e.message;
+}
+
+// For the image panel, derive the web-accessible path (strip "public/")
+function toWebPath(ghPath: string): string {
+  return "/" + ghPath.replace(/^public\//, "");
+}
+---
+
+<AdminLayout title={segments[segments.length - 1]} breadcrumbs={breadcrumbs}>
+  {error ? (
+    <p class="text-red-600 font-mono text-sm">{error}</p>
+  ) : isDirectory ? (
+    <!-- Directory listing -->
+    <ul class="space-y-1 font-mono text-sm">
+      {dirItems.map((item) => (
+        <li>
+          <a href={`/admin/${item.path}`} class="underline">
+            {item.type === "dir" ? `${item.name}/` : item.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+    <div class="mt-4 pt-4 border-t border-border">
+      <a href={`/admin/${path}?new=true`} class="text-sm underline">+ New file</a>
+    </div>
+  ) : (
+    <!-- Editor -->
+    <div id="editor-root" data-path={path} data-sha={fileSha} data-image-path={imagePath ?? ""}>
+      {isNew && (
+        <input
+          id="new-filename"
+          type="text"
+          placeholder="filename.mdx"
+          class="border border-border rounded px-2 py-1 font-mono text-sm w-64 mb-3 block"
+        />
+      )}
+
+      <textarea
+        id="editor"
+        class="w-full font-mono text-sm p-3 border border-border rounded bg-background text-foreground resize-y"
+        rows="30"
+      >{fileContent}</textarea>
+
+      <div class="flex items-center gap-3 mt-2">
+        <button id="save-btn" class="px-3 py-1 bg-primary text-primary-foreground rounded text-sm">
+          Save
+        </button>
+        <span id="save-status" class="text-sm"></span>
+      </div>
+
+      {/* Image section */}
+      {imagePath && (
+        <div class="mt-6 border-t border-border pt-4">
+          <p class="text-sm font-semibold mb-2">Images</p>
+          {images.length > 0 ? (
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+              {images.map((img) => (
+                <div class="border border-border rounded p-1">
+                  <img src={toWebPath(img.path)} class="w-full" loading="lazy" />
+                  <button
+                    class="copy-img-ref text-xs font-mono mt-1 truncate block w-full text-left underline cursor-pointer"
+                    data-ref={`![](${toWebPath(img.path)})`}
+                  >
+                    {img.name}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p class="text-sm text-muted-foreground mb-3">No images yet.</p>
+          )}
+          <div class="flex items-center gap-2">
+            <input type="file" id="image-upload" accept="image/*" class="text-sm" />
+            <button id="upload-btn" class="px-3 py-1 bg-primary text-primary-foreground rounded text-sm">
+              Upload
+            </button>
+          </div>
+          <span id="upload-status" class="text-sm mt-1 block"></span>
+        </div>
+      )}
+    </div>
+  )}
+</AdminLayout>
+
+<script>
+  import { actions } from "astro:actions";
+
+  const $root = document.getElementById("editor-root");
+  if ($root) {
+    const $editor = document.getElementById("editor") as HTMLTextAreaElement;
+    const $saveBtn = document.getElementById("save-btn")!;
+    const $saveStatus = document.getElementById("save-status")!;
+    const $newFilename = document.getElementById("new-filename") as HTMLInputElement | null;
+
+    let currentPath = $root.dataset.path!;
+    let currentSha = $root.dataset.sha || "";
+
+    $saveBtn.addEventListener("click", save);
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        save();
+      }
+    });
+
+    async function save() {
+      // For new files, build path from directory + filename
+      let savePath = currentPath;
+      if ($newFilename) {
+        const filename = $newFilename.value.trim();
+        if (!filename) {
+          $saveStatus.textContent = "Enter a filename";
+          $saveStatus.className = "text-sm text-red-600";
+          return;
+        }
+        savePath = `${currentPath}/${filename}`;
+      }
+
+      $saveBtn.textContent = "Saving...";
+      $saveStatus.textContent = "";
+
+      const { data, error } = await actions.saveFile({
+        path: savePath,
+        content: $editor.value,
+        ...(currentSha ? { sha: currentSha } : {}),
+      });
+
+      if (error) {
+        $saveStatus.textContent = error.message;
+        $saveStatus.className = "text-sm text-red-600";
+      } else {
+        currentSha = data.sha;
+        $saveStatus.textContent = "Saved";
+        $saveStatus.className = "text-sm text-green-600";
+
+        // If it was a new file, redirect to the edit page
+        if ($newFilename) {
+          window.location.href = `/admin/${savePath}`;
+        }
+      }
+
+      $saveBtn.textContent = "Save";
+    }
+
+    // Copy image markdown reference
+    document.querySelectorAll(".copy-img-ref").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ref = (btn as HTMLElement).dataset.ref!;
+        navigator.clipboard.writeText(ref);
+        const original = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.textContent = original), 1000);
+      });
+    });
+
+    // Image upload
+    const $uploadBtn = document.getElementById("upload-btn");
+    const $imageUpload = document.getElementById("image-upload") as HTMLInputElement | null;
+    const $uploadStatus = document.getElementById("upload-status");
+
+    if ($uploadBtn && $imageUpload && $uploadStatus) {
+      $uploadBtn.addEventListener("click", async () => {
+        const file = $imageUpload.files?.[0];
+        if (!file) return;
+
+        $uploadBtn.textContent = "Uploading...";
+        $uploadStatus.textContent = "";
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("path", $root.dataset.imagePath!);
+
+        const { data, error } = await actions.uploadImage(formData);
+
+        if (error) {
+          $uploadStatus.textContent = error.message;
+          $uploadStatus.className = "text-sm text-red-600 mt-1 block";
+        } else {
+          $uploadStatus.textContent = `Uploaded ${data.path}. Refresh to see.`;
+          $uploadStatus.className = "text-sm text-green-600 mt-1 block";
+        }
+
+        $uploadBtn.textContent = "Upload";
+      });
+    }
+  }
+</script>

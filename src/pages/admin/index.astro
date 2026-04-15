@@ -1,7 +1,34 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import { listDirectory } from "../../lib/github";
+
+const token = import.meta.env.GITHUB_TOKEN;
+let items: { name: string; path: string; type: "file" | "dir" }[] = [];
+let error = "";
+
+if (!token) {
+  error = "GITHUB_TOKEN not configured";
+} else {
+  try {
+    items = await listDirectory(token, "content");
+  } catch (e: any) {
+    error = e.message;
+  }
+}
 ---
 
 <AdminLayout title="Admin">
-  <p>You are authenticated.</p>
+  {error ? (
+    <p class="text-red-600">{error}</p>
+  ) : (
+    <ul class="space-y-1 font-mono text-sm">
+      {items.map((item) => (
+        <li>
+          <a href={`/admin/${item.path}`} class="underline">
+            {item.type === "dir" ? `${item.name}/` : item.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
 </AdminLayout>

@@ -1,3 +1,5 @@
+export const prerender = true;
+
 import { getCollection } from "astro:content";
 import { stripMarkdown } from "../utils/markdown";
 import { truncate } from "../utils/string";

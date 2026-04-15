@@ -13,6 +13,8 @@ import sitemap from "@astrojs/sitemap";
 export default defineConfig({
   site: "https://parthkabra.me",
 
+  output: "server",
+
   prefetch: { prefetchAll: true },
 
   integrations: [
