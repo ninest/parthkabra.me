@@ -7,6 +7,7 @@ import AutoImport from "astro-auto-import";
 import mdx from "@astrojs/mdx";
 
 import cloudflare from "@astrojs/cloudflare";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
@@ -19,6 +20,7 @@ export default defineConfig({
       imports: ["./src/components/content/Alert.astro", "./src/components/content/Mermaid.astro"],
     }),
     mdx(),
+    sitemap(),
   ],
 
   vite: {
