@@ -55,6 +55,27 @@ try {
     try {
       dirItems = await listDirectory(token, path);
       isDirectory = true;
+
+      // Sort MDX/MD files by createdAt (newest first), directories stay on top
+      const dirs = dirItems.filter((i) => i.type === "dir");
+      const mdxFiles = dirItems.filter((i) => i.type === "file" && /\.mdx?$/.test(i.name));
+      const otherFiles = dirItems.filter((i) => i.type === "file" && !/\.mdx?$/.test(i.name));
+
+      if (mdxFiles.length > 0) {
+        const withDates = await Promise.all(
+          mdxFiles.map(async (item) => {
+            const file = await getFileSafe(token, item.path);
+            let createdAt = "";
+            if (file) {
+              const match = file.content.match(/createdAt:\s*(.+)/);
+              if (match) createdAt = match[1].trim();
+            }
+            return { item, createdAt };
+          }),
+        );
+        withDates.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        dirItems = [...dirs, ...withDates.map((f) => f.item), ...otherFiles];
+      }
     } catch {
       isDirectory = false;
       const file = await getFile(token, path);
@@ -95,7 +116,7 @@ function toWebPath(ghPath: string): string {
     </ul>
   ) : (
     <!-- Editor -->
-    <div id="editor-root" data-path={path} data-sha={fileSha} data-image-path={imagePath ?? ""} class="flex flex-col lg:flex-row gap-4 h-[calc(100vh-8rem)]">
+    <div id="editor-root" data-path={path} data-sha={fileSha} data-image-path={imagePath ?? ""} class="flex flex-col gap-4 lg:flex-row lg:h-[calc(100vh-8rem)]">
       {/* Main editor area */}
       <div class="flex-1 min-w-0 flex flex-col min-h-0">
         {isNew && (
@@ -109,7 +130,7 @@ function toWebPath(ghPath: string): string {
 
         <textarea
           id="editor"
-          class="w-full flex-1 min-h-0 font-mono text-sm p-3 border border-border rounded bg-background text-foreground resize-none"
+          class="w-full flex-1 min-h-[75vh] lg:min-h-0 font-mono text-sm p-3 border border-border rounded bg-background text-foreground resize-none"
         >{fileContent}</textarea>
       </div>
 

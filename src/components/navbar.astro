@@ -12,7 +12,7 @@ const { breadcrumbs } = Astro.props;
 <div class:list={["flex items-center justify-between", Astro.props.class]}>
   {
     breadcrumbs ? (
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap min-w-0">
         {breadcrumbs.map((crumb, i) => (
           <>
             {i > 0 && <span>{">"}</span>}
@@ -30,7 +30,7 @@ const { breadcrumbs } = Astro.props;
       <h1 class="font-black text-foreground">Parth Kabra</h1>
     )
   }
-  <div class="flex items-center gap-2">
+  <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
     <ThemeToggle />
     <p id="et-time"></p>
     <slot />
