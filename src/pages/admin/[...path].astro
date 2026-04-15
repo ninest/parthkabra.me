@@ -131,6 +131,7 @@ function toWebPath(ghPath: string): string {
         <textarea
           id="editor"
           class="w-full flex-1 min-h-[75vh] lg:min-h-0 font-mono text-sm p-3 border border-border rounded bg-background text-foreground resize-none"
+          style="tab-size: 2; -moz-tab-size: 2;"
         >{fileContent}</textarea>
       </div>
 
@@ -217,6 +218,17 @@ function toWebPath(ghPath: string): string {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         save();
+      }
+    });
+
+    // Tab inserts 4 spaces instead of changing focus
+    $editor.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const start = $editor.selectionStart;
+        const end = $editor.selectionEnd;
+        $editor.value = $editor.value.substring(0, start) + "  " + $editor.value.substring(end);
+        $editor.selectionStart = $editor.selectionEnd = start + 2;
       }
     });
 
