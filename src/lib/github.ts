@@ -10,6 +10,7 @@ async function ghFetch(token: string, path: string, options?: RequestInit) {
     headers: {
       Accept: "application/vnd.github.v3+json",
       Authorization: `Bearer ${token}`,
+      "User-Agent": "parthkabra.me-admin",
       ...options?.headers,
     },
   });
