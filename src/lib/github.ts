@@ -84,6 +84,15 @@ export async function uploadImage(
   return { path: data.content.path };
 }
 
+export async function getFileSafe(token: string, path: string): Promise<FileResult | null> {
+  try {
+    return await getFile(token, path);
+  } catch (e: any) {
+    if (e.status === 404) return null;
+    throw e;
+  }
+}
+
 /**
  * Try to list a directory, returning empty array on 404.
  */

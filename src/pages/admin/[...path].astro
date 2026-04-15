@@ -1,7 +1,8 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro";
-import { listDirectory, getFile, listDirectorySafe } from "../../lib/github";
+import { listDirectory, getFile, getFileSafe, listDirectorySafe } from "../../lib/github";
 import { getImagePath } from "../../config/admin";
+import { getTemplatePath } from "../../config/templates";
 import type { DirEntry } from "../../lib/github";
 import { env } from "cloudflare:workers";
 
@@ -37,9 +38,16 @@ let error = "";
 
 try {
   if (isNew) {
-    // New file mode — show empty editor in the current directory
+    // New file mode — load template if one exists for this collection
     isDirectory = false;
     imagePath = null;
+    const templatePath = getTemplatePath(path);
+    if (templatePath) {
+      const template = await getFileSafe(token, templatePath);
+      if (template) {
+        fileContent = template.content;
+      }
+    }
   } else {
     // Try as directory first, fall back to file
     try {
@@ -160,6 +168,12 @@ function toWebPath(ghPath: string): string {
 
     let currentPath = $root.dataset.path!;
     let currentSha = $root.dataset.sha || "";
+
+    // Expand template placeholders
+    if ($editor.value.includes("{{date}}")) {
+      const today = new Date().toISOString().slice(0, 10);
+      $editor.value = $editor.value.replaceAll("{{date}}", today);
+    }
 
     $saveBtn.addEventListener("click", save);
 
