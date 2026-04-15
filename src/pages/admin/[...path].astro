@@ -1,5 +1,7 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import Button from "../../components/button.astro";
+import Input from "../../components/input.astro";
 import { listDirectory, getFile, getFileSafe, listDirectorySafe } from "../../lib/github";
 import { getImagePath } from "../../config/admin";
 import { getTemplatePath } from "../../config/templates";
@@ -115,10 +117,23 @@ function toWebPath(ghPath: string): string {
       <div class="w-full lg:w-72 shrink-0 flex flex-col gap-4 min-h-0 overflow-y-auto">
         {/* Save */}
         <div>
-          <button id="save-btn" class="w-full px-3 py-1 bg-muted rounded text-sm">
+          <Button id="save-btn" class="w-full text-sm">
             Save
-          </button>
+          </Button>
           <span id="save-status" class="text-sm mt-1 block"></span>
+        </div>
+
+        {/* Related content search */}
+        <div class="border-t border-border pt-4">
+          <p class="text-sm font-semibold mb-2">Related content</p>
+          <Input
+            id="ref-search"
+            type="text"
+            placeholder="Search content..."
+            autocomplete="off"
+            class="rounded px-2 py-1 text-sm w-full"
+          />
+          <ul id="ref-results" class="mt-2 space-y-0.5 rounded overflow-hidden max-h-64 overflow-y-auto"></ul>
         </div>
 
         {/* Images */}
@@ -144,9 +159,9 @@ function toWebPath(ghPath: string): string {
             )}
             <div class="flex items-center gap-2">
               <input type="file" id="image-upload" accept="image/*" class="text-sm w-full" />
-              <button id="upload-btn" class="px-3 py-1 bg-primary text-primary-foreground rounded text-sm whitespace-nowrap">
+              <Button id="upload-btn" class="text-sm whitespace-nowrap">
                 Upload
-              </button>
+              </Button>
             </div>
             <span id="upload-status" class="text-sm mt-1 block"></span>
           </div>
@@ -262,6 +277,70 @@ function toWebPath(ghPath: string): string {
         }
 
         $uploadBtn.textContent = "Upload";
+      });
+    }
+
+    // Related content search
+    const $refSearch = document.getElementById("ref-search") as HTMLInputElement | null;
+    const $refResults = document.getElementById("ref-results");
+
+    if ($refSearch && $refResults) {
+      type ContentRef = { ref: string; title: string; type: string };
+      let allRefs: ContentRef[] | null = null;
+      let refDebounce: ReturnType<typeof setTimeout>;
+
+      async function loadRefs(): Promise<ContentRef[]> {
+        if (allRefs) return allRefs;
+        const res = await fetch("/admin/content-refs.json");
+        allRefs = await res.json();
+        return allRefs!;
+      }
+
+      function renderRefResults(results: ContentRef[]) {
+        if (results.length === 0) {
+          $refResults!.innerHTML = `<li class="text-muted-foreground text-sm py-1 px-2">No results</li>`;
+          return;
+        }
+        const displayed = results.slice(0, 15);
+        $refResults!.innerHTML = displayed
+          .map(
+            (r) =>
+              `<li>
+                <button class="copy-ref flex items-center justify-between bg-muted/50 py-1 px-2 w-full text-left cursor-pointer" data-ref="${r.ref}">
+                  <span class="text-sm truncate">${r.title}</span>
+                  <span class="text-xs text-muted-foreground shrink-0 ml-2">${r.type}</span>
+                </button>
+              </li>`,
+          )
+          .join("");
+
+        $refResults!.querySelectorAll<HTMLButtonElement>(".copy-ref").forEach(($btn) => {
+          $btn.addEventListener("click", () => {
+            const ref = $btn.dataset.ref!;
+            navigator.clipboard.writeText(ref);
+            const originalHTML = $btn.innerHTML;
+            $btn.innerHTML = `<span class="text-sm text-green-600">Copied: ${ref}</span>`;
+            setTimeout(() => ($btn.innerHTML = originalHTML), 1000);
+          });
+        });
+      }
+
+      $refSearch.addEventListener("input", () => {
+        clearTimeout(refDebounce);
+        const query = $refSearch.value.trim().toLowerCase();
+        if (!query) {
+          $refResults!.innerHTML = "";
+          return;
+        }
+        refDebounce = setTimeout(async () => {
+          const refs = await loadRefs();
+          const filtered = refs.filter(
+            (r) =>
+              r.title.toLowerCase().includes(query) ||
+              r.ref.toLowerCase().includes(query),
+          );
+          renderRefResults(filtered);
+        }, 150);
       });
     }
   }
