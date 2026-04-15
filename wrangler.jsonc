@@ -7,10 +7,6 @@
     "directory": "./dist",
     "binding": "ASSETS",
   },
-  "vars": {
-    "PUBLIC_POSTHOG_PROJECT_TOKEN": "phc_mSJz7hqerhoPepkqcergGbZWPC7QnNNv2Yk3RJ8K8nxg",
-    "PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com",
-  },
   "workers_dev": false,
   "observability": {
     "enabled": true,

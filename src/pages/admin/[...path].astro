@@ -3,11 +3,12 @@ import AdminLayout from "../../layouts/AdminLayout.astro";
 import { listDirectory, getFile, listDirectorySafe } from "../../lib/github";
 import { getImagePath } from "../../config/admin";
 import type { DirEntry } from "../../lib/github";
+import { env } from "cloudflare:workers";
 
 const { path } = Astro.params;
 if (!path) return Astro.redirect("/admin");
 
-const token = import.meta.env.GITHUB_TOKEN;
+const token = env.GITHUB_TOKEN;
 if (!token) return new Response("GITHUB_TOKEN not configured", { status: 500 });
 
 const isNew = Astro.url.searchParams.has("new");

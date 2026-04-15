@@ -1,4 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
+import { env } from "cloudflare:workers";
 
 export const onRequest = defineMiddleware((context, next) => {
   const { url, request } = context;
@@ -19,8 +20,8 @@ export const onRequest = defineMiddleware((context, next) => {
   const [username, ...passwordParts] = decoded.split(":");
   const password = passwordParts.join(":");
 
-  const expectedUser = import.meta.env.ADMIN_USERNAME;
-  const expectedPass = import.meta.env.ADMIN_PASSWORD;
+  const expectedUser = env.ADMIN_USERNAME;
+  const expectedPass = env.ADMIN_PASSWORD;
 
   if (username !== expectedUser || password !== expectedPass) {
     return new Response("Invalid credentials", {

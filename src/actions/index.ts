@@ -2,6 +2,7 @@ import { defineAction, ActionError } from "astro:actions";
 import { z } from "astro:schema";
 import { saveFile as ghSaveFile, uploadImage as ghUploadImage } from "../lib/github";
 import { fileToBase64 } from "../lib/base64";
+import { env } from "cloudflare:workers";
 
 export const server = {
   saveFile: defineAction({
@@ -12,7 +13,7 @@ export const server = {
       sha: z.string().optional(),
     }),
     handler: async (input) => {
-      const token = import.meta.env.GITHUB_TOKEN;
+      const token = env.GITHUB_TOKEN;
       if (!token) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: "GITHUB_TOKEN not configured" });
 
       return await ghSaveFile(token, input.path, input.content, input.sha);
@@ -26,7 +27,7 @@ export const server = {
       path: z.string(),
     }),
     handler: async (input) => {
-      const token = import.meta.env.GITHUB_TOKEN;
+      const token = env.GITHUB_TOKEN;
       if (!token) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: "GITHUB_TOKEN not configured" });
 
       const base64 = fileToBase64(await input.file.arrayBuffer());

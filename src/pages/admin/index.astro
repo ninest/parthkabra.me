@@ -1,8 +1,9 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import { listDirectory } from "../../lib/github";
+import { env } from "cloudflare:workers";
 
-const token = import.meta.env.GITHUB_TOKEN;
+const token = env.GITHUB_TOKEN;
 let items: { name: string; path: string; type: "file" | "dir" }[] = [];
 let error = "";
 
