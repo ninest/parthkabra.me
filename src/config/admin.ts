@@ -4,7 +4,7 @@ export const IMAGE_MAP = [
   { content: "posts", images: "posts" },
   { content: "projects", images: "projects" },
   { content: "work-experience", images: "work" },
-  // { content: "microblog", images: "microblog" },
+  { content: "microblog", images: "microblog" },
 ];
 
 export function getImagePath(contentPath: string): string | null {
