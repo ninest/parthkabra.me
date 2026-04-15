@@ -15,7 +15,6 @@ const isNew = Astro.url.searchParams.has("new");
 // Build breadcrumbs
 const segments = path.split("/");
 const breadcrumbs = [
-  { label: "Parth Kabra", href: "/" },
   { label: "Admin", href: "/admin" },
   ...segments.map((seg, i) => ({
     label: seg,
@@ -70,6 +69,7 @@ function toWebPath(ghPath: string): string {
     <p class="text-red-600 font-mono text-sm">{error}</p>
   ) : isDirectory ? (
     <!-- Directory listing -->
+    <a href={`/admin/${path}?new=true`} class="px-3 py-1 bg-muted rounded text-sm inline-block mb-4">+ New file</a>
     <ul class="space-y-1 font-mono text-sm">
       {dirItems.map((item) => (
         <li>
@@ -79,9 +79,6 @@ function toWebPath(ghPath: string): string {
         </li>
       ))}
     </ul>
-    <div class="mt-4 pt-4 border-t border-border">
-      <a href={`/admin/${path}?new=true`} class="text-sm underline">+ New file</a>
-    </div>
   ) : (
     <!-- Editor -->
     <div id="editor-root" data-path={path} data-sha={fileSha} data-image-path={imagePath ?? ""}>
@@ -101,7 +98,7 @@ function toWebPath(ghPath: string): string {
       >{fileContent}</textarea>
 
       <div class="flex items-center gap-3 mt-2">
-        <button id="save-btn" class="px-3 py-1 bg-primary text-primary-foreground rounded text-sm">
+        <button id="save-btn" class="px-3 py-1 bg-muted rounded text-sm">
           Save
         </button>
         <span id="save-status" class="text-sm"></span>
