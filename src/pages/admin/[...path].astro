@@ -85,59 +85,65 @@ function toWebPath(ghPath: string): string {
     </ul>
   ) : (
     <!-- Editor -->
-    <div id="editor-root" data-path={path} data-sha={fileSha} data-image-path={imagePath ?? ""}>
-      {isNew && (
-        <input
-          id="new-filename"
-          type="text"
-          placeholder="filename.mdx"
-          class="border border-border rounded px-2 py-1 font-mono text-sm w-64 mb-3 block"
-        />
-      )}
+    <div id="editor-root" data-path={path} data-sha={fileSha} data-image-path={imagePath ?? ""} class="flex flex-col lg:flex-row gap-4 h-[calc(100vh-8rem)]">
+      {/* Main editor area */}
+      <div class="flex-1 min-w-0 flex flex-col min-h-0">
+        {isNew && (
+          <input
+            id="new-filename"
+            type="text"
+            placeholder="filename.mdx"
+            class="border border-border rounded px-2 py-1 font-mono text-sm w-64 mb-3 block shrink-0"
+          />
+        )}
 
-      <textarea
-        id="editor"
-        class="w-full font-mono text-sm p-3 border border-border rounded bg-background text-foreground resize-y"
-        rows="30"
-      >{fileContent}</textarea>
-
-      <div class="flex items-center gap-3 mt-2">
-        <button id="save-btn" class="px-3 py-1 bg-muted rounded text-sm">
-          Save
-        </button>
-        <span id="save-status" class="text-sm"></span>
+        <textarea
+          id="editor"
+          class="w-full flex-1 min-h-0 font-mono text-sm p-3 border border-border rounded bg-background text-foreground resize-none"
+        >{fileContent}</textarea>
       </div>
 
-      {/* Image section */}
-      {imagePath && (
-        <div class="mt-6 border-t border-border pt-4">
-          <p class="text-sm font-semibold mb-2">Images</p>
-          {images.length > 0 ? (
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
-              {images.map((img) => (
-                <div class="border border-border rounded p-1">
-                  <img src={toWebPath(img.path)} class="w-full" loading="lazy" />
-                  <button
-                    class="copy-img-ref text-xs font-mono mt-1 truncate block w-full text-left underline cursor-pointer"
-                    data-ref={`![](${toWebPath(img.path)})`}
-                  >
-                    {img.name}
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p class="text-sm text-muted-foreground mb-3">No images yet.</p>
-          )}
-          <div class="flex items-center gap-2">
-            <input type="file" id="image-upload" accept="image/*" class="text-sm" />
-            <button id="upload-btn" class="px-3 py-1 bg-primary text-primary-foreground rounded text-sm">
-              Upload
-            </button>
-          </div>
-          <span id="upload-status" class="text-sm mt-1 block"></span>
+      {/* Sidebar */}
+      <div class="w-full lg:w-72 shrink-0 flex flex-col gap-4 min-h-0 overflow-y-auto">
+        {/* Save */}
+        <div>
+          <button id="save-btn" class="w-full px-3 py-1 bg-muted rounded text-sm">
+            Save
+          </button>
+          <span id="save-status" class="text-sm mt-1 block"></span>
         </div>
-      )}
+
+        {/* Images */}
+        {imagePath && (
+          <div class="border-t border-border pt-4">
+            <p class="text-sm font-semibold mb-2">Images</p>
+            {images.length > 0 ? (
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                {images.map((img) => (
+                  <div class="border border-border rounded p-1">
+                    <img src={toWebPath(img.path)} class="w-full" loading="lazy" />
+                    <button
+                      class="copy-img-ref text-xs font-mono mt-1 truncate block w-full text-left underline cursor-pointer"
+                      data-ref={`![](${toWebPath(img.path)})`}
+                    >
+                      {img.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p class="text-sm text-muted-foreground mb-3">No images yet.</p>
+            )}
+            <div class="flex items-center gap-2">
+              <input type="file" id="image-upload" accept="image/*" class="text-sm w-full" />
+              <button id="upload-btn" class="px-3 py-1 bg-primary text-primary-foreground rounded text-sm whitespace-nowrap">
+                Upload
+              </button>
+            </div>
+            <span id="upload-status" class="text-sm mt-1 block"></span>
+          </div>
+        )}
+      </div>
     </div>
   )}
 </AdminLayout>
