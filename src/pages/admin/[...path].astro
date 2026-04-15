@@ -14,11 +14,14 @@ const isNew = Astro.url.searchParams.has("new");
 
 // Build breadcrumbs
 const segments = path.split("/");
+const filteredSegments = segments.filter((seg) => seg !== "content");
 const breadcrumbs = [
   { label: "Admin", href: "/admin" },
-  ...segments.map((seg, i) => ({
+  ...filteredSegments.map((seg, i) => ({
     label: seg,
-    href: i < segments.length - 1 ? `/admin/${segments.slice(0, i + 1).join("/")}` : undefined,
+    href: i < filteredSegments.length - 1
+      ? `/admin/content/${filteredSegments.slice(0, i + 1).join("/")}`
+      : undefined,
   })),
 ];
 
