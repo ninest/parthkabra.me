@@ -5,14 +5,14 @@ type MicroblogEntry = CollectionEntry<"microblog">;
 
 type ThreadIndex = {
   byId: Map<string, MicroblogEntry>;
-  /** For each entry id, the ids of posts that reply to it (its descendants). */
-  children: Map<string, string[]>;
+  /** Maps each thread root id to the ids of all posts in that thread (including the root). */
+  threadMembers: Map<string, string[]>;
 };
 
 /**
- * Load all (non-draft) microblog entries and build the `byId` + `children`
- * maps used by the thread walkers. `children[parentId]` lists the ids of posts
- * whose `reply` array contains `parentId`.
+ * Load all (non-draft) microblog entries and build the `byId` + `threadMembers`
+ * maps. Each entry's thread root is determined by its `thread` field (or itself
+ * if absent). `threadMembers[rootId]` lists every post in that conversation.
  */
 async function loadIndex(): Promise<ThreadIndex> {
   const all = (await getCollection("microblog")).filter((e) => !e.data.draft);
@@ -20,37 +20,23 @@ async function loadIndex(): Promise<ThreadIndex> {
   const byId = new Map<string, MicroblogEntry>();
   for (const entry of all) byId.set(entry.id, entry);
 
-  const children = new Map<string, string[]>();
+  const threadMembers = new Map<string, string[]>();
   for (const entry of all) {
-    for (const ref of entry.data.reply) {
-      const parsed = parseRelatedString(ref);
-      if (!parsed || parsed.collection !== "microblog") continue;
-      if (parsed.id === entry.id) continue; // self-reference
-      if (!byId.has(parsed.id)) continue; // missing / deleted
-      const list = children.get(parsed.id) ?? [];
-      list.push(entry.id);
-      children.set(parsed.id, list);
-    }
+    const rootId = getThreadRootId(entry);
+    const list = threadMembers.get(rootId) ?? [];
+    list.push(entry.id);
+    threadMembers.set(rootId, list);
   }
 
-  return { byId, children };
+  return { byId, threadMembers };
 }
 
-/** Parents of a post, resolved to entries. Skips self-refs, missing, and non-microblog refs. */
-function resolveParents(
-  entry: MicroblogEntry,
-  byId: Map<string, MicroblogEntry>,
-): MicroblogEntry[] {
-  const parents: MicroblogEntry[] = [];
-  for (const ref of entry.data.reply) {
-    const parsed = parseRelatedString(ref);
-    if (!parsed || parsed.collection !== "microblog") continue;
-    if (parsed.id === entry.id) continue;
-    const parent = byId.get(parsed.id);
-    if (!parent) continue;
-    parents.push(parent);
-  }
-  return parents;
+/** Resolve the root id for a post — either the parsed `thread` field or the post's own id. */
+function getThreadRootId(entry: MicroblogEntry): string {
+  if (!entry.data.thread) return entry.id;
+  const parsed = parseRelatedString(entry.data.thread);
+  if (!parsed || parsed.collection !== "microblog") return entry.id;
+  return parsed.id;
 }
 
 /** Sort entries oldest-first by `createdAt`, with `id` as a stable tiebreaker. */
@@ -63,38 +49,36 @@ function sortChrono(entries: MicroblogEntry[]): MicroblogEntry[] {
 }
 
 /**
- * Returns `[current, ...descendants]` — the current post followed by every
- * post transitively replying to it — sorted chronologically. Use this for
- * the Twitter-style focused view (current post at the top, replies flow below).
+ * Returns `[current, ...later]` — the current post followed by every post in
+ * the same thread dated at or after it — sorted chronologically. Use this for
+ * the focused view (current post at the top, replies flow below).
  */
 export async function getMicroblogDescendantChain(
   currentId: string,
 ): Promise<MicroblogEntry[]> {
-  const { byId, children } = await loadIndex();
-  if (!byId.has(currentId)) return [];
+  const { byId, threadMembers } = await loadIndex();
+  const current = byId.get(currentId);
+  if (!current) return [];
 
-  const visited = new Set<string>([currentId]);
-  const queue: string[] = [currentId];
-  while (queue.length > 0) {
-    const id = queue.shift()!;
-    for (const childId of children.get(id) ?? []) {
-      if (visited.has(childId)) continue;
-      visited.add(childId);
-      queue.push(childId);
-    }
-  }
+  const rootId = getThreadRootId(current);
+  const memberIds = threadMembers.get(rootId) ?? [currentId];
 
-  return sortChrono([...visited].map((id) => byId.get(id)!));
+  const currentTime = current.data.createdAt.getTime();
+  const entries = memberIds
+    .map((id) => byId.get(id)!)
+    .filter((e) => {
+      const t = e.data.createdAt.getTime();
+      // Include posts at or after the current post's date (with id tiebreaker for same-date)
+      return t > currentTime || (t === currentTime && e.id >= currentId);
+    });
+
+  return sortChrono(entries);
 }
 
 /**
- * Returns the root post(s) of the conversation above `currentId` — the
- * topmost ancestors with no (resolvable) parent. Returns an empty array
- * when `currentId` is itself a root, so callers can use length to decide
+ * Returns the root post of the thread above `currentId`. Returns an empty
+ * array when `currentId` is itself a root, so callers can use length to decide
  * whether to render a "View full thread" link.
- *
- * Can return multiple entries when the ancestor chain branches (a post
- * replies to multiple parents from different threads).
  */
 export async function getMicroblogAncestorRoots(
   currentId: string,
@@ -103,23 +87,12 @@ export async function getMicroblogAncestorRoots(
   const current = byId.get(currentId);
   if (!current) return [];
 
-  const directParents = resolveParents(current, byId);
-  if (directParents.length === 0) return []; // current IS a root
+  // No thread field means this post IS the root
+  if (!current.data.thread) return [];
 
-  const visited = new Set<string>();
-  const roots = new Map<string, MicroblogEntry>();
+  const rootId = getThreadRootId(current);
+  const root = byId.get(rootId);
+  if (!root) return [];
 
-  const walk = (entry: MicroblogEntry) => {
-    if (visited.has(entry.id)) return;
-    visited.add(entry.id);
-    const parents = resolveParents(entry, byId);
-    if (parents.length === 0) {
-      roots.set(entry.id, entry);
-      return;
-    }
-    for (const parent of parents) walk(parent);
-  };
-
-  for (const parent of directParents) walk(parent);
-  return sortChrono([...roots.values()]);
+  return [root];
 }

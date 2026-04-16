@@ -80,7 +80,8 @@ const microblog = defineCollection({
     categories: z.array(z.string()).default([]),
     links: z.array(linkSchema).default([]),
     featured: z.boolean().default(false),
-    reply: z.array(z.string()).default([]),
+    thread: z.string().optional(),
+    inReplyTo: z.string().optional(),
   }),
 });
 

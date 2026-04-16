@@ -1,5 +1,6 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
+import { resolveRelated } from "../../utils/related";
 
 interface Props {
   mb: CollectionEntry<"microblog">;
@@ -19,6 +20,10 @@ const dateline = mb.data.createdAt.toLocaleDateString("en-US", {
   day: "numeric",
   year: "numeric",
 });
+
+const replyTarget = mb.data.inReplyTo
+  ? (await resolveRelated([mb.data.inReplyTo]))[0]
+  : undefined;
 ---
 
 <article
@@ -26,6 +31,12 @@ const dateline = mb.data.createdAt.toLocaleDateString("en-US", {
   class="bg-muted p-3 rounded-lg data-highlighted:ring-2 data-highlighted:ring-primary/40"
   data-highlighted={highlighted ? "" : undefined}
 >
+  {replyTarget && (
+    <p class="text-muted-foreground text-sm mb-1">
+      In reply to <a href={replyTarget.url} class="underline">{replyTarget.title}</a>
+    </p>
+  )}
+
   {mb.data.title && <p class="text-muted-foreground">{mb.data.title}</p>}
 
   <div class="mt-4 mb-4 typography">
