@@ -15,9 +15,10 @@ const formatDate = (d: Date) => `${d.getFullYear()}/${String(d.getMonth() + 1).p
 <article id={`microblog-${mb.id}`} class="microblog-card relative px-2 pt-2 pb-4 bg-muted rounded">
   <a href={getMicroblogUrl(mb.id)} class="microblog-card-link tabular-nums text-muted-foreground text-xs">
     {formatDate(mb.data.createdAt)}
+    {mb.data.title}
   </a>
   <div class="microblog-preview typography mt-1 text-sm line-clamp-4">
-    {mb.data.title ? mb.data.title : <Content />}
+    <Content />
   </div>
 </article>
 

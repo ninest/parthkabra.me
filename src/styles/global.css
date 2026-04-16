@@ -30,7 +30,7 @@
   --foreground: var(--color-neutral-50);
   --primary: var(--color-indigo-400);
   --primary-foreground: var(--color-neutral-950);
-  --muted: var(--color-neutral-800);
+  --muted: var(--color-neutral-900);
   --muted-foreground: var(--color-neutral-400);
   --border: var(--color-neutral-800);
 }

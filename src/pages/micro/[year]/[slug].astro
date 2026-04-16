@@ -66,23 +66,15 @@ const dateline = entry.data.createdAt.toLocaleDateString("en-US", {
   head={{ title: seoTitle, description: seoDescription }}
   breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Microblog" }]}
 >
-  <article class="bg-muted p-2 rounded">
-    <p class="text-muted-foreground">
-      {
-        entry.data.title && (
-          <>
-            <span class="">{entry.data.title}</span> ·{" "}
-          </>
-        )
-      }{dateline}
-    </p>
+  <article class="bg-muted p-3 rounded-lg">
+    {entry.data.title && <p class="text-muted-foreground">{entry.data.title}</p>}
+
     <div class="mt-4 mb-4 typography">
       <Content />
     </div>
     {
       replies.length > 0 && (
         <div class="flex flex-col gap-2">
-
           {replies.map((reply) => (
             <a
               href={reply.url ?? "#"}
@@ -103,5 +95,9 @@ const dateline = entry.data.createdAt.toLocaleDateString("en-US", {
         </div>
       )
     }
+
+    <div class="text-muted-foreground text-sm">
+      {dateline}
+    </div>
   </article>
 </SidebarLayout>
