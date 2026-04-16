@@ -3,6 +3,7 @@ import "../styles/global.css";
 import { Font } from "astro:assets";
 import Navbar from "../components/navbar.astro";
 import { routes } from "../utils/links";
+import ThemeInit from "../components/theme-init.astro";
 
 interface Props {
   title?: string;
@@ -22,6 +23,7 @@ const defaultBreadcrumbs = [{ label: "Admin" }];
     <Font cssVariable="--font-inter" />
     <Font cssVariable="--font-mulish" />
     <title>{title}</title>
+    <ThemeInit />
   </head>
   <body class="bg-background text-foreground">
     <div class="p-4">

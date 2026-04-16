@@ -2,6 +2,7 @@
 import '../styles/global.css'
 import { Font } from 'astro:assets'
 import PostHog from '../components/posthog.astro'
+import ThemeInit from '../components/theme-init.astro'
 
 interface Props {
   head?: {
@@ -22,20 +23,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 <html lang="en" data-theme-color={themeColor}>
     <head>
         <meta name="theme-color" content={themeColor ?? "#ffffff"} />
-        <script is:inline>
-            (function () {
-                try {
-                    var stored = localStorage.getItem("theme");
-                    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                    var isDark = stored === "dark" || (stored !== "light" && prefersDark);
-                    if (isDark) document.documentElement.classList.add("dark");
-                    var meta = document.querySelector('meta[name="theme-color"]');
-                    if (meta && !document.documentElement.dataset.themeColor) {
-                        meta.content = isDark ? "#0a0a0a" : "#ffffff";
-                    }
-                } catch (e) {}
-            })();
-        </script>
+        <ThemeInit />
         <meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />

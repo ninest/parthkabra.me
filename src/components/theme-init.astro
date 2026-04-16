@@ -1,0 +1,14 @@
+<script is:inline>
+  (function () {
+    try {
+      var stored = localStorage.getItem("theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var isDark = stored === "dark" || (stored !== "light" && prefersDark);
+      if (isDark) document.documentElement.classList.add("dark");
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta && !document.documentElement.dataset.themeColor) {
+        meta.content = isDark ? "#0a0a0a" : "#ffffff";
+      }
+    } catch (e) {}
+  })();
+</script>
