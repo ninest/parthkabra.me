@@ -2,12 +2,16 @@
 export const prerender = true;
 
 import type { GetStaticPaths } from "astro";
-import { getCollection, getEntry, render } from "astro:content";
+import { getCollection } from "astro:content";
+import MicroblogPost from "../../../components/microblog/microblog-post.astro";
 import SidebarLayout from "../../../components/sidebar-layout.astro";
-import { getContentUrl, getMicroblogUrl } from "../../../utils/links";
+import { getMicroblogUrl } from "../../../utils/links";
 import { stripMarkdown } from "../../../utils/markdown";
-import { parseRelatedString } from "../../../utils/related";
-import { truncate } from "../../../utils/string";
+import {
+  getMicroblogAncestorRoots,
+  getMicroblogDescendantChain,
+} from "../../../utils/microblog-thread";
+import { firstSentence, truncate } from "../../../utils/string";
 
 export const getStaticPaths = (async () => {
   const entries = await getCollection("microblog");
@@ -22,82 +26,65 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
 
-const replies = (
-  await Promise.all(
-    entry.data.reply.map(async (ref) => {
-      const parsed = parseRelatedString(ref);
-      if (!parsed) return null;
-      const replyEntry = await getEntry(parsed.collection as any, parsed.id);
-      if (!replyEntry) return null;
-      const replyData = replyEntry.data as any;
-      const replyPlain = stripMarkdown(replyEntry.body ?? "");
-      const replyDate: Date | undefined = replyData.createdAt;
-      return {
-        url: getContentUrl(parsed.collection, parsed.id),
-        title: replyData.title as string | undefined,
-        dateline: replyDate?.toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
-        preview: truncate(replyPlain, 220),
-      };
-    }),
-  )
-).filter((r): r is NonNullable<typeof r> => r !== null);
+const [chain, roots] = await Promise.all([
+  getMicroblogDescendantChain(entry.id),
+  getMicroblogAncestorRoots(entry.id),
+]);
+
+const rootLinks = roots.map((r) => ({
+  id: r.id,
+  url: `${getMicroblogUrl(r.id)}?from=${encodeURIComponent(entry.id)}`,
+  label: r.data.title ?? truncate(firstSentence(stripMarkdown(r.body ?? "")), 40),
+}));
 
 const plain = stripMarkdown(entry.body ?? "");
-const firstSentenceMatch = plain.match(/^[^.!?]+[.!?]/);
-const firstSentence = (firstSentenceMatch ? firstSentenceMatch[0] : plain).trim();
-
-const seoTitle = entry.data.title ?? truncate(firstSentence, 60);
+const seoTitle = entry.data.title ?? truncate(firstSentence(plain), 60);
 const seoDescription = entry.data.description ?? truncate(plain, 155);
-
-const dateline = entry.data.createdAt.toLocaleDateString("en-US", {
-  month: "long",
-  day: "numeric",
-  year: "numeric",
-});
 ---
 
 <SidebarLayout
   head={{ title: seoTitle, description: seoDescription }}
   breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Microblog" }]}
 >
-  <article class="bg-muted p-3 rounded-lg">
-    {entry.data.title && <p class="text-muted-foreground">{entry.data.title}</p>}
+  {
+    rootLinks.length > 0 && (
+      <nav class="mb-3">
+        {rootLinks.length === 1 ? (
+          <a href={rootLinks[0].url} class="underline text-primary">
+            View full thread from &ldquo;{rootLinks[0].label}&rdquo;
+          </a>
+        ) : (
+          <span>
+            View full thread from:{" "}
+            {rootLinks.map((r, i) => (
+              <>
+                {i > 0 && <span class="mx-1">&middot;</span>}
+                <a href={r.url} class="underline text-primary">
+                  {r.label}
+                </a>
+              </>
+            ))}
+          </span>
+        )}
+      </nav>
+    )
+  }
 
-    <div class="mt-4 mb-4 typography">
-      <Content />
-    </div>
-    {
-      replies.length > 0 && (
-        <div class="flex flex-col gap-2">
-          {replies.map((reply) => (
-            <a
-              href={reply.url ?? "#"}
-              class="block rounded border border-gray-300 dark:border-gray-600 p-2 no-underline"
-            >
-              <p class="text-muted-foreground text-xs">
-                {reply.title && (
-                  <>
-                    <span class="font-semibold">{reply.title}</span>
-                    {reply.dateline && " · "}
-                  </>
-                )}
-                {reply.dateline}
-              </p>
-              <p class="mt-1 text-sm">{reply.preview}</p>
-            </a>
-          ))}
-        </div>
-      )
-    }
-
-    <div class="text-muted-foreground text-sm">
-      {dateline}
-    </div>
-  </article>
+  <div class="flex flex-col gap-4">
+    {chain.map((post) => <MicroblogPost mb={post} />)}
+  </div>
 </SidebarLayout>
+
+<script>
+  // When the URL carries ?from=<microblog-id>, outline that post so readers
+  // see where they came from after clicking "View full thread".
+  const params = new URLSearchParams(window.location.search);
+  const from = params.get("from");
+  if (from) {
+    const $article = document.getElementById(`microblog-${from}`);
+    if ($article) {
+      $article.dataset.highlighted = "";
+    }
+  }
+</script>

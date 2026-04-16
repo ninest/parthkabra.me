@@ -2,7 +2,7 @@ export const prerender = true;
 
 import { getCollection } from "astro:content";
 import { stripMarkdown } from "../utils/markdown";
-import { truncate } from "../utils/string";
+import { firstSentence, truncate } from "../utils/string";
 
 export async function GET() {
   const [categories, posts, projects, workExperience, microblog, tools] = await Promise.all([
@@ -57,8 +57,7 @@ export async function GET() {
     })),
     ...microblog.map((m) => {
       const plain = m.body ? stripMarkdown(m.body) : "";
-      const firstSentenceMatch = plain.match(/^[^.!?]+[.!?]/);
-      const firstSentence = (firstSentenceMatch ? firstSentenceMatch[0] : plain).trim();
+      const firstMbSentence = firstSentence(plain);
       const dateline = m.data.createdAt.toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
@@ -67,7 +66,7 @@ export async function GET() {
       return {
         id: `microblog-${m.id}`,
         type: "microblog",
-        title: m.data.title ?? (firstSentence ? truncate(firstSentence, 60) : dateline),
+        title: m.data.title ?? (firstMbSentence ? truncate(firstMbSentence, 60) : dateline),
         description: m.data.description ?? truncate(plain, 155),
         body: plain,
         createdAt: m.data.createdAt.toISOString(),

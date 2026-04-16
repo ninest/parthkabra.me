@@ -1,6 +1,6 @@
 ---
 import { getCollection } from "astro:content";
-import MicroblogPost from "./microblog-post.astro";
+import MicroblogPostPreview from "./microblog-post-preview.astro";
 
 const microblogs = (await getCollection("microblog"))
   .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
@@ -13,7 +13,7 @@ const microblogs = (await getCollection("microblog"))
     {
       microblogs.map((mb) => (
         <li>
-          <MicroblogPost mb={mb} />
+          <MicroblogPostPreview mb={mb} />
         </li>
       ))
     }

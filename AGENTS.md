@@ -1,5 +1,9 @@
 # Parth Kabra's Personal Website
 
+## Code style
+
+- All functions should have a concise comment explaining what the function does if necessary, and if it's complicated, and example or two
+
 ## Frontend
 
 ### Astro components

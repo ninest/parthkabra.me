@@ -1,39 +1,38 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
-import { getMicroblogUrl } from "../../utils/links";
 
 interface Props {
   mb: CollectionEntry<"microblog">;
+  /**
+   * When true, the card renders with an outline. Typically set at runtime via
+   * the `data-highlighted` attribute (e.g. from a `?from=...` query param) so
+   * readers can see which post they arrived from in a thread.
+   */
+  highlighted?: boolean;
 }
 
-const { mb } = Astro.props;
+const { mb, highlighted = false } = Astro.props;
 const { Content } = await render(mb);
 
-const formatDate = (d: Date) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+const dateline = mb.data.createdAt.toLocaleDateString("en-US", {
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+});
 ---
 
-<article id={`microblog-${mb.id}`} class="microblog-card relative px-2 pt-2 pb-4 bg-muted rounded">
-  <a href={getMicroblogUrl(mb.id)} class="microblog-card-link tabular-nums text-muted-foreground text-xs">
-    {formatDate(mb.data.createdAt)}
-    {mb.data.title}
-  </a>
-  <div class="microblog-preview typography mt-1 text-sm line-clamp-4">
+<article
+  id={`microblog-${mb.id}`}
+  class="bg-muted p-3 rounded-lg data-highlighted:ring-2 data-highlighted:ring-primary/40"
+  data-highlighted={highlighted ? "" : undefined}
+>
+  {mb.data.title && <p class="text-muted-foreground">{mb.data.title}</p>}
+
+  <div class="mt-4 mb-4 typography">
     <Content />
   </div>
-</article>
 
-<style>
-  .microblog-card-link::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-  }
-  .microblog-preview :global(p) {
-    display: inline;
-    line-height: 1.4 !important;
-  }
-  .microblog-preview :global(p + p)::before {
-    content: " ";
-  }
-</style>
+  <div class="text-muted-foreground text-sm">
+    {dateline}
+  </div>
+</article>
