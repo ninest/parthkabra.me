@@ -5,7 +5,7 @@ import type { GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import MicroblogPost from "../../../components/microblog/microblog-post.astro";
 import SidebarLayout from "../../../components/sidebar-layout.astro";
-import { getMicroblogUrl } from "../../../utils/links";
+import { getMicroblogUrl, routes } from "../../../utils/links";
 import { stripMarkdown } from "../../../utils/markdown";
 import {
   getMicroblogAncestorRoots,
@@ -45,7 +45,7 @@ const seoDescription = entry.data.description ?? truncate(plain, 155);
 
 <SidebarLayout
   head={{ title: seoTitle, description: seoDescription }}
-  breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Microblog" }]}
+  breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Microblog", href: routes.microblog }]}
 >
   {
     rootLinks.length > 0 && (

@@ -5,6 +5,7 @@ export const routes = {
   projects: "/projects",
   work: "/work",
   collections: "/collections",
+  microblog: "/micro",
   tools: "/tools",
   admin: "/admin",
 } as const;

@@ -1,0 +1,25 @@
+---
+export const prerender = true;
+
+import { getCollection } from "astro:content";
+import MicroblogPost from "../../components/microblog/microblog-post.astro";
+import SidebarLayout from "../../components/sidebar-layout.astro";
+
+const microblogs = (await getCollection("microblog")).sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
+---
+
+<SidebarLayout head={{ title: "Microblog", description: "All microblog posts" }} breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Microblog" }]}>
+  <h1 class="text-3xl font-black">Microblog ({microblogs.length})</h1>
+
+  <section class="mt-8">
+    <ul class="space-y-2">
+      {
+        microblogs.map((mb) => (
+          <li>
+            <MicroblogPost mb={mb} />
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</SidebarLayout>
