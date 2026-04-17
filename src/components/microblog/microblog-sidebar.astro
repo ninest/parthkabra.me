@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import { routes } from "../../utils/links";
 import MicroblogPostPreview from "./microblog-post-preview.astro";
 
 const microblogs = (await getCollection("microblog"))
@@ -8,7 +9,10 @@ const microblogs = (await getCollection("microblog"))
 ---
 
 <section>
-  <h2 class="font-bold">Microblog</h2>
+  <div class="flex items-center justify-between">
+    <h2 class="font-bold">Microblog</h2>
+    <a href={routes.microblog} class="underline text-sm text-primary">View all</a>
+  </div>
   <ul class="ml-5 mt-1 mb-10 space-y-2">
     {
       microblogs.map((mb) => (

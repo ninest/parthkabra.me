@@ -1,6 +1,7 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
 import { resolveRelated } from "../../utils/related";
+import { getMicroblogUrl } from "../../utils/links";
 
 interface Props {
   mb: CollectionEntry<"microblog">;
@@ -37,7 +38,11 @@ const replyTarget = mb.data.inReplyTo
     </p>
   )}
 
-  {mb.data.title && <p class="text-muted-foreground">{mb.data.title}</p>}
+  {mb.data.title && (
+    <a href={getMicroblogUrl(mb.id)} class="text-muted-foreground hover:underline">
+      {mb.data.title}
+    </a>
+  )}
 
   <div class="mt-4 mb-4 typography">
     <Content />
