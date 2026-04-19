@@ -11,9 +11,11 @@ interface Props {
    * readers can see which post they arrived from in a thread.
    */
   highlighted?: boolean;
+  /** When true, show a "Thread: ..." link to the thread root. */
+  showThread?: boolean;
 }
 
-const { mb, highlighted = false } = Astro.props;
+const { mb, highlighted = false, showThread = false } = Astro.props;
 const { Content } = await render(mb);
 
 const dateline = mb.data.createdAt.toLocaleDateString("en-US", {
@@ -25,6 +27,10 @@ const dateline = mb.data.createdAt.toLocaleDateString("en-US", {
 const replyTarget = mb.data.inReplyTo
   ? (await resolveRelated([mb.data.inReplyTo]))[0]
   : undefined;
+
+const threadRoot = showThread && mb.data.thread
+  ? (await resolveRelated([mb.data.thread]))[0]
+  : undefined;
 ---
 
 <article
@@ -32,6 +38,12 @@ const replyTarget = mb.data.inReplyTo
   class="bg-muted p-3 rounded-lg data-highlighted:ring-2 data-highlighted:ring-primary/40"
   data-highlighted={highlighted ? "" : undefined}
 >
+  {threadRoot && (
+    <p class="text-muted-foreground text-sm mb-1">
+      Thread: <a href={threadRoot.url} class="underline">{threadRoot.title}</a>
+    </p>
+  )}
+
   {replyTarget && (
     <p class="text-muted-foreground text-sm mb-1">
       In reply to <a href={replyTarget.url} class="underline">{replyTarget.title}</a>

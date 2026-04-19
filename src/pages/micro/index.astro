@@ -16,7 +16,7 @@ const microblogs = (await getCollection("microblog")).sort((a, b) => b.data.crea
       {
         microblogs.map((mb) => (
           <li>
-            <MicroblogPost mb={mb} />
+            <MicroblogPost mb={mb} showThread />
           </li>
         ))
       }
