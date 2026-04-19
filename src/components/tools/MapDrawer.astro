@@ -2,21 +2,23 @@
 import Button from "../button.astro";
 ---
 
-<div id="mapdrawer" class="not-typography flex flex-col gap-3">
-  <div class="flex flex-wrap items-center gap-2">
+<div id="mapdrawer" class="not-typography relative w-full h-full">
+  <div id="mapdrawer-map" class="w-full h-full"></div>
+
+  <div
+    class="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-lg shadow px-3 py-2 backdrop-blur max-w-[calc(100%-2rem)]"
+  >
     <Button id="md-mode-dot" variant="secondary" class="text-sm">Dot</Button>
     <Button id="md-mode-line" variant="secondary" class="text-sm">Line</Button>
     <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
     <span class="mx-1 h-5 w-px bg-border"></span>
     <Button id="md-my-location" variant="secondary" class="text-sm">My location</Button>
     <span id="md-status" class="text-xs text-muted-foreground"></span>
-    <div class="ml-auto flex items-center gap-2">
+    <div class="flex items-center gap-2 pl-2">
       <Button id="md-clear" variant="secondary" class="text-sm">Clear all</Button>
       <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
     </div>
   </div>
-
-  <div id="mapdrawer-map" class="overflow-hidden h-[25rem] md:h-[32rem] rounded"></div>
 </div>
 
 <script>
@@ -24,7 +26,6 @@ import Button from "../button.astro";
   import "maplibre-gl/dist/maplibre-gl.css";
 
   // --- DOM refs ---
-  const $root = document.getElementById("mapdrawer")!;
   const $mapEl = document.getElementById("mapdrawer-map")!;
   const $modeDot = document.getElementById("md-mode-dot") as HTMLButtonElement;
   const $modeLine = document.getElementById("md-mode-line") as HTMLButtonElement;
@@ -163,6 +164,14 @@ import Button from "../button.astro";
     map.fitBounds(initialBounds, { padding: 60, maxZoom: 14 });
   }
 
+  // Fullscreen layouts can init the map before the container is fully laid out,
+  // which leaves the canvas blank. A ResizeObserver guarantees resize when size settles.
+  new ResizeObserver(() => map.resize()).observe($mapEl);
+
+  map.on("error", (e) => {
+    console.error("[MapDrawer] map error:", e.error ?? e);
+  });
+
   // Dark mode — invert canvas when site is in dark mode.
   function applyDarkMode() {
     const isDark = document.documentElement.classList.contains("dark");
@@ -223,28 +232,6 @@ import Button from "../button.astro";
   map.on("load", () => {
     applyDarkMode();
 
-    // Transit lines — match other tools' visual language.
-    map.addLayer({
-      id: "transit-lines",
-      type: "line",
-      source: "openmaptiles",
-      "source-layer": "transportation",
-      filter: [
-        "any",
-        ["==", ["get", "subclass"], "subway"],
-        ["==", ["get", "subclass"], "light_rail"],
-        ["==", ["get", "subclass"], "tram"],
-        ["==", ["get", "subclass"], "rail"],
-        ["==", ["get", "class"], "transit"],
-      ],
-      paint: {
-        "line-color": "#999",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 3],
-        "line-opacity": 0.7,
-      },
-      layout: { "line-cap": "round", "line-join": "round" },
-    });
-
     // Committed drawings source + layers.
     map.addSource(SRC_DRAWINGS, { type: "geojson", data: collection() as any });
     map.addLayer({
@@ -268,7 +255,7 @@ import Button from "../button.astro";
       },
     });
 
-    // In-progress line preview — lighter/dashed to distinguish from committed.
+    // In-progress line preview — same color, reduced opacity to distinguish from committed.
     map.addSource(SRC_PREVIEW, { type: "geojson", data: previewCollection() as any });
     map.addLayer({
       id: "preview-line",
@@ -279,7 +266,6 @@ import Button from "../button.astro";
         "line-color": BLUE,
         "line-width": 3,
         "line-opacity": 0.6,
-        "line-dasharray": [2, 2],
       },
       layout: { "line-cap": "round", "line-join": "round" },
     });
