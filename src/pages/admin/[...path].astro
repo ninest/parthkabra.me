@@ -6,6 +6,7 @@ import { listDirectory, getFile, getFileSafe, listDirectorySafe } from "../../li
 import { getImagePath } from "../../config/admin";
 import { getTemplatePath } from "../../config/templates";
 import type { DirEntry } from "../../lib/github";
+import { getMicroblogThreadMembers, getMicroblogThreadRootSizes } from "../../utils/microblog-thread";
 import { env } from "cloudflare:workers";
 
 const { path } = Astro.params;
@@ -38,6 +39,10 @@ let images: DirEntry[] = [];
 let imagePath: string | null = null;
 let error = "";
 
+type ThreadMember = { id: string; title: string; adminUrl: string; isCurrent: boolean };
+let threadMembers: ThreadMember[] = [];
+let threadRootSizes: Map<string, number> = new Map();
+
 try {
   if (isNew) {
     // New file mode — load template if one exists for this collection
@@ -48,6 +53,11 @@ try {
       const template = await getFileSafe(token, templatePath);
       if (template) {
         fileContent = template.content;
+        // If ?thread=... is set, prefill the commented `thread:` line in the template.
+        const threadRef = Astro.url.searchParams.get("thread");
+        if (threadRef) {
+          fileContent = fileContent.replace(/^#\s*thread:.*$/m, `thread: ${threadRef}`);
+        }
       }
     }
   } else {
@@ -76,6 +86,12 @@ try {
         withDates.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         dirItems = [...dirs, ...withDates.map((f) => f.item), ...otherFiles];
       }
+
+      // For microblog directories, mark which files are thread roots so the
+      // list can render a label. Reflects last-built collection data.
+      if (path.startsWith("content/microblog/")) {
+        threadRootSizes = await getMicroblogThreadRootSizes();
+      }
     } catch {
       isDirectory = false;
       const file = await getFile(token, path);
@@ -87,15 +103,46 @@ try {
       if (imagePath) {
         images = await listDirectorySafe(token, imagePath);
       }
+
+      // Resolve thread members for microblog files (content reflects last build, so
+      // newly-created replies won't appear until the site is rebuilt).
+      const microblogMatch = path.match(/^content\/microblog\/(.+)\.mdx$/);
+      if (microblogMatch) {
+        const entryId = microblogMatch[1];
+        const members = await getMicroblogThreadMembers(entryId);
+        if (members.length > 1) {
+          threadMembers = members.map((m) => ({
+            id: m.id,
+            title: m.data.title || m.id,
+            adminUrl: `/admin/content/microblog/${m.id}.mdx`,
+            isCurrent: m.id === entryId,
+          }));
+        }
+      }
     }
   }
 } catch (e: any) {
   error = e.message;
 }
 
+// URL for "Add post to thread" button: opens the new-file flow in the current
+// folder with `?thread=microblog:<rootId>` to prefill the thread field.
+let addToThreadUrl: string | null = null;
+if (threadMembers.length > 1) {
+  const rootId = threadMembers[0].id;
+  const parentDir = path.replace(/\/[^/]+$/, "");
+  addToThreadUrl = `/admin/${parentDir}?new=true&thread=${encodeURIComponent(`microblog:${rootId}`)}`;
+}
+
 // For the image panel, derive the web-accessible path (strip "public/")
 function toWebPath(ghPath: string): string {
   return "/" + ghPath.replace(/^public\//, "");
+}
+
+// Extract the microblog entry id from a file path (e.g. "content/microblog/2026/foo.mdx" → "2026/foo").
+function microblogIdFromPath(ghPath: string): string | null {
+  const m = ghPath.match(/^content\/microblog\/(.+)\.mdx$/);
+  return m ? m[1] : null;
 }
 ---
 
@@ -106,13 +153,20 @@ function toWebPath(ghPath: string): string {
     <!-- Directory listing -->
     <a href={`/admin/${path}?new=true`} class="px-3 py-1 bg-muted rounded text-sm inline-block mb-4">+ New file</a>
     <ul class="space-y-1 font-mono text-sm">
-      {dirItems.map((item) => (
-        <li>
-          <a href={`/admin/${item.path}`} class="underline">
-            {item.type === "dir" ? `${item.name}/` : item.name}
-          </a>
-        </li>
-      ))}
+      {dirItems.map((item) => {
+        const mbId = item.type === "file" ? microblogIdFromPath(item.path) : null;
+        const threadSize = mbId ? threadRootSizes.get(mbId) : undefined;
+        return (
+          <li>
+            <a href={`/admin/${item.path}`} class="underline">
+              {item.type === "dir" ? `${item.name}/` : item.name}
+            </a>
+            {threadSize && (
+              <span class="ml-2 text-xs text-muted-foreground">thread · {threadSize} posts</span>
+            )}
+          </li>
+        );
+      })}
     </ul>
   ) : (
     <!-- Editor -->
@@ -144,6 +198,30 @@ function toWebPath(ghPath: string): string {
           </Button>
           <span id="save-status" class="text-sm mt-1 block"></span>
         </div>
+
+        {/* Thread */}
+        {threadMembers.length > 1 && (
+          <div class="border-t border-border pt-4">
+            <p class="text-sm font-semibold mb-2">Thread</p>
+            <ol class="space-y-1">
+              {threadMembers.map((m, i) => (
+                <li class="text-sm flex gap-2">
+                  <span class="text-muted-foreground tabular-nums shrink-0">{i + 1}.</span>
+                  {m.isCurrent ? (
+                    <span class="font-semibold truncate">{m.title}</span>
+                  ) : (
+                    <a href={m.adminUrl} class="underline truncate">{m.title}</a>
+                  )}
+                </li>
+              ))}
+            </ol>
+            {addToThreadUrl && (
+              <a href={addToThreadUrl} class="mt-3 px-3 py-1 bg-muted rounded text-sm inline-block">
+                + Add post to thread
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Related content search */}
         <div class="border-t border-border pt-4">

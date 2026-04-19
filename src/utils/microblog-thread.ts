@@ -76,6 +76,35 @@ export async function getMicroblogDescendantChain(
 }
 
 /**
+ * Returns every post in the thread that contains `currentId`, sorted
+ * chronologically (root first). If `currentId` is standalone, returns just [current].
+ */
+export async function getMicroblogThreadMembers(
+  currentId: string,
+): Promise<MicroblogEntry[]> {
+  const { byId, threadMembers } = await loadIndex();
+  const current = byId.get(currentId);
+  if (!current) return [];
+  const rootId = getThreadRootId(current);
+  const memberIds = threadMembers.get(rootId) ?? [currentId];
+  return sortChrono(memberIds.map((id) => byId.get(id)!).filter(Boolean));
+}
+
+/**
+ * Returns a map of thread root id → total post count, including only roots
+ * that have at least one reply. Used for listings that want to mark which
+ * posts anchor a real thread. e.g. { "2026/cms-just-for-me" => 4 }.
+ */
+export async function getMicroblogThreadRootSizes(): Promise<Map<string, number>> {
+  const { threadMembers } = await loadIndex();
+  const sizes = new Map<string, number>();
+  for (const [rootId, members] of threadMembers) {
+    if (members.length > 1) sizes.set(rootId, members.length);
+  }
+  return sizes;
+}
+
+/**
  * Returns all thread root posts that have at least one reply,
  * sorted by root post `createdAt` descending (newest thread first).
  */
