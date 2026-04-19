@@ -1,0 +1,450 @@
+---
+import Button from "../button.astro";
+---
+
+<div id="mapdrawer" class="not-typography flex flex-col gap-3">
+  <div class="flex flex-wrap items-center gap-2">
+    <Button id="md-mode-dot" variant="secondary" class="text-sm">Dot</Button>
+    <Button id="md-mode-line" variant="secondary" class="text-sm">Line</Button>
+    <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
+    <span class="mx-1 h-5 w-px bg-border"></span>
+    <Button id="md-my-location" variant="secondary" class="text-sm">My location</Button>
+    <span id="md-status" class="text-xs text-muted-foreground"></span>
+    <div class="ml-auto flex items-center gap-2">
+      <Button id="md-clear" variant="secondary" class="text-sm">Clear all</Button>
+      <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
+    </div>
+  </div>
+
+  <div id="mapdrawer-map" class="overflow-hidden h-[25rem] md:h-[32rem] rounded"></div>
+</div>
+
+<script>
+  import maplibregl from "maplibre-gl";
+  import "maplibre-gl/dist/maplibre-gl.css";
+
+  // --- DOM refs ---
+  const $root = document.getElementById("mapdrawer")!;
+  const $mapEl = document.getElementById("mapdrawer-map")!;
+  const $modeDot = document.getElementById("md-mode-dot") as HTMLButtonElement;
+  const $modeLine = document.getElementById("md-mode-line") as HTMLButtonElement;
+  const $finishLine = document.getElementById("md-finish-line") as HTMLButtonElement;
+  const $myLocation = document.getElementById("md-my-location") as HTMLButtonElement;
+  const $clear = document.getElementById("md-clear") as HTMLButtonElement;
+  const $copyLink = document.getElementById("md-copy-link") as HTMLButtonElement;
+  const $status = document.getElementById("md-status")!;
+
+  // --- Types ---
+  type LngLat = [number, number];
+  type PointFeature = {
+    type: "Feature";
+    geometry: { type: "Point"; coordinates: LngLat };
+    properties: Record<string, never>;
+  };
+  type LineFeature = {
+    type: "Feature";
+    geometry: { type: "LineString"; coordinates: LngLat[] };
+    properties: Record<string, never>;
+  };
+  type DrawingFeature = PointFeature | LineFeature;
+  type FeatureCollection = {
+    type: "FeatureCollection";
+    features: DrawingFeature[];
+  };
+
+  // --- Constants ---
+  const BLUE = "#2563eb";
+  const SRC_DRAWINGS = "drawings";
+  const SRC_PREVIEW = "drawings-preview";
+
+  // --- State ---
+  // mode is null until the user explicitly picks Dot or Line — map clicks are ignored otherwise.
+  let mode: "dot" | "line" | null = null;
+  let features: DrawingFeature[] = [];
+  let linePoints: LngLat[] = [];
+  let myLocationMarker: maplibregl.Marker | null = null;
+
+  // Round to 5 decimals (~1.1m) to keep URLs short.
+  function r(n: number): number {
+    return Math.round(n * 1e5) / 1e5;
+  }
+
+  // --- URL state ---
+  // Serialize features to ?d=p:lat,lng|l:lat,lng;lat,lng;...
+  function writeUrl() {
+    const url = new URL(window.location.href);
+    if (features.length === 0) {
+      url.searchParams.delete("d");
+    } else {
+      const parts: string[] = [];
+      for (const f of features) {
+        if (f.geometry.type === "Point") {
+          const [lng, lat] = f.geometry.coordinates;
+          parts.push(`p:${r(lat)},${r(lng)}`);
+        } else {
+          const coords = f.geometry.coordinates
+            .map(([lng, lat]) => `${r(lat)},${r(lng)}`)
+            .join(";");
+          parts.push(`l:${coords}`);
+        }
+      }
+      url.searchParams.set("d", parts.join("|"));
+    }
+    history.replaceState(null, "", url.toString());
+  }
+
+  // Parse ?d=... back into features. Unknown/garbled entries are dropped silently.
+  function readUrl(): DrawingFeature[] {
+    const param = new URLSearchParams(window.location.search).get("d");
+    if (!param) return [];
+    const result: DrawingFeature[] = [];
+    for (const entry of param.split("|")) {
+      const colon = entry.indexOf(":");
+      if (colon < 0) continue;
+      const kind = entry.slice(0, colon);
+      const body = entry.slice(colon + 1);
+      if (kind === "p") {
+        const [latStr, lngStr] = body.split(",");
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lngStr);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          result.push({
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [lng, lat] },
+            properties: {},
+          });
+        }
+      } else if (kind === "l") {
+        const coords: LngLat[] = [];
+        for (const pair of body.split(";")) {
+          const [latStr, lngStr] = pair.split(",");
+          const lat = parseFloat(latStr);
+          const lng = parseFloat(lngStr);
+          if (!isNaN(lat) && !isNaN(lng)) coords.push([lng, lat]);
+        }
+        if (coords.length >= 2) {
+          result.push({
+            type: "Feature",
+            geometry: { type: "LineString", coordinates: coords },
+            properties: {},
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  // --- Init features from URL before map creation (for initial fit) ---
+  features = readUrl();
+  let initialBounds: maplibregl.LngLatBounds | null = null;
+  if (features.length > 0) {
+    initialBounds = new maplibregl.LngLatBounds();
+    for (const f of features) {
+      if (f.geometry.type === "Point") {
+        initialBounds.extend(f.geometry.coordinates);
+      } else {
+        for (const c of f.geometry.coordinates) initialBounds.extend(c);
+      }
+    }
+  }
+
+  // --- Map ---
+  // Default to Boston when no drawing is loaded from the URL — users can hit "My location" to jump elsewhere.
+  const BOSTON: LngLat = [-71.0589, 42.3601];
+  const map = new maplibregl.Map({
+    container: $mapEl,
+    style: "https://tiles.openfreemap.org/styles/positron",
+    center: initialBounds ? initialBounds.getCenter().toArray() : BOSTON,
+    zoom: 12,
+    dragRotate: true,
+    pitchWithRotate: true,
+  });
+  if (initialBounds) {
+    map.fitBounds(initialBounds, { padding: 60, maxZoom: 14 });
+  }
+
+  // Dark mode — invert canvas when site is in dark mode.
+  function applyDarkMode() {
+    const isDark = document.documentElement.classList.contains("dark");
+    const canvas = $mapEl.querySelector("canvas");
+    if (canvas) {
+      canvas.style.filter = isDark ? "invert(1) hue-rotate(180deg)" : "";
+    }
+  }
+  new MutationObserver(applyDarkMode).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+
+  // Build the FeatureCollection currently rendered as the committed drawings.
+  function collection(): FeatureCollection {
+    return { type: "FeatureCollection", features };
+  }
+
+  // Preview collection for the in-progress line while the user is clicking points in line mode.
+  function previewCollection(): FeatureCollection {
+    if (linePoints.length === 0) {
+      return { type: "FeatureCollection", features: [] };
+    }
+    if (linePoints.length === 1) {
+      return {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: linePoints[0] },
+            properties: {},
+          },
+        ],
+      };
+    }
+    return {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "LineString", coordinates: linePoints },
+          properties: {},
+        },
+      ],
+    };
+  }
+
+  // Push current state into maplibre sources + URL.
+  function rerender() {
+    const drawings = map.getSource(SRC_DRAWINGS) as maplibregl.GeoJSONSource | undefined;
+    if (drawings) drawings.setData(collection() as any);
+    const preview = map.getSource(SRC_PREVIEW) as maplibregl.GeoJSONSource | undefined;
+    if (preview) preview.setData(previewCollection() as any);
+    $finishLine.classList.toggle("hidden", !(mode === "line" && linePoints.length >= 2));
+    writeUrl();
+  }
+
+  map.on("load", () => {
+    applyDarkMode();
+
+    // Transit lines — match other tools' visual language.
+    map.addLayer({
+      id: "transit-lines",
+      type: "line",
+      source: "openmaptiles",
+      "source-layer": "transportation",
+      filter: [
+        "any",
+        ["==", ["get", "subclass"], "subway"],
+        ["==", ["get", "subclass"], "light_rail"],
+        ["==", ["get", "subclass"], "tram"],
+        ["==", ["get", "subclass"], "rail"],
+        ["==", ["get", "class"], "transit"],
+      ],
+      paint: {
+        "line-color": "#999",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 3],
+        "line-opacity": 0.7,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+
+    // Committed drawings source + layers.
+    map.addSource(SRC_DRAWINGS, { type: "geojson", data: collection() as any });
+    map.addLayer({
+      id: "drawings-lines",
+      type: "line",
+      source: SRC_DRAWINGS,
+      filter: ["==", ["geometry-type"], "LineString"],
+      paint: { "line-color": BLUE, "line-width": 3 },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    map.addLayer({
+      id: "drawings-points",
+      type: "circle",
+      source: SRC_DRAWINGS,
+      filter: ["==", ["geometry-type"], "Point"],
+      paint: {
+        "circle-radius": 6,
+        "circle-color": BLUE,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2,
+      },
+    });
+
+    // In-progress line preview — lighter/dashed to distinguish from committed.
+    map.addSource(SRC_PREVIEW, { type: "geojson", data: previewCollection() as any });
+    map.addLayer({
+      id: "preview-line",
+      type: "line",
+      source: SRC_PREVIEW,
+      filter: ["==", ["geometry-type"], "LineString"],
+      paint: {
+        "line-color": BLUE,
+        "line-width": 3,
+        "line-opacity": 0.6,
+        "line-dasharray": [2, 2],
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    map.addLayer({
+      id: "preview-point",
+      type: "circle",
+      source: SRC_PREVIEW,
+      filter: ["==", ["geometry-type"], "Point"],
+      paint: {
+        "circle-radius": 5,
+        "circle-color": BLUE,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2,
+        "circle-opacity": 0.7,
+      },
+    });
+  });
+
+  // Apply primary (active) vs secondary (inactive) styling to a mode button.
+  function styleButton(btn: HTMLButtonElement, active: boolean) {
+    btn.classList.toggle("bg-primary", active);
+    btn.classList.toggle("text-primary-foreground", active);
+    btn.classList.toggle("bg-muted", !active);
+  }
+
+  function setMode(next: "dot" | "line" | null) {
+    if (next === mode) return;
+    if (mode === "line" && next !== "line") {
+      // Switching away from line mode discards any in-progress line.
+      linePoints = [];
+    }
+    mode = next;
+    if (mode === "line") {
+      map.doubleClickZoom.disable();
+    } else {
+      map.doubleClickZoom.enable();
+    }
+    styleButton($modeDot, mode === "dot");
+    styleButton($modeLine, mode === "line");
+    rerender();
+  }
+
+  // Clicking an active mode deselects it — back to no mode.
+  $modeDot.addEventListener("click", () => setMode(mode === "dot" ? null : "dot"));
+  $modeLine.addEventListener("click", () => setMode(mode === "line" ? null : "line"));
+
+  // --- Finish line: commit in-progress line to features ---
+  function finishLine() {
+    if (linePoints.length < 2) return;
+    features.push({
+      type: "Feature",
+      geometry: { type: "LineString", coordinates: linePoints },
+      properties: {},
+    });
+    linePoints = [];
+    rerender();
+  }
+  $finishLine.addEventListener("click", finishLine);
+
+  // --- Map click: add dot, or append to in-progress line. No-op if no mode is active. ---
+  map.on("click", (e) => {
+    if (mode === null) return;
+    const coord: LngLat = [e.lngLat.lng, e.lngLat.lat];
+    if (mode === "dot") {
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: coord },
+        properties: {},
+      });
+      rerender();
+    } else if (mode === "line") {
+      linePoints.push(coord);
+      rerender();
+    }
+  });
+
+  // Double-click finishes a line in line mode.
+  map.on("dblclick", (e) => {
+    if (mode !== "line") return;
+    e.preventDefault();
+    finishLine();
+  });
+
+  // --- Clear all (two-step confirmation) ---
+  // First click arms the button ("Sure?"); a second click within the timeout performs the wipe.
+  // Clicking anywhere else, or waiting 3s, disarms it.
+  let clearArmed = false;
+  let clearResetTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function disarmClear() {
+    clearArmed = false;
+    $clear.textContent = "Clear all";
+    if (clearResetTimer) {
+      clearTimeout(clearResetTimer);
+      clearResetTimer = null;
+    }
+  }
+
+  $clear.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!clearArmed) {
+      clearArmed = true;
+      $clear.textContent = "Sure?";
+      clearResetTimer = setTimeout(disarmClear, 3000);
+      return;
+    }
+    disarmClear();
+    features = [];
+    linePoints = [];
+    if (myLocationMarker) {
+      myLocationMarker.remove();
+      myLocationMarker = null;
+    }
+    rerender();
+  });
+
+  // Any click outside the clear button disarms it.
+  document.addEventListener("click", (e) => {
+    if (clearArmed && e.target !== $clear) disarmClear();
+  });
+
+  // --- Copy link ---
+  $copyLink.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      const prev = $copyLink.textContent;
+      $copyLink.textContent = "Copied!";
+      setTimeout(() => ($copyLink.textContent = prev), 1500);
+    } catch {
+      $status.textContent = "Copy failed";
+      setTimeout(() => ($status.textContent = ""), 1500);
+    }
+  });
+
+  // --- My location: non-persistent blue marker + flyTo ---
+  $myLocation.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      $status.textContent = "Geolocation unavailable";
+      return;
+    }
+    $status.textContent = "Locating...";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        if (myLocationMarker) myLocationMarker.remove();
+        const el = document.createElement("div");
+        el.style.cssText =
+          "width:1.125rem;height:1.125rem;background:#2563eb;border:0.156rem solid white;border-radius:50%;box-shadow:0 0.125rem 0.375rem rgba(0,0,0,.35);";
+        myLocationMarker = new maplibregl.Marker({ element: el })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+        map.flyTo({ center: [longitude, latitude], zoom: 14 });
+        $status.textContent = "";
+      },
+      () => {
+        $status.textContent = "Location denied";
+        setTimeout(() => ($status.textContent = ""), 2000);
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  });
+</script>
+
+<style>
+  #mapdrawer-map {
+    z-index: 0;
+  }
+</style>
