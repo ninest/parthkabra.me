@@ -96,10 +96,10 @@ const posts = (await getCollection("posts"))
       <h2 class="font-bold">Projects</h2>
       <a href={routes.projects} class="underline text-sm text-primary">View all</a>
     </div>
-    <ul class="ml-7 mt-1 space-y-2 list-disc list-outside">
-      {
+    <ul class="mt-1 ml-3 space-y-2 list-none">
+      { 
         projects.map((p) => (
-            <li id={`project-${p.id}`}>
+            <li id={`project-${p.id}`} class="pl-5 before:content-['-'] before:absolute before:left-0 relative">
               {/* prettier-ignore */}
               <a href={getProjectUrl(p.id)} class="underline text-primary">{p.data.title}</a>:{" "}
               <span class="">{p.data.description}</span>
