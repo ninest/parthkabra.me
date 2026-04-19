@@ -51,7 +51,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 
     <body class="bg-background text-foreground" style={themeColor ? `background-color: ${themeColor}` : undefined}>
         {themeColor ? (
-            <div class="min-h-screen bg-background">
+            <div class="min-h-dvh bg-background">
                 <slot></slot>
             </div>
         ) : (
