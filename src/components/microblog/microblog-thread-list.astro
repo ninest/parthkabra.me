@@ -1,0 +1,23 @@
+---
+import { getMicroblogThreads } from "../../utils/microblog-thread";
+import { getMicroblogUrl } from "../../utils/links";
+
+const threads = await getMicroblogThreads();
+---
+
+{
+  threads.length > 0 && (
+    <section class="mt-8">
+      <h2 class="font-bold">Threads</h2>
+      <ul class="mt-1 mb-10 space-y-1">
+        {threads.map((t) => (
+          <li>
+            <a href={getMicroblogUrl(t.id)} class="text-sm text-primary underline">
+              {t.data.title || t.id}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

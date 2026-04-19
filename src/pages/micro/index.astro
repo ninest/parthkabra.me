@@ -3,6 +3,7 @@ export const prerender = true;
 
 import { getCollection } from "astro:content";
 import MicroblogPost from "../../components/microblog/microblog-post.astro";
+import MicroblogThreadList from "../../components/microblog/microblog-thread-list.astro";
 import SidebarLayout from "../../components/sidebar-layout.astro";
 
 const microblogs = (await getCollection("microblog")).sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
@@ -22,4 +23,6 @@ const microblogs = (await getCollection("microblog")).sort((a, b) => b.data.crea
       }
     </ul>
   </section>
+
+  <MicroblogThreadList slot="sidebar" />
 </SidebarLayout>

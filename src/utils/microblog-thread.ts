@@ -76,6 +76,24 @@ export async function getMicroblogDescendantChain(
 }
 
 /**
+ * Returns all thread root posts that have at least one reply,
+ * sorted by root post `createdAt` descending (newest thread first).
+ */
+export async function getMicroblogThreads(): Promise<MicroblogEntry[]> {
+  const { byId, threadMembers } = await loadIndex();
+  const roots: MicroblogEntry[] = [];
+  for (const [rootId, members] of threadMembers) {
+    if (members.length > 1) {
+      const root = byId.get(rootId);
+      if (root) roots.push(root);
+    }
+  }
+  return roots.sort(
+    (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
+  );
+}
+
+/**
  * Returns the root post of the thread above `currentId`. Returns an empty
  * array when `currentId` is itself a root, so callers can use length to decide
  * whether to render a "View full thread" link.
