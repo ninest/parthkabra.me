@@ -103,7 +103,7 @@
     }
 
     & li:not(.not-typography li) {
-      line-height: 1.75;
+      line-height: 1.6;
     }
 
     & a:not(.not-typography a) {
@@ -182,13 +182,18 @@
       list-style: disc;
 
       & > li {
-        margin-top: calc(var(--spacing) * 2);
+        margin-top: calc(var(--spacing) * 1);
       }
 
       & p {
         margin-top: 0;
         margin-bottom: 0;
         display: inline;
+      }
+
+      & ul,
+      & ol {
+        margin-top: calc(var(--spacing) * 1);
       }
     }
 
@@ -198,13 +203,18 @@
       list-style: decimal;
 
       & > li {
-        margin-top: calc(var(--spacing) * 2);
+        margin-top: calc(var(--spacing) * 1);
       }
 
       & p {
         margin-top: 0;
         margin-bottom: 0;
         display: inline;
+      }
+
+      & ul,
+      & ol {
+        margin-top: calc(var(--spacing) * 1);
       }
     }
 
