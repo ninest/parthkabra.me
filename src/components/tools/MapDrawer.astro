@@ -8,9 +8,11 @@ import Button from "../button.astro";
   <div
     class="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-lg shadow px-3 py-2 backdrop-blur max-w-[calc(100%-2rem)]"
   >
-    <Button id="md-mode-dot" variant="secondary" class="text-sm">Dot</Button>
+    <Button id="md-mode-point" variant="secondary" class="text-sm">Point</Button>
     <Button id="md-mode-line" variant="secondary" class="text-sm">Line</Button>
     <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
+    <span class="mx-1 h-5 w-px bg-border"></span>
+    <div id="md-swatches" class="flex flex-wrap items-center gap-1"></div>
     <span class="mx-1 h-5 w-px bg-border"></span>
     <Button id="md-my-location" variant="secondary" class="text-sm">My location</Button>
     <span id="md-status" class="text-xs text-muted-foreground"></span>
@@ -19,33 +21,60 @@ import Button from "../button.astro";
       <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
     </div>
   </div>
+
+  <div
+    id="md-list-panel"
+    class="hidden absolute top-4 left-4 right-4 sm:left-auto sm:w-80 max-w-[calc(100vw-2rem)] bg-background/90 border border-border rounded-lg shadow backdrop-blur overflow-hidden"
+  >
+    <button
+      id="md-list-toggle"
+      type="button"
+      class="px-3 py-2 flex items-center justify-between gap-2 text-sm bg-muted/60 hover:bg-muted w-full"
+    >
+      <span>Items</span>
+      <span id="md-list-count" class="text-muted-foreground text-xs">0</span>
+    </button>
+    <div
+      id="md-list-body"
+      class="hidden flex-col gap-2 p-2 max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto border-t border-border"
+    >
+    </div>
+  </div>
 </div>
 
 <script>
   import maplibregl from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
+  import { buttonClasses } from "../button";
+  import { reverseGeocode, geographicMidpoint } from "../../utils/geolocation";
 
   // --- DOM refs ---
   const $mapEl = document.getElementById("mapdrawer-map")!;
-  const $modeDot = document.getElementById("md-mode-dot") as HTMLButtonElement;
+  const $modePoint = document.getElementById("md-mode-point") as HTMLButtonElement;
   const $modeLine = document.getElementById("md-mode-line") as HTMLButtonElement;
   const $finishLine = document.getElementById("md-finish-line") as HTMLButtonElement;
   const $myLocation = document.getElementById("md-my-location") as HTMLButtonElement;
   const $clear = document.getElementById("md-clear") as HTMLButtonElement;
   const $copyLink = document.getElementById("md-copy-link") as HTMLButtonElement;
   const $status = document.getElementById("md-status")!;
+  const $swatches = document.getElementById("md-swatches")!;
+  const $listPanel = document.getElementById("md-list-panel")!;
+  const $listToggle = document.getElementById("md-list-toggle") as HTMLButtonElement;
+  const $listCount = document.getElementById("md-list-count")!;
+  const $listBody = document.getElementById("md-list-body")!;
 
   // --- Types ---
   type LngLat = [number, number];
+  type FeatureProps = { name: string; colorIdx: number; hideLabel?: boolean };
   type PointFeature = {
     type: "Feature";
     geometry: { type: "Point"; coordinates: LngLat };
-    properties: Record<string, never>;
+    properties: FeatureProps;
   };
   type LineFeature = {
     type: "Feature";
     geometry: { type: "LineString"; coordinates: LngLat[] };
-    properties: Record<string, never>;
+    properties: FeatureProps;
   };
   type DrawingFeature = PointFeature | LineFeature;
   type FeatureCollection = {
@@ -54,24 +83,299 @@ import Button from "../button.astro";
   };
 
   // --- Constants ---
-  const BLUE = "#2563eb";
+  // [label, hex]. Index into this array is the colorIdx stored on each feature.
+  // Gray sits near 50% lightness so it reads well in both light mode and the inverted dark-mode canvas.
+  const PALETTE: [string, string][] = [
+    ["red", "#dc2626"],
+    ["blue", "#2563eb"],
+    ["green", "#16a34a"],
+    ["yellow", "#eab308"],
+    ["gray", "#737373"],
+  ];
   const SRC_DRAWINGS = "drawings";
   const SRC_PREVIEW = "drawings-preview";
 
   // --- State ---
-  // mode is null until the user explicitly picks Dot or Line — map clicks are ignored otherwise.
-  let mode: "dot" | "line" | null = null;
+  // mode is null until the user explicitly picks Point or Line — map clicks are ignored otherwise.
+  let mode: "point" | "line" | null = null;
   let features: DrawingFeature[] = [];
   let linePoints: LngLat[] = [];
   let myLocationMarker: maplibregl.Marker | null = null;
+  let activeColorIdx = 0;
+  // Counters are monotonic so two features never share an auto-name, even after edits.
+  let pointCounter = 0;
+  let lineCounter = 0;
+  let listExpanded = false;
 
   // Round to 5 decimals (~1.1m) to keep URLs short.
   function r(n: number): number {
     return Math.round(n * 1e5) / 1e5;
   }
 
+  // Build a round colored swatch button of the given hex color.
+  function makeSwatchButton(hex: string, label: string, active: boolean): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("aria-label", label);
+    btn.className =
+      "w-8 h-8 rounded flex items-center justify-center shrink-0 " +
+      (active ? "ring-2 ring-primary" : "hover:bg-muted");
+    const dot = document.createElement("span");
+    dot.className = "block w-[18px] h-[18px] rounded-full border border-border";
+    dot.style.backgroundColor = hex;
+    btn.appendChild(dot);
+    return btn;
+  }
+
+  // Render the palette row in the toolbar. Tap to set the active color for new features.
+  function renderSwatches() {
+    $swatches.innerHTML = "";
+    PALETTE.forEach(([label, hex], i) => {
+      const btn = makeSwatchButton(hex, `Use ${label}`, i === activeColorIdx);
+      btn.addEventListener("click", () => setActiveColor(i));
+      $swatches.appendChild(btn);
+    });
+  }
+
+  // Set the active color: updates the palette UI and the preview layers on the map.
+  function setActiveColor(idx: number) {
+    activeColorIdx = idx;
+    renderSwatches();
+    const hex = PALETTE[idx][1];
+    if (map.loaded()) {
+      if (map.getLayer("preview-point")) map.setPaintProperty("preview-point", "circle-color", hex);
+      if (map.getLayer("preview-line")) map.setPaintProperty("preview-line", "line-color", hex);
+    }
+  }
+
+  // Close any open per-row disclosure and disarm any "Sure?" delete buttons inside.
+  function closeAllRowExtras() {
+    $listBody.querySelectorAll("[data-row-extra]").forEach((el) => {
+      el.classList.add("hidden");
+      el.classList.remove("flex");
+    });
+    $listBody.querySelectorAll("[data-delete-armed]").forEach((el) => {
+      (el as HTMLButtonElement).textContent = "Delete";
+      el.removeAttribute("data-delete-armed");
+    });
+  }
+
+  // Reverse-geocoded addresses are cached per feature (not serialized in the URL) and only
+  // resolved when the user opens a feature's extras panel, to keep Nominatim traffic minimal.
+  const addressCache = new WeakMap<DrawingFeature, string | null>();
+  const addressPending = new WeakMap<DrawingFeature, Promise<string | null>>();
+
+  // For points, use the coordinate directly; for lines, use the geographic midpoint of the path
+  // so the resolved address represents the line's rough center.
+  function getFeatureCoord(f: DrawingFeature): { lat: number; lng: number } {
+    if (f.geometry.type === "Point") {
+      const [lng, lat] = f.geometry.coordinates;
+      return { lat, lng };
+    }
+    const pts = f.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }));
+    return geographicMidpoint(pts);
+  }
+
+  // Kick off reverse geocoding for a feature if we haven't already. Re-runs onUpdate
+  // after the result lands so the DOM bound to the extras panel can refresh.
+  function ensureAddress(f: DrawingFeature, onUpdate: () => void) {
+    if (addressCache.has(f) || addressPending.has(f)) {
+      onUpdate();
+      return;
+    }
+    const { lat, lng } = getFeatureCoord(f);
+    const p = reverseGeocode(lat, lng).then((result) => {
+      addressCache.set(f, result ?? null);
+      addressPending.delete(f);
+      onUpdate();
+      return result ?? null;
+    });
+    addressPending.set(f, p);
+    onUpdate();
+  }
+
+  // Render the right-side list of features. One row per feature: color chip, name input, kind label.
+  // e.g. "● [Home________] point" with a color popover below that opens on chip tap.
+  function renderList() {
+    $listPanel.classList.toggle("hidden", features.length === 0);
+    $listCount.textContent = String(features.length);
+    $listBody.innerHTML = "";
+    features.forEach((f, i) => {
+      const wrap = document.createElement("div");
+      wrap.className = "flex flex-col gap-1";
+
+      const row = document.createElement("div");
+      row.className = "flex items-center gap-2";
+
+      const chip = makeSwatchButton(PALETTE[f.properties.colorIdx][1], "Change color", false);
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = f.properties.name;
+      input.className =
+        "flex-1 min-w-0 border border-border focus:outline-none rounded px-2 py-1 text-sm bg-transparent";
+      input.setAttribute("autocomplete", "off");
+      input.setAttribute("autocorrect", "off");
+      input.setAttribute("autocapitalize", "words");
+      input.setAttribute("spellcheck", "false");
+      const commit = () => {
+        const v = input.value.trim();
+        if (v && v !== features[i].properties.name) {
+          features[i].properties.name = v;
+          writeUrl();
+        } else {
+          input.value = features[i].properties.name;
+        }
+      };
+      input.addEventListener("blur", commit);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          commit();
+          input.blur();
+        }
+      });
+
+      // Overflow menu — same target as the color chip: toggles the shared extras panel below.
+      const overflow = document.createElement("button");
+      overflow.type = "button";
+      overflow.setAttribute("aria-label", "More actions");
+      overflow.className =
+        "w-8 h-8 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:bg-muted";
+      overflow.textContent = "\u22EF"; // ⋯
+
+      // Shared row-extras panel: palette picker on top, delete underneath.
+      const extras = document.createElement("div");
+      extras.setAttribute("data-row-extra", "");
+      extras.className = "hidden flex-col gap-2 pl-10";
+
+      const swatchRow = document.createElement("div");
+      swatchRow.className = "flex flex-wrap gap-1";
+      PALETTE.forEach(([label, hex], j) => {
+        const opt = makeSwatchButton(hex, label, j === f.properties.colorIdx);
+        opt.addEventListener("click", (e) => {
+          e.stopPropagation();
+          features[i].properties.colorIdx = j;
+          closeAllRowExtras();
+          rerender();
+        });
+        swatchRow.appendChild(opt);
+      });
+
+      // Address block — reverse-geocoded lazily when extras open, with a copy-to-clipboard link.
+      const addrBlock = document.createElement("div");
+      addrBlock.className = "flex flex-col gap-0.5";
+      const addrText = document.createElement("p");
+      addrText.className = "text-xs text-muted-foreground break-words";
+      const copyAddrBtn = document.createElement("button");
+      copyAddrBtn.type = "button";
+      copyAddrBtn.className = "text-xs underline cursor-pointer self-start hidden";
+      copyAddrBtn.textContent = "Copy address";
+      addrBlock.appendChild(addrText);
+      addrBlock.appendChild(copyAddrBtn);
+      const applyAddressState = () => {
+        const cached = addressCache.get(f);
+        if (cached === undefined) {
+          addrText.textContent = addressPending.has(f) ? "Resolving..." : "";
+          copyAddrBtn.classList.add("hidden");
+        } else if (cached) {
+          addrText.textContent = cached;
+          copyAddrBtn.classList.remove("hidden");
+        } else {
+          addrText.textContent = "Address unknown";
+          copyAddrBtn.classList.add("hidden");
+        }
+      };
+      applyAddressState();
+      copyAddrBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const text = addrText.textContent;
+        if (!text) return;
+        navigator.clipboard.writeText(text);
+        copyAddrBtn.textContent = "Copied!";
+        setTimeout(() => (copyAddrBtn.textContent = "Copy address"), 1500);
+      });
+
+      // Label visibility toggle — per-feature show/hide of the on-map name label.
+      const labelBtn = document.createElement("button");
+      labelBtn.type = "button";
+      labelBtn.className = buttonClasses("outline", "self-start text-sm");
+      labelBtn.textContent = f.properties.hideLabel ? "Show label" : "Hide label";
+      labelBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        features[i].properties.hideLabel = !features[i].properties.hideLabel;
+        closeAllRowExtras();
+        rerender();
+      });
+
+      // Delete uses a two-step "Delete" → "Sure?" arm, mirroring the Clear all button.
+      // The arm auto-expires after 3s, and closeAllRowExtras() also disarms it.
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = buttonClasses("outline", "self-start text-sm text-error");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!deleteBtn.hasAttribute("data-delete-armed")) {
+          deleteBtn.setAttribute("data-delete-armed", "");
+          deleteBtn.textContent = "Sure?";
+          setTimeout(() => {
+            if (deleteBtn.hasAttribute("data-delete-armed")) {
+              deleteBtn.removeAttribute("data-delete-armed");
+              deleteBtn.textContent = "Delete";
+            }
+          }, 3000);
+          return;
+        }
+        features.splice(i, 1);
+        closeAllRowExtras();
+        rerender();
+      });
+
+      extras.appendChild(swatchRow);
+      extras.appendChild(labelBtn);
+      extras.appendChild(addrBlock);
+      extras.appendChild(deleteBtn);
+
+      // Both chip and overflow open/close the same panel.
+      const toggleExtras = (e: Event) => {
+        e.stopPropagation();
+        const willOpen = extras.classList.contains("hidden");
+        closeAllRowExtras();
+        if (willOpen) {
+          extras.classList.remove("hidden");
+          extras.classList.add("flex");
+          ensureAddress(f, applyAddressState);
+        }
+      };
+      chip.addEventListener("click", toggleExtras);
+      overflow.addEventListener("click", toggleExtras);
+
+      row.appendChild(chip);
+      row.appendChild(input);
+      row.appendChild(overflow);
+      wrap.appendChild(row);
+      wrap.appendChild(extras);
+      $listBody.appendChild(wrap);
+    });
+  }
+
+  // Toggle the list body visible/hidden. Starts collapsed on every load to keep the map unobstructed.
+  function setListExpanded(open: boolean) {
+    listExpanded = open;
+    $listBody.classList.toggle("hidden", !open);
+    $listBody.classList.toggle("flex", open);
+    if (!open) closeAllRowExtras();
+  }
+  $listToggle.addEventListener("click", () => setListExpanded(!listExpanded));
+
+  // Close color popovers on any click outside the list.
+  document.addEventListener("click", (e) => {
+    const target = e.target as Node;
+    if (!$listBody.contains(target)) closeAllRowExtras();
+  });
+
   // --- URL state ---
-  // Serialize features to ?d=p:lat,lng|l:lat,lng;lat,lng;...
+  // Serialize features to ?d=p:colorIdx:encodedName:lat,lng|l:colorIdx:encodedName:lat,lng;...
   function writeUrl() {
     const url = new URL(window.location.href);
     if (features.length === 0) {
@@ -79,14 +383,18 @@ import Button from "../button.astro";
     } else {
       const parts: string[] = [];
       for (const f of features) {
+        const { colorIdx, name, hideLabel } = f.properties;
+        const encName = encodeURIComponent(name);
+        // "h" prefix on the colorIdx segment signals label hidden; absence = shown.
+        const colorSeg = hideLabel ? `h${colorIdx}` : `${colorIdx}`;
         if (f.geometry.type === "Point") {
           const [lng, lat] = f.geometry.coordinates;
-          parts.push(`p:${r(lat)},${r(lng)}`);
+          parts.push(`p:${colorSeg}:${encName}:${r(lat)},${r(lng)}`);
         } else {
           const coords = f.geometry.coordinates
             .map(([lng, lat]) => `${r(lat)},${r(lng)}`)
             .join(";");
-          parts.push(`l:${coords}`);
+          parts.push(`l:${colorSeg}:${encName}:${coords}`);
         }
       }
       url.searchParams.set("d", parts.join("|"));
@@ -94,7 +402,8 @@ import Button from "../button.astro";
     history.replaceState(null, "", url.toString());
   }
 
-  // Parse ?d=... back into features. Unknown/garbled entries are dropped silently.
+  // Parse ?d=... back into features. Supports new (p:idx:name:lat,lng) and legacy (p:lat,lng) formats.
+  // Unknown/garbled entries are dropped silently.
   function readUrl(): DrawingFeature[] {
     const param = new URLSearchParams(window.location.search).get("d");
     if (!param) return [];
@@ -104,33 +413,72 @@ import Button from "../button.astro";
       if (colon < 0) continue;
       const kind = entry.slice(0, colon);
       const body = entry.slice(colon + 1);
+
+      // Detect new format: body starts with an optional "h" (hide-label) + integer colorIdx,
+      // followed by ":name:coords". E.g. "2:Home:..." or "h2:Home:...".
+      let colorIdx = 0;
+      let hideLabel = false;
+      let name = "";
+      let coordBody = body;
+      const firstColon = body.indexOf(":");
+      if (firstColon >= 0) {
+        const maybeIdx = body.slice(0, firstColon);
+        const m = maybeIdx.match(/^(h?)(\d+)$/);
+        if (m && parseInt(m[2]) < PALETTE.length) {
+          const rest = body.slice(firstColon + 1);
+          const secondColon = rest.indexOf(":");
+          if (secondColon >= 0) {
+            hideLabel = m[1] === "h";
+            colorIdx = parseInt(m[2]);
+            name = decodeURIComponent(rest.slice(0, secondColon));
+            coordBody = rest.slice(secondColon + 1);
+          }
+        }
+      }
+
       if (kind === "p") {
-        const [latStr, lngStr] = body.split(",");
+        const [latStr, lngStr] = coordBody.split(",");
         const lat = parseFloat(latStr);
         const lng = parseFloat(lngStr);
         if (!isNaN(lat) && !isNaN(lng)) {
+          if (!name) {
+            pointCounter++;
+            name = `Point ${pointCounter}`;
+          }
           result.push({
             type: "Feature",
             geometry: { type: "Point", coordinates: [lng, lat] },
-            properties: {},
+            properties: { name, colorIdx, hideLabel },
           });
         }
       } else if (kind === "l") {
         const coords: LngLat[] = [];
-        for (const pair of body.split(";")) {
+        for (const pair of coordBody.split(";")) {
           const [latStr, lngStr] = pair.split(",");
           const lat = parseFloat(latStr);
           const lng = parseFloat(lngStr);
           if (!isNaN(lat) && !isNaN(lng)) coords.push([lng, lat]);
         }
         if (coords.length >= 2) {
+          if (!name) {
+            lineCounter++;
+            name = `Line ${lineCounter}`;
+          }
           result.push({
             type: "Feature",
             geometry: { type: "LineString", coordinates: coords },
-            properties: {},
+            properties: { name, colorIdx, hideLabel },
           });
         }
       }
+    }
+    // Bump counters past any user-edited names that happen to match "Point N" / "Line N"
+    // (or legacy "Dot N" from older shared URLs) so next placement doesn't collide.
+    for (const f of result) {
+      const m = f.properties.name.match(/^(?:Point|Dot) (\d+)$/);
+      if (m) pointCounter = Math.max(pointCounter, parseInt(m[1]));
+      const m2 = f.properties.name.match(/^Line (\d+)$/);
+      if (m2) lineCounter = Math.max(lineCounter, parseInt(m2[1]));
     }
     return result;
   }
@@ -191,7 +539,10 @@ import Button from "../button.astro";
   }
 
   // Preview collection for the in-progress line while the user is clicking points in line mode.
+  // Preview paint uses the active color via setPaintProperty, so these properties aren't rendered —
+  // we just fill them to satisfy FeatureProps.
   function previewCollection(): FeatureCollection {
+    const props: FeatureProps = { name: "", colorIdx: activeColorIdx };
     if (linePoints.length === 0) {
       return { type: "FeatureCollection", features: [] };
     }
@@ -202,7 +553,7 @@ import Button from "../button.astro";
           {
             type: "Feature",
             geometry: { type: "Point", coordinates: linePoints[0] },
-            properties: {},
+            properties: props,
           },
         ],
       };
@@ -213,21 +564,30 @@ import Button from "../button.astro";
         {
           type: "Feature",
           geometry: { type: "LineString", coordinates: linePoints },
-          properties: {},
+          properties: props,
         },
       ],
     };
   }
 
-  // Push current state into maplibre sources + URL.
+  // Push current state into maplibre sources + URL + list.
   function rerender() {
     const drawings = map.getSource(SRC_DRAWINGS) as maplibregl.GeoJSONSource | undefined;
     if (drawings) drawings.setData(collection() as any);
     const preview = map.getSource(SRC_PREVIEW) as maplibregl.GeoJSONSource | undefined;
     if (preview) preview.setData(previewCollection() as any);
     $finishLine.classList.toggle("hidden", !(mode === "line" && linePoints.length >= 2));
+    renderList();
     writeUrl();
   }
+
+  // Data-driven color expression — picks the hex for each feature based on properties.colorIdx.
+  const COLOR_MATCH: any = [
+    "match",
+    ["get", "colorIdx"],
+    ...PALETTE.flatMap(([, hex], i) => [i, hex]),
+    /* default */ PALETTE[0][1],
+  ];
 
   map.on("load", () => {
     applyDarkMode();
@@ -239,7 +599,7 @@ import Button from "../button.astro";
       type: "line",
       source: SRC_DRAWINGS,
       filter: ["==", ["geometry-type"], "LineString"],
-      paint: { "line-color": BLUE, "line-width": 3 },
+      paint: { "line-color": COLOR_MATCH, "line-width": 3 },
       layout: { "line-cap": "round", "line-join": "round" },
     });
     map.addLayer({
@@ -249,13 +609,62 @@ import Button from "../button.astro";
       filter: ["==", ["geometry-type"], "Point"],
       paint: {
         "circle-radius": 6,
-        "circle-color": BLUE,
+        "circle-color": COLOR_MATCH,
         "circle-stroke-color": "#ffffff",
         "circle-stroke-width": 2,
       },
     });
 
-    // In-progress line preview — same color, reduced opacity to distinguish from committed.
+    // Labels. Black text + white halo reads in both light and (inverted) dark mode.
+    map.addLayer({
+      id: "drawings-point-labels",
+      type: "symbol",
+      source: SRC_DRAWINGS,
+      filter: [
+        "all",
+        ["==", ["geometry-type"], "Point"],
+        ["!=", ["get", "hideLabel"], true],
+      ],
+      layout: {
+        "text-field": ["get", "name"],
+        "text-size": 12,
+        "text-offset": [0, 0.7],
+        "text-anchor": "top",
+        "text-allow-overlap": false,
+        "text-optional": true,
+      },
+      paint: {
+        "text-color": "#111111",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1.5,
+      },
+    });
+    map.addLayer({
+      id: "drawings-line-labels",
+      type: "symbol",
+      source: SRC_DRAWINGS,
+      filter: [
+        "all",
+        ["==", ["geometry-type"], "LineString"],
+        ["!=", ["get", "hideLabel"], true],
+      ],
+      layout: {
+        "text-field": ["get", "name"],
+        "text-size": 12,
+        "symbol-placement": "line-center",
+        "text-allow-overlap": false,
+        "text-optional": true,
+      },
+      paint: {
+        "text-color": "#111111",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1.5,
+      },
+    });
+
+    // In-progress line preview — active color, reduced opacity to distinguish from committed.
+    // Paint colors are kept in sync with activeColorIdx via setActiveColor().
+    const activeHex = PALETTE[activeColorIdx][1];
     map.addSource(SRC_PREVIEW, { type: "geojson", data: previewCollection() as any });
     map.addLayer({
       id: "preview-line",
@@ -263,9 +672,12 @@ import Button from "../button.astro";
       source: SRC_PREVIEW,
       filter: ["==", ["geometry-type"], "LineString"],
       paint: {
-        "line-color": BLUE,
+        "line-color": activeHex,
         "line-width": 3,
-        "line-opacity": 0.6,
+        "line-opacity": 0.8,
+        // Tiny dash + round cap = circular dots, clearly signalling the line is still in-progress.
+        // A non-zero dash length renders more reliably than [0, x] across MapLibre versions.
+        "line-dasharray": [0.1, 2],
       },
       layout: { "line-cap": "round", "line-join": "round" },
     });
@@ -276,12 +688,15 @@ import Button from "../button.astro";
       filter: ["==", ["geometry-type"], "Point"],
       paint: {
         "circle-radius": 5,
-        "circle-color": BLUE,
+        "circle-color": activeHex,
         "circle-stroke-color": "#ffffff",
         "circle-stroke-width": 2,
         "circle-opacity": 0.7,
       },
     });
+
+    renderSwatches();
+    renderList();
   });
 
   // Apply primary (active) vs secondary (inactive) styling to a mode button.
@@ -291,7 +706,7 @@ import Button from "../button.astro";
     btn.classList.toggle("bg-muted", !active);
   }
 
-  function setMode(next: "dot" | "line" | null) {
+  function setMode(next: "point" | "line" | null) {
     if (next === mode) return;
     if (mode === "line" && next !== "line") {
       // Switching away from line mode discards any in-progress line.
@@ -303,37 +718,39 @@ import Button from "../button.astro";
     } else {
       map.doubleClickZoom.enable();
     }
-    styleButton($modeDot, mode === "dot");
+    styleButton($modePoint, mode === "point");
     styleButton($modeLine, mode === "line");
     rerender();
   }
 
   // Clicking an active mode deselects it — back to no mode.
-  $modeDot.addEventListener("click", () => setMode(mode === "dot" ? null : "dot"));
+  $modePoint.addEventListener("click", () => setMode(mode === "point" ? null : "point"));
   $modeLine.addEventListener("click", () => setMode(mode === "line" ? null : "line"));
 
   // --- Finish line: commit in-progress line to features ---
   function finishLine() {
     if (linePoints.length < 2) return;
+    lineCounter++;
     features.push({
       type: "Feature",
       geometry: { type: "LineString", coordinates: linePoints },
-      properties: {},
+      properties: { name: `Line ${lineCounter}`, colorIdx: activeColorIdx },
     });
     linePoints = [];
     rerender();
   }
   $finishLine.addEventListener("click", finishLine);
 
-  // --- Map click: add dot, or append to in-progress line. No-op if no mode is active. ---
+  // --- Map click: add point, or append to in-progress line. No-op if no mode is active. ---
   map.on("click", (e) => {
     if (mode === null) return;
     const coord: LngLat = [e.lngLat.lng, e.lngLat.lat];
-    if (mode === "dot") {
+    if (mode === "point") {
+      pointCounter++;
       features.push({
         type: "Feature",
         geometry: { type: "Point", coordinates: coord },
-        properties: {},
+        properties: { name: `Point ${pointCounter}`, colorIdx: activeColorIdx },
       });
       rerender();
     } else if (mode === "line") {
@@ -375,6 +792,8 @@ import Button from "../button.astro";
     disarmClear();
     features = [];
     linePoints = [];
+    pointCounter = 0;
+    lineCounter = 0;
     if (myLocationMarker) {
       myLocationMarker.remove();
       myLocationMarker = null;

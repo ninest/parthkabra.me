@@ -1,18 +1,14 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import { buttonBaseClasses, buttonVariantClasses, type ButtonVariant } from "./button";
 
 interface Props extends HTMLAttributes<"button"> {
-  variant?: "primary" | "secondary";
+  variant?: ButtonVariant;
 }
 
 const { variant = "secondary", class: className, ...rest } = Astro.props;
-
-const variantClasses = {
-  primary: "bg-primary text-primary-foreground",
-  secondary: "bg-muted",
-};
 ---
 
-<button class:list={["px-3 py-1 rounded flex items-center justify-center", variantClasses[variant], className]} {...rest}>
+<button class:list={[buttonBaseClasses, buttonVariantClasses[variant], className]} {...rest}>
   <slot />
 </button>
