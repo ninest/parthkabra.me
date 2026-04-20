@@ -7,11 +7,12 @@ import CategoryList from "../components/category-list.astro";
 import SidebarLayout from "../components/sidebar-layout.astro";
 import DefaultMetaPageLayout from "../components/pages/DefaultMetaPageLayout.astro";
 import { getPostUrl } from "../utils/links";
+import { getVisiblePosts } from "../utils/posts";
 
 export const getStaticPaths = (async () => {
   const categories = await getCollection("categories");
   const pages = await getCollection("pages");
-  const posts = (await getCollection("posts")).sort(
+  const posts = (await getVisiblePosts()).sort(
     (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
   );
 

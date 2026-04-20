@@ -8,6 +8,9 @@ import mdx from "@astrojs/mdx";
 
 import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
+import { getDraftPostPathnames } from "./src/utils/sitemap-drafts.ts";
+
+const draftPostPaths = getDraftPostPathnames();
 
 // https://astro.build/config
 export default defineConfig({
@@ -22,7 +25,9 @@ export default defineConfig({
       imports: ["./src/components/content/Alert.astro", "./src/components/content/Mermaid.astro"],
     }),
     mdx(),
-    sitemap(),
+    sitemap({
+      filter: (page) => !draftPostPaths.has(new URL(page).pathname),
+    }),
   ],
 
   vite: {

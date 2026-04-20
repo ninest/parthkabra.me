@@ -3,11 +3,12 @@ export const prerender = true;
 import { getCollection } from "astro:content";
 import { stripMarkdown } from "../utils/markdown";
 import { firstSentence, truncate } from "../utils/string";
+import { getVisiblePosts } from "../utils/posts";
 
 export async function GET() {
   const [categories, posts, projects, workExperience, microblog, tools] = await Promise.all([
     getCollection("categories"),
-    getCollection("posts"),
+    getVisiblePosts(),
     getCollection("projects"),
     getCollection("workExperience"),
     getCollection("microblog"),

@@ -5,6 +5,7 @@ import SidebarLayout from "../components/sidebar-layout.astro";
 import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
 import CopyableContact from "../components/copyable-contact.astro";
 import { getCollection } from "astro:content";
+import { getVisiblePosts } from "../utils/posts";
 import { validateRelatedLinks } from "../utils/validate-related";
 import { routes, getCategoryUrl, getPostUrl, getProjectUrl, getWorkUrl } from "../utils/links";
 await validateRelatedLinks();
@@ -20,7 +21,7 @@ const projects = (await getCollection("projects", (p) => p.data.featured)).sort(
   (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
 );
 const categories = await getCollection("categories");
-const posts = (await getCollection("posts"))
+const posts = (await getVisiblePosts())
   .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
   .slice(0, 10);
 ---
