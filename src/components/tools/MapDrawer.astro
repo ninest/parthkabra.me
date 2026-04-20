@@ -507,7 +507,10 @@ import Button from "../button.astro";
     zoom: 12,
     dragRotate: true,
     pitchWithRotate: true,
+    // Disable the default non-compact attribution so we can add a compact one below.
+    attributionControl: false,
   });
+  map.addControl(new maplibregl.AttributionControl({ compact: true }));
   if (initialBounds) {
     map.fitBounds(initialBounds, { padding: 60, maxZoom: 14 });
   }

@@ -56,14 +56,19 @@ import Button from "../button.astro";
   }
 
   // --- Map ---
+  // Default to Boston when no locations are loaded from the URL.
+  const BOSTON: [number, number] = [-71.0589, 42.3601];
   const map = new maplibregl.Map({
     container: $mapEl,
     style: "https://tiles.openfreemap.org/styles/positron",
-    center: initialBounds ? initialBounds.getCenter().toArray() : [0, 20],
-    zoom: 10,
+    center: initialBounds ? initialBounds.getCenter().toArray() : BOSTON,
+    zoom: 12,
     dragRotate: true,
     pitchWithRotate: true,
+    // Disable the default non-compact attribution so we can add a compact one below.
+    attributionControl: false,
   });
+  map.addControl(new maplibregl.AttributionControl({ compact: true }));
   if (initialBounds) {
     map.fitBounds(initialBounds, { padding: 60, maxZoom: 12 });
   }
@@ -81,34 +86,8 @@ import Button from "../button.astro";
     attributeFilter: ["class"],
   });
 
-  // Add transit layers on load
   map.on("load", () => {
     applyDarkMode();
-
-    // Add transit lines (subway, light rail, tram, rail) from OpenMapTiles transportation layer
-    map.addLayer({
-      id: "transit-lines",
-      type: "line",
-      source: "openmaptiles",
-      "source-layer": "transportation",
-      filter: [
-        "any",
-        ["==", ["get", "subclass"], "subway"],
-        ["==", ["get", "subclass"], "light_rail"],
-        ["==", ["get", "subclass"], "tram"],
-        ["==", ["get", "subclass"], "rail"],
-        ["==", ["get", "class"], "transit"],
-      ],
-      paint: {
-        "line-color": "#999",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 3],
-        "line-opacity": 0.7,
-      },
-      layout: {
-        "line-cap": "round",
-        "line-join": "round",
-      },
-    });
   });
 
   // --- Markers ---
