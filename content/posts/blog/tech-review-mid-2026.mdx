@@ -8,11 +8,32 @@ links: []
 related: [post:blog/tech-review-mid-2025]
 ---
 
-> ⚠️ These are some of my unfiltered thoughts on frameworks and tools I’ve used
+> ⚠️ These are some of my unfiltered thoughts on frameworks and tools I’ve used, or look forward to using
 
 **Web frameworks**
 
 - Astro: way simpler than Next and Tanstack Start
+  - Probably has the best integrations with Cloudflare
 - Tanstack Start: amazing framework that I'd choose over Next, but not a fan of file-based routing
   - It's possible to go with config based routing, but I found the docs a little lacking. They're probably much better now though
-- Next: It's been too slow for me
+- Next: It's been too slow for me. In fact, switching from Next to Tanstack Start felt like a night and day difference
+
+Some frameworks I look forward to using
+
+- [Remix v3](https://github.com/remix-run/remix): I've always wanted Rails but for JS, and this seems to be the closest we'll ever get
+  - It seems very batteries-included but also divided into packages, so it should be easy to use just what you need
+  - I do wonder about its adoption, thought I guess it should be fine since each package has zero dependencies
+- [RedwoodSDK](https://rwsdk.com/): This seems really interesting as I'm getting deeper into Cloudflare
+  - I'm excited about the [realtime features](https://rwsdk.com/realtime) like `useSyncedState`
+
+**Hosting**
+
+- Railway: it's been pretty good
+  - I do wish it was easier for me (my agent) to do things without the web UI
+  - I wish there was a better local development experience
+  - I do believe that they are working on solutions for both of these
+  - I wish their Postgres and S3 had better data viewers. AFAIK, there's currently no way to browser your Railway S3 bucket without an external app
+- Cloudflare: seems like an amazing all-in-one solution (with some vendor lock in though)
+  - I like how they are making things local and AI first. As it turns out, a good DX for agents translates to a good DX for humans!
+  - I prefer Cloudflare Workers for static/slightly dynamic sites way more than Vercel now
+  - I want to explore Durable Objects, R2, and D1
