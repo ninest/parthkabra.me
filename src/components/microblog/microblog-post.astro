@@ -59,7 +59,7 @@ const relatedItems = await resolveRelated(mb.data.related);
     </a>
   )}
 
-  <div class="mt-4 mb-4 typography">
+  <div class="mt-4 mb-4 typography microblog-body">
     <Content />
   </div>
 
@@ -70,3 +70,14 @@ const relatedItems = await resolveRelated(mb.data.related);
     {dateline}
   </div>
 </article>
+
+<style>
+  /* Cap image height so tall screenshots (e.g. mobile captures) don't
+     dominate the viewport. Width is auto so aspect ratio is preserved;
+     a portrait image hits max-height first and narrows accordingly. */
+  .microblog-body :global(img) {
+    max-height: 60vh;
+    width: auto;
+    max-width: 100%;
+  }
+</style>
