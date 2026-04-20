@@ -46,6 +46,7 @@ import Button from "../button.astro";
   import maplibregl from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
   import { buttonClasses } from "../button";
+  import { inputClasses } from "../input";
   import { reverseGeocode, geographicMidpoint } from "../../utils/geolocation";
 
   // --- DOM refs ---
@@ -212,8 +213,7 @@ import Button from "../button.astro";
       const input = document.createElement("input");
       input.type = "text";
       input.value = f.properties.name;
-      input.className =
-        "flex-1 min-w-0 border border-border focus:outline-none rounded px-2 py-1 text-sm bg-transparent";
+      input.className = inputClasses("flex-1 min-w-0 rounded px-2 py-1 text-sm bg-transparent");
       input.setAttribute("autocomplete", "off");
       input.setAttribute("autocorrect", "off");
       input.setAttribute("autocapitalize", "words");
