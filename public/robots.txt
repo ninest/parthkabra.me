@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /opt-out-analytics
 
 Sitemap: https://parthkabra.me/sitemap-index.xml

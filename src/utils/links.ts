@@ -8,6 +8,7 @@ export const routes = {
   microblog: "/micro",
   tools: "/tools",
   admin: "/admin",
+  optOutAnalytics: "/opt-out-analytics",
 } as const;
 
 // Per-collection URL builders
