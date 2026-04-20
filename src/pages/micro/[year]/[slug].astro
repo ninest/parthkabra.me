@@ -4,6 +4,7 @@ export const prerender = true;
 import type { GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import MicroblogPost from "../../../components/microblog/microblog-post.astro";
+import MicroblogThreadList from "../../../components/microblog/microblog-thread-list.astro";
 import SidebarLayout from "../../../components/sidebar-layout.astro";
 import { getMicroblogUrl, routes } from "../../../utils/links";
 import { stripMarkdown } from "../../../utils/markdown";
@@ -74,6 +75,8 @@ const seoDescription = entry.data.description ?? truncate(plain, 155);
   <div class="flex flex-col gap-4">
     {chain.map((post) => <MicroblogPost mb={post} />)}
   </div>
+
+  <MicroblogThreadList slot="sidebar" />
 </SidebarLayout>
 
 <script>
