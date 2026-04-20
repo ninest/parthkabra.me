@@ -2,8 +2,8 @@
 export const prerender = true;
 
 import CategoryList from "../components/category-list.astro";
+import PostList from "../components/post-list.astro";
 import SidebarLayout from "../components/sidebar-layout.astro";
-import { getPostUrl } from "../utils/links";
 import { getVisiblePosts } from "../utils/posts";
 
 const posts = (await getVisiblePosts()).sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
@@ -13,18 +13,7 @@ const posts = (await getVisiblePosts()).sort((a, b) => b.data.createdAt.getTime(
   <h1 class="text-3xl font-black">All posts ({posts.length})</h1>
 
   <section class="mt-8">
-    <ul class="space-y-2">
-      {
-        posts.map((post) => (
-          <li>
-            <a href={getPostUrl(post.id)}>
-              <span class="tabular-nums">{post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}</span>
-              <span class="underline text-primary">{post.data.title}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+    <PostList posts={posts} />
   </section>
 
   <CategoryList slot="sidebar" />

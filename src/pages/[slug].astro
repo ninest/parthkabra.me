@@ -4,9 +4,9 @@ export const prerender = true;
 import type { GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import CategoryList from "../components/category-list.astro";
+import PostList from "../components/post-list.astro";
 import SidebarLayout from "../components/sidebar-layout.astro";
 import DefaultMetaPageLayout from "../components/pages/DefaultMetaPageLayout.astro";
-import { getPostUrl } from "../utils/links";
 import { getVisiblePosts } from "../utils/posts";
 
 export const getStaticPaths = (async () => {
@@ -78,18 +78,7 @@ function resolvePageSkin(name: string | undefined) {
     <h1 class="text-3xl font-black">{props.category.data.title} ({props.posts.length})</h1>
 
     <section class="mt-8">
-      <ul class="space-y-2">
-        {
-          props.posts.map((post) => (
-            <li>
-              <a href={getPostUrl(post.id)}>
-                <span class="tabular-nums">{post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}</span>
-                <span class="underline text-primary">{post.data.title}</span>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
+      <PostList posts={props.posts} />
     </section>
 
     <CategoryList slot="sidebar" />
