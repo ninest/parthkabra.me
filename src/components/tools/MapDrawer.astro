@@ -6,6 +6,7 @@ import Button from "../button.astro";
   <div id="mapdrawer-map" class="w-full h-full"></div>
 
   <div
+    id="md-controls"
     class="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-lg shadow px-3 py-2 backdrop-blur max-w-[calc(100%-2rem)]"
   >
     <Button id="md-mode-point" variant="secondary" class="text-sm">Point</Button>
@@ -20,7 +21,33 @@ import Button from "../button.astro";
       <Button id="md-clear" variant="secondary" class="text-sm">Clear all</Button>
       <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
     </div>
+    <span class="mx-1 h-5 w-px bg-border"></span>
+    <button
+      id="md-collapse-toggle"
+      type="button"
+      aria-label="Hide controls"
+      aria-expanded="true"
+      class="text-sm w-7 h-7 rounded hover:bg-muted flex items-center justify-center shrink-0 ml-auto"
+    >
+      <span id="md-collapse-icon" aria-hidden="true">▾</span>
+    </button>
   </div>
+
+  <style is:global>
+    /* When collapsed, hide every direct child of the control bar except the caret itself.
+       New buttons added inside the bar are automatically covered — no per-item wiring.
+       Padding collapses to a single unit so the bar becomes a square pill around the caret. */
+    #md-controls[data-collapsed="true"] > *:not(#md-collapse-toggle) {
+      display: none;
+    }
+    #md-controls[data-collapsed="true"] {
+      padding: 0.25rem;
+    }
+    /* Same glyph in both states; rotate 180deg when collapsed so it matches the expanded caret exactly. */
+    #md-controls[data-collapsed="true"] #md-collapse-icon {
+      transform: rotate(180deg);
+    }
+  </style>
 
   <div
     id="md-list-panel"
@@ -63,6 +90,24 @@ import Button from "../button.astro";
   const $listToggle = document.getElementById("md-list-toggle") as HTMLButtonElement;
   const $listCount = document.getElementById("md-list-count")!;
   const $listBody = document.getElementById("md-list-body")!;
+  const $controls = document.getElementById("md-controls")!;
+  const $collapseToggle = document.getElementById("md-collapse-toggle") as HTMLButtonElement;
+
+  // Sets data-collapsed on the bar; CSS above hides every child except the caret itself
+  // and rotates the caret icon 180deg. Persisted in localStorage so "view-only" survives reloads.
+  const COLLAPSE_STORAGE_KEY = "md-controls-collapsed";
+  function applyControlsCollapsed(collapsed: boolean) {
+    if (collapsed) $controls.setAttribute("data-collapsed", "true");
+    else $controls.removeAttribute("data-collapsed");
+    $collapseToggle.setAttribute("aria-expanded", String(!collapsed));
+    $collapseToggle.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
+  }
+  applyControlsCollapsed(localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1");
+  $collapseToggle.addEventListener("click", () => {
+    const next = $controls.getAttribute("data-collapsed") !== "true";
+    applyControlsCollapsed(next);
+    localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? "1" : "0");
+  });
 
   // --- Types ---
   type LngLat = [number, number];
