@@ -273,6 +273,7 @@ function microblogIdFromPath(ghPath: string): string | null {
 
 <script>
   import { actions } from "astro:actions";
+  import { compressImageToWebp, formatBytes } from "../../lib/image";
 
   const $root = document.getElementById("editor-root");
   if ($root) {
@@ -367,14 +368,44 @@ function microblogIdFromPath(ghPath: string): string | null {
 
     if ($uploadBtn && $imageUpload && $uploadStatus) {
       $uploadBtn.addEventListener("click", async () => {
-        const file = $imageUpload.files?.[0];
-        if (!file) return;
+        const original = $imageUpload.files?.[0];
+        if (!original) return;
 
+        $uploadBtn.textContent = "Compressing...";
+        $uploadStatus.className = "text-sm mt-1 block";
+        $uploadStatus.textContent = `Compressing ${formatBytes(original.size)}...`;
+
+        let toUpload: File;
+        try {
+          toUpload = await compressImageToWebp(original);
+        } catch {
+          toUpload = original;
+        }
+
+        // Astro's default actionBodySizeLimit is 1 MB; base64 inflates by ~4/3.
+        const ACTION_LIMIT = 1024 * 1024;
+        const estimatedBody = Math.ceil((toUpload.size * 4) / 3);
+
+        if (estimatedBody > ACTION_LIMIT) {
+          const passthrough = toUpload === original;
+          $uploadStatus.textContent = passthrough
+            ? `File too large (${formatBytes(toUpload.size)}). SVG/GIF/AVIF are uploaded as-is; please shrink manually.`
+            : `Compressed file still exceeds 1 MB (${formatBytes(toUpload.size)}). Try a smaller source image.`;
+          $uploadStatus.className = "text-sm text-red-600 mt-1 block";
+          $uploadBtn.textContent = "Upload";
+          return;
+        }
+
+        if (toUpload !== original) {
+          const pct = Math.round((1 - toUpload.size / original.size) * 100);
+          $uploadStatus.textContent = `Compressed ${formatBytes(original.size)} → ${formatBytes(toUpload.size)} (${pct}% smaller). Uploading...`;
+        } else {
+          $uploadStatus.textContent = `Uploading ${formatBytes(toUpload.size)}...`;
+        }
         $uploadBtn.textContent = "Uploading...";
-        $uploadStatus.textContent = "";
 
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", toUpload);
         formData.append("path", $root.dataset.imagePath!);
 
         const { data, error } = await actions.uploadImage(formData);
