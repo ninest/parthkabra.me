@@ -17,10 +17,6 @@ import Button from "../button.astro";
     <span class="mx-1 h-5 w-px bg-border"></span>
     <Button id="md-my-location" variant="secondary" class="text-sm">My location</Button>
     <span id="md-status" class="text-xs text-muted-foreground"></span>
-    <div class="flex items-center gap-2 pl-2">
-      <Button id="md-clear" variant="secondary" class="text-sm">Clear all</Button>
-      <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
-    </div>
     <span class="mx-1 h-5 w-px bg-border"></span>
     <button
       id="md-collapse-toggle"
@@ -53,14 +49,32 @@ import Button from "../button.astro";
     id="md-list-panel"
     class="hidden absolute top-4 left-4 right-4 sm:left-auto sm:w-80 max-w-[calc(100vw-2rem)] bg-background/90 border border-border rounded-lg shadow backdrop-blur overflow-hidden"
   >
-    <button
-      id="md-list-toggle"
-      type="button"
-      class="px-3 py-2 flex items-center justify-between gap-2 text-sm bg-muted/60 hover:bg-muted w-full"
+    <div class="flex items-stretch">
+      <button
+        id="md-list-toggle"
+        type="button"
+        class="flex-1 px-3 py-2 flex items-center justify-between gap-2 text-sm bg-muted/60 hover:bg-muted"
+      >
+        <span>Items</span>
+        <span id="md-list-count" class="text-muted-foreground text-xs">0</span>
+      </button>
+      <button
+        id="md-list-overflow"
+        type="button"
+        aria-label="More actions"
+        aria-expanded="false"
+        class="px-3 bg-muted/60 hover:bg-muted text-muted-foreground shrink-0 border-l border-border flex items-center"
+      >
+        <span aria-hidden="true">⋯</span>
+      </button>
+    </div>
+    <div
+      id="md-list-extras"
+      class="hidden flex-col gap-2 p-2 border-t border-border"
     >
-      <span>Items</span>
-      <span id="md-list-count" class="text-muted-foreground text-xs">0</span>
-    </button>
+      <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
+      <Button id="md-clear" variant="outline" class="text-sm text-error">Clear all</Button>
+    </div>
     <div
       id="md-list-body"
       class="hidden flex-col gap-2 p-2 max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto border-t border-border"
@@ -90,6 +104,8 @@ import Button from "../button.astro";
   const $listToggle = document.getElementById("md-list-toggle") as HTMLButtonElement;
   const $listCount = document.getElementById("md-list-count")!;
   const $listBody = document.getElementById("md-list-body")!;
+  const $listOverflow = document.getElementById("md-list-overflow") as HTMLButtonElement;
+  const $listExtras = document.getElementById("md-list-extras")!;
   const $controls = document.getElementById("md-controls")!;
   const $collapseToggle = document.getElementById("md-collapse-toggle") as HTMLButtonElement;
 
@@ -413,10 +429,26 @@ import Button from "../button.astro";
   }
   $listToggle.addEventListener("click", () => setListExpanded(!listExpanded));
 
-  // Close color popovers on any click outside the list.
+  // Toggles the list-level overflow panel (Copy link / Clear all).
+  // Closing always disarms the Clear button so reopening never shows a stale "Sure?" state.
+  function setListExtrasOpen(open: boolean) {
+    $listExtras.classList.toggle("hidden", !open);
+    $listExtras.classList.toggle("flex", open);
+    $listOverflow.setAttribute("aria-expanded", String(open));
+    if (!open) disarmClear();
+  }
+  $listOverflow.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setListExtrasOpen($listExtras.classList.contains("hidden"));
+  });
+
+  // Close per-row popovers and the list-level overflow on any click outside them.
   document.addEventListener("click", (e) => {
     const target = e.target as Node;
     if (!$listBody.contains(target)) closeAllRowExtras();
+    if (!$listExtras.contains(target) && !$listOverflow.contains(target)) {
+      setListExtrasOpen(false);
+    }
   });
 
   // --- URL state ---
@@ -846,6 +878,7 @@ import Button from "../button.astro";
       myLocationMarker.remove();
       myLocationMarker = null;
     }
+    setListExtrasOpen(false);
     rerender();
   });
 
