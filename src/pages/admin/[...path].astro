@@ -178,13 +178,13 @@ function microblogIdFromPath(ghPath: string): string | null {
             id="new-filename"
             type="text"
             placeholder="filename.mdx"
-            class="border border-border rounded px-2 py-1 font-mono text-sm w-64 mb-3 block shrink-0"
+            class="border border-border rounded px-2 py-1 font-mono w-64 mb-3 block shrink-0"
           />
         )}
 
         <textarea
           id="editor"
-          class="w-full flex-1 min-h-[75vh] lg:min-h-0 font-mono text-sm p-3 border border-border rounded bg-background text-foreground resize-none"
+          class="w-full flex-1 min-h-[75vh] lg:min-h-0 font-mono p-3 border border-border rounded bg-background text-foreground resize-none"
           style="tab-size: 2; -moz-tab-size: 2;"
         >{fileContent}</textarea>
       </div>
@@ -231,7 +231,7 @@ function microblogIdFromPath(ghPath: string): string | null {
             type="text"
             placeholder="Search content..."
             autocomplete="off"
-            class="rounded px-2 py-1 text-sm w-full"
+            class="rounded px-2 py-1 w-full"
           />
           <ul id="ref-results" class="mt-2 space-y-0.5 rounded overflow-hidden max-h-64 overflow-y-auto"></ul>
         </div>
