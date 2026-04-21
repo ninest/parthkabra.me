@@ -76,6 +76,7 @@ import Button from "../button.astro";
       class="hidden flex-col gap-2 p-2 border-t border-border"
     >
       <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
+      <Button id="md-toggle-labels" variant="secondary" class="text-sm">Hide map labels</Button>
       <Button id="md-clear" variant="outline" class="text-sm text-error">Clear all</Button>
     </div>
     <div
@@ -116,6 +117,7 @@ import Button from "../button.astro";
   const $myLocation = document.getElementById("md-my-location") as HTMLButtonElement;
   const $clear = document.getElementById("md-clear") as HTMLButtonElement;
   const $copyLink = document.getElementById("md-copy-link") as HTMLButtonElement;
+  const $toggleLabels = document.getElementById("md-toggle-labels") as HTMLButtonElement;
   const $status = document.getElementById("md-status")!;
   const $swatches = document.getElementById("md-swatches")!;
   const $listPanel = document.getElementById("md-list-panel")!;
@@ -798,6 +800,7 @@ import Button from "../button.astro";
 
     renderSwatches();
     renderList();
+    applyLabelsVisible();
   });
 
   // Apply primary (active) vs secondary (inactive) styling to a mode button.
@@ -910,6 +913,42 @@ import Button from "../button.astro";
   // Any click outside the clear button disarms it.
   document.addEventListener("click", (e) => {
     if (clearArmed && e.target !== $clear) disarmClear();
+  });
+
+  // --- Map labels (street names, places, POIs) visibility ---
+  // Toggles every symbol layer in the base style except our own drawing labels.
+  // Persists as ?hl=1 in the URL (absent = labels shown, the default).
+  const CUSTOM_LABEL_LAYER_IDS = new Set(["drawings-point-labels", "drawings-line-labels"]);
+  let labelsVisible = new URLSearchParams(window.location.search).get("hl") !== "1";
+
+  function applyLabelsVisible() {
+    if (!map.isStyleLoaded()) return;
+    const layers = map.getStyle().layers || [];
+    for (const layer of layers) {
+      if (layer.type !== "symbol") continue;
+      if (CUSTOM_LABEL_LAYER_IDS.has(layer.id)) continue;
+      map.setLayoutProperty(layer.id, "visibility", labelsVisible ? "visible" : "none");
+    }
+  }
+
+  function updateLabelsButton() {
+    $toggleLabels.textContent = labelsVisible ? "Hide map labels" : "Show map labels";
+  }
+  updateLabelsButton();
+
+  function writeLabelsParam() {
+    const url = new URL(window.location.href);
+    if (labelsVisible) url.searchParams.delete("hl");
+    else url.searchParams.set("hl", "1");
+    history.replaceState(null, "", url.toString());
+  }
+
+  $toggleLabels.addEventListener("click", (e) => {
+    e.stopPropagation();
+    labelsVisible = !labelsVisible;
+    updateLabelsButton();
+    applyLabelsVisible();
+    writeLabelsParam();
   });
 
   // --- Copy link ---
