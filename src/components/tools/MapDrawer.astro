@@ -46,8 +46,11 @@ import Button from "../button.astro";
   </style>
 
   <div
+    class="absolute top-4 left-4 right-4 sm:left-auto sm:w-80 max-w-[calc(100vw-2rem)] flex flex-col gap-2"
+  >
+  <div
     id="md-list-panel"
-    class="hidden absolute top-4 left-4 right-4 sm:left-auto sm:w-80 max-w-[calc(100vw-2rem)] bg-background/90 border border-border rounded-lg shadow backdrop-blur overflow-hidden"
+    class="hidden bg-background/90 border border-border rounded-lg shadow backdrop-blur overflow-hidden"
   >
     <div class="flex items-stretch">
       <button
@@ -81,6 +84,21 @@ import Button from "../button.astro";
     >
     </div>
   </div>
+
+  <input
+    id="md-search-input"
+    type="text"
+    placeholder="Search a place"
+    autocomplete="off"
+    spellcheck="false"
+    class="w-full px-3 py-1.5 text-base leading-tight bg-background/90 border border-border rounded-lg shadow backdrop-blur focus:outline-none"
+  />
+  <p
+    id="md-search-status"
+    class="hidden text-xs text-muted-foreground self-start bg-background/90 border border-border rounded px-2 py-0.5 backdrop-blur shadow"
+  >
+  </p>
+  </div>
 </div>
 
 <script>
@@ -88,7 +106,7 @@ import Button from "../button.astro";
   import "maplibre-gl/dist/maplibre-gl.css";
   import { buttonClasses } from "../button";
   import { inputClasses } from "../input";
-  import { reverseGeocode, geographicMidpoint } from "../../utils/geolocation";
+  import { reverseGeocode, geocode, geographicMidpoint } from "../../utils/geolocation";
 
   // --- DOM refs ---
   const $mapEl = document.getElementById("mapdrawer-map")!;
@@ -106,6 +124,8 @@ import Button from "../button.astro";
   const $listBody = document.getElementById("md-list-body")!;
   const $listOverflow = document.getElementById("md-list-overflow") as HTMLButtonElement;
   const $listExtras = document.getElementById("md-list-extras")!;
+  const $searchInput = document.getElementById("md-search-input") as HTMLInputElement;
+  const $searchStatus = document.getElementById("md-search-status")!;
   const $controls = document.getElementById("md-controls")!;
   const $collapseToggle = document.getElementById("md-collapse-toggle") as HTMLButtonElement;
 
@@ -163,6 +183,7 @@ import Button from "../button.astro";
   let features: DrawingFeature[] = [];
   let linePoints: LngLat[] = [];
   let myLocationMarker: maplibregl.Marker | null = null;
+  let searchMarker: maplibregl.Marker | null = null;
   let activeColorIdx = 0;
   // Counters are monotonic so two features never share an auto-name, even after edits.
   let pointCounter = 0;
@@ -878,6 +899,10 @@ import Button from "../button.astro";
       myLocationMarker.remove();
       myLocationMarker = null;
     }
+    if (searchMarker) {
+      searchMarker.remove();
+      searchMarker = null;
+    }
     setListExtrasOpen(false);
     rerender();
   });
@@ -926,6 +951,45 @@ import Button from "../button.astro";
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
+  });
+
+  // --- Search: forward-geocode a query and fly the map to it with an ephemeral dashed pin ---
+  // The pin is deliberately a dashed ring (not a solid marker) so it reads as "temporary / where you just looked"
+  // rather than a committed point. Replaced on each search; cleared by Clear all.
+  function setSearchStatus(text: string) {
+    $searchStatus.textContent = text;
+    $searchStatus.classList.toggle("hidden", !text);
+  }
+
+  async function runSearch() {
+    const q = $searchInput.value.trim();
+    if (!q) return;
+    setSearchStatus("Searching...");
+    const result = await geocode(q);
+    if (!result) {
+      setSearchStatus("No results");
+      return;
+    }
+    setSearchStatus("");
+    if (searchMarker) searchMarker.remove();
+    const el = document.createElement("div");
+    el.style.cssText =
+      "width:1.75rem;height:1.75rem;border:0.156rem dashed #2563eb;background:rgba(37,99,235,0.15);border-radius:50%;box-sizing:border-box;";
+    searchMarker = new maplibregl.Marker({ element: el })
+      .setLngLat([result.lng, result.lat])
+      .addTo(map);
+    map.flyTo({ center: [result.lng, result.lat], zoom: 14 });
+  }
+
+  $searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch();
+    }
+  });
+  // Clear a lingering "No results" as soon as the user starts editing again.
+  $searchInput.addEventListener("input", () => {
+    if ($searchStatus.textContent === "No results") setSearchStatus("");
   });
 </script>
 
