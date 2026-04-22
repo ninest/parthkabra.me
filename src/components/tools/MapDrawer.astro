@@ -9,13 +9,13 @@ import CrosshairIcon from "../icons/crosshair.astro";
 
   <div
     id="md-controls"
-    class="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-lg shadow px-3 py-2 backdrop-blur max-w-[calc(100%-2rem)]"
+    class="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-xl shadow px-3 py-2 backdrop-blur max-w-[calc(100%-2rem)]"
   >
     <Button id="md-mode-point" variant="secondary" class="text-sm">Point</Button>
     <Button id="md-mode-line" variant="secondary" class="text-sm">Line</Button>
     <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
     <span class="mx-1 h-5 w-px bg-border"></span>
-    <div id="md-swatches" class="flex flex-wrap items-center gap-1"></div>
+    <div id="md-swatches" class="flex items-center gap-1 overflow-x-auto max-w-[9rem] min-w-0 px-1 py-1"></div>
     <button
       id="md-collapse-toggle"
       type="button"
@@ -41,6 +41,9 @@ import CrosshairIcon from "../icons/crosshair.astro";
     #md-controls[data-collapsed="true"] #md-collapse-icon {
       transform: rotate(180deg);
     }
+    /* Hide scrollbar chrome on the swatch row — the cap is small and the bar would be visual noise. */
+    #md-swatches { scrollbar-width: none; }
+    #md-swatches::-webkit-scrollbar { display: none; }
   </style>
 
   <div
@@ -198,12 +201,9 @@ import CrosshairIcon from "../icons/crosshair.astro";
     btn.type = "button";
     btn.setAttribute("aria-label", label);
     btn.className =
-      "w-8 h-8 rounded flex items-center justify-center shrink-0 " +
-      (active ? "ring-2 ring-primary" : "hover:bg-muted");
-    const dot = document.createElement("span");
-    dot.className = "block w-[18px] h-[18px] rounded-full border border-border";
-    dot.style.backgroundColor = hex;
-    btn.appendChild(dot);
+      "w-5 h-5 rounded-md shrink-0 border border-border ring-2 ring-offset-1 ring-offset-background " +
+      (active ? "ring-primary" : "ring-transparent hover:brightness-110");
+    btn.style.backgroundColor = hex;
     return btn;
   }
 
@@ -635,6 +635,7 @@ import CrosshairIcon from "../icons/crosshair.astro";
     });
     linePoints = [];
     rerender();
+    setMode(null);
   }
   $finishLine.addEventListener("click", finishLine);
 
@@ -650,6 +651,7 @@ import CrosshairIcon from "../icons/crosshair.astro";
         properties: { name: `Point ${pointCounter}`, colorIdx: activeColorIdx },
       });
       rerender();
+      setMode(null);
     } else if (mode === "line") {
       linePoints.push(coord);
       rerender();
