@@ -778,7 +778,7 @@ import CrosshairIcon from "../icons/crosshair.astro";
         const { latitude, longitude } = pos.coords;
         const el = document.createElement("div");
         el.style.cssText =
-          "width:1.125rem;height:1.125rem;background:#2563eb;border:0.156rem solid white;border-radius:50%;box-shadow:0 0.125rem 0.375rem rgba(0,0,0,.35);";
+          "width:1.125rem;height:1.125rem;background:rgba(37,99,235,.55);border:0.156rem solid rgba(255,255,255,.85);border-radius:50%;box-shadow:0 0.125rem 0.375rem rgba(0,0,0,.25);";
         myLocationMarker = new maplibregl.Marker({ element: el })
           .setLngLat([longitude, latitude])
           .addTo(map);
