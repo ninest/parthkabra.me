@@ -113,14 +113,17 @@ import Button from "../button.astro";
     SRC_DRAWINGS,
     SRC_PREVIEW,
     getFeatureCoord,
-    encodeFeaturesToSearchParam,
-    decodeFeaturesFromSearchParam,
     createDrawingSourcesAndLayers,
     type DrawingFeature,
     type FeatureCollection,
     type FeatureProps,
     type LngLat,
   } from "../../utils/map-drawing";
+  import {
+    readUrlState,
+    writeDrawingsParam,
+    writeLabelsParam,
+  } from "../../utils/map-drawing-url";
 
   // === DOM refs ===
   const $mapEl = document.getElementById("mapdrawer-map")!;
@@ -446,26 +449,20 @@ import Button from "../button.astro";
     }
   });
 
-  // === URL state (wraps utils/map-drawing) ===
+  // === URL state (wraps utils/map-drawing-url) ===
 
-  // Serialize features to the "d" query param. See encodeFeaturesToSearchParam for the format.
+  // Parse every drawer-owned param up front (features, counters, labels flag) so map
+  // init can fit bounds and labels apply on the first frame — one read, one source of truth.
+  const initialUrlState = readUrlState(new URLSearchParams(window.location.search));
+  features = initialUrlState.features;
+  pointCounter = initialUrlState.pointCounter;
+  lineCounter = initialUrlState.lineCounter;
+
+  // Push `features` into the URL's drawings params.
   function writeUrl() {
     const url = new URL(window.location.href);
-    const param = encodeFeaturesToSearchParam(features);
-    if (param === null) url.searchParams.delete("d");
-    else url.searchParams.set("d", param);
+    writeDrawingsParam(url, features);
     history.replaceState(null, "", url.toString());
-  }
-
-  // === Init features from URL ===
-  // Load before map creation so we can fit the initial bounds on the first frame.
-  {
-    const parsed = decodeFeaturesFromSearchParam(
-      new URLSearchParams(window.location.search).get("d"),
-    );
-    features = parsed.features;
-    pointCounter = parsed.pointCounter;
-    lineCounter = parsed.lineCounter;
   }
   let initialBounds: maplibregl.LngLatBounds | null = null;
   if (features.length > 0) {
@@ -702,11 +699,14 @@ import Button from "../button.astro";
   // Toggles every symbol layer in the base style except our own drawing labels.
   // Persists as ?hl=1 in the URL (absent = labels shown, the default).
   const CUSTOM_LABEL_LAYER_IDS = new Set(["drawings-point-labels", "drawings-line-labels"]);
-  let labelsVisible = new URLSearchParams(window.location.search).get("hl") !== "1";
+  let labelsVisible = initialUrlState.labelsVisible;
 
   function applyLabelsVisible() {
-    if (!map.isStyleLoaded()) return;
-    const layers = map.getStyle().layers || [];
+    // Don't gate on map.isStyleLoaded(): adding our drawing sources inside the load handler
+    // flips isStyleLoaded() false while they settle, which used to make the reload path bail
+    // out and leave hl=1 unrespected. The base symbol layers already exist in getStyle().layers
+    // by the time load fires, and setLayoutProperty queues the change safely either way.
+    const layers = map.getStyle()?.layers || [];
     for (const layer of layers) {
       if (layer.type !== "symbol") continue;
       if (CUSTOM_LABEL_LAYER_IDS.has(layer.id)) continue;
@@ -719,19 +719,14 @@ import Button from "../button.astro";
   }
   updateLabelsButton();
 
-  function writeLabelsParam() {
-    const url = new URL(window.location.href);
-    if (labelsVisible) url.searchParams.delete("hl");
-    else url.searchParams.set("hl", "1");
-    history.replaceState(null, "", url.toString());
-  }
-
   $toggleLabels.addEventListener("click", (e) => {
     e.stopPropagation();
     labelsVisible = !labelsVisible;
     updateLabelsButton();
     applyLabelsVisible();
-    writeLabelsParam();
+    const url = new URL(window.location.href);
+    writeLabelsParam(url, labelsVisible);
+    history.replaceState(null, "", url.toString());
   });
 
   // === Copy link ===
