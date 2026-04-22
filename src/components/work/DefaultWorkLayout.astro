@@ -24,7 +24,7 @@ const relatedItems = await resolveRelated(entry.data.related);
   ]}
 >
   <div class="flex items-center gap-3">
-    {entry.data.icon && <img src={entry.data.icon} alt="" class="w-6 h-6" />}
+    {entry.data.icon && <img src={entry.data.icon} alt={`${entry.data.title} logo`} class="w-6 h-6" />}
     <h1 class="text-3xl font-black">{entry.data.title}</h1>
   </div>
 

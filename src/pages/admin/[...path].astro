@@ -139,6 +139,10 @@ function toWebPath(ghPath: string): string {
   return "/" + ghPath.replace(/^public\//, "");
 }
 
+function imageAltFromName(name: string): string {
+  return name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+}
+
 // Extract the microblog entry id from a file path (e.g. "content/microblog/2026/foo.mdx" → "2026/foo").
 function microblogIdFromPath(ghPath: string): string | null {
   const m = ghPath.match(/^content\/microblog\/(.+)\.mdx$/);
@@ -244,10 +248,10 @@ function microblogIdFromPath(ghPath: string): string | null {
               <div class="grid grid-cols-2 gap-2 mb-3">
                 {images.map((img) => (
                   <div class="border border-border rounded p-1">
-                    <img src={toWebPath(img.path)} class="w-full" loading="lazy" />
+                    <img src={toWebPath(img.path)} alt="" class="w-full" loading="lazy" />
                     <button
                       class="copy-img-ref text-xs font-mono mt-1 truncate block w-full text-left underline cursor-pointer"
-                      data-ref={`![](${toWebPath(img.path)})`}
+                      data-ref={`![${imageAltFromName(img.name)}](${toWebPath(img.path)})`}
                     >
                       {img.name}
                     </button>

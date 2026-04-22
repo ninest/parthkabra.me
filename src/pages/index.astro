@@ -76,7 +76,7 @@ const posts = (await getVisiblePosts())
                 <a href={getWorkUrl(ex.id)} class="block py-1 px-2">
                   <span class="inline-flex items-center gap-1.5">
                     <span class="inline-block w-4 h-4 shrink-0">
-                      {ex.data.icon && <img src={ex.data.icon} alt="" class="w-4 h-4" />}
+                      {ex.data.icon && <img src={ex.data.icon} alt={`${ex.data.title} logo`} class="w-4 h-4" />}
                     </span>
                     {ex.data.title}
                   </span>

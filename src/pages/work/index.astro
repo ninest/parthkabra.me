@@ -26,7 +26,7 @@ const work = (await getCollection("workExperience")).sort((a, b) => (b.data.orde
               <a href={getWorkUrl(ex.id)} class="block">
                 <div class="flex items-center gap-3">
                   <span class="inline-block w-4 h-4 shrink-0">
-                    {ex.data.icon && <img src={ex.data.icon} alt="" class="w-4 h-4" />}
+                    {ex.data.icon && <img src={ex.data.icon} alt={`${ex.data.title} logo`} class="w-4 h-4" />}
                   </span>
                   <div class="font-bold">{ex.data.title}</div>
                 </div>
