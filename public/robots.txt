@@ -1,3 +1,23 @@
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /opt-out-analytics
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /opt-out-analytics
+
+User-agent: GPTBot
+Allow: /
+Disallow: /opt-out-analytics
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /opt-out-analytics
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /opt-out-analytics
+
 User-agent: *
 Allow: /
 Disallow: /opt-out-analytics
