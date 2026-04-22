@@ -1,5 +1,7 @@
 ---
 import Button from "../button.astro";
+import SearchIcon from "../icons/search.astro";
+import CrosshairIcon from "../icons/crosshair.astro";
 ---
 
 <div id="mapdrawer" class="not-typography relative w-full h-full">
@@ -14,10 +16,6 @@ import Button from "../button.astro";
     <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
     <span class="mx-1 h-5 w-px bg-border"></span>
     <div id="md-swatches" class="flex flex-wrap items-center gap-1"></div>
-    <span class="mx-1 h-5 w-px bg-border"></span>
-    <Button id="md-my-location" variant="secondary" class="text-sm">My location</Button>
-    <span id="md-status" class="text-xs text-muted-foreground"></span>
-    <span class="mx-1 h-5 w-px bg-border"></span>
     <button
       id="md-collapse-toggle"
       type="button"
@@ -86,14 +84,29 @@ import Button from "../button.astro";
     </div>
   </div>
 
-  <input
-    id="md-search-input"
-    type="text"
-    placeholder="Search a place"
-    autocomplete="off"
-    spellcheck="false"
-    class="w-full px-3 py-1.5 text-base leading-tight bg-background/90 border border-border rounded-lg shadow backdrop-blur focus:outline-none"
-  />
+  <div class="flex items-stretch gap-2">
+    <div class="relative flex-1">
+      <SearchIcon
+        class="absolute left-2.5 inset-y-0 my-auto z-10 w-4 h-4 text-muted-foreground pointer-events-none"
+      />
+      <input
+        id="md-search-input"
+        type="text"
+        placeholder="Search places"
+        autocomplete="off"
+        spellcheck="false"
+        class="w-full pl-8 pr-3 py-1.5 text-base leading-tight bg-background/90 border border-border rounded-lg shadow backdrop-blur focus:outline-none"
+      />
+    </div>
+    <button
+      id="md-my-location"
+      type="button"
+      aria-label="Use my location"
+      class="shrink-0 px-2.5 bg-background/90 border border-border rounded-lg shadow backdrop-blur flex items-center justify-center hover:bg-muted"
+    >
+      <CrosshairIcon class="w-4 h-4" />
+    </button>
+  </div>
   <p
     id="md-search-status"
     class="hidden text-xs text-muted-foreground self-start bg-background/90 border border-border rounded px-2 py-0.5 backdrop-blur shadow"
@@ -134,7 +147,6 @@ import Button from "../button.astro";
   const $clear = document.getElementById("md-clear") as HTMLButtonElement;
   const $copyLink = document.getElementById("md-copy-link") as HTMLButtonElement;
   const $toggleLabels = document.getElementById("md-toggle-labels") as HTMLButtonElement;
-  const $status = document.getElementById("md-status")!;
   const $swatches = document.getElementById("md-swatches")!;
   const $listPanel = document.getElementById("md-list-panel")!;
   const $listToggle = document.getElementById("md-list-toggle") as HTMLButtonElement;
@@ -737,8 +749,8 @@ import Button from "../button.astro";
       $copyLink.textContent = "Copied!";
       setTimeout(() => ($copyLink.textContent = prev), 1500);
     } catch {
-      $status.textContent = "Copy failed";
-      setTimeout(() => ($status.textContent = ""), 1500);
+      setSearchStatus("Copy failed");
+      setTimeout(() => setSearchStatus(""), 1500);
     }
   });
 
@@ -746,10 +758,10 @@ import Button from "../button.astro";
   // Non-persistent blue marker + flyTo.
   $myLocation.addEventListener("click", () => {
     if (!navigator.geolocation) {
-      $status.textContent = "Geolocation unavailable";
+      setSearchStatus("Geolocation unavailable");
       return;
     }
-    $status.textContent = "Locating...";
+    setSearchStatus("Locating...");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -761,11 +773,11 @@ import Button from "../button.astro";
           .setLngLat([longitude, latitude])
           .addTo(map);
         map.flyTo({ center: [longitude, latitude], zoom: 14 });
-        $status.textContent = "";
+        setSearchStatus("");
       },
       () => {
-        $status.textContent = "Location denied";
-        setTimeout(() => ($status.textContent = ""), 2000);
+        setSearchStatus("Location denied");
+        setTimeout(() => setSearchStatus(""), 2000);
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
