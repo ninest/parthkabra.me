@@ -107,9 +107,22 @@ import Button from "../button.astro";
   import "maplibre-gl/dist/maplibre-gl.css";
   import { buttonClasses } from "../button";
   import { inputClasses } from "../input";
-  import { reverseGeocode, geocode, geographicMidpoint } from "../../utils/geolocation";
+  import { reverseGeocode, geocode } from "../../utils/geolocation";
+  import {
+    PALETTE,
+    SRC_DRAWINGS,
+    SRC_PREVIEW,
+    getFeatureCoord,
+    encodeFeaturesToSearchParam,
+    decodeFeaturesFromSearchParam,
+    createDrawingSourcesAndLayers,
+    type DrawingFeature,
+    type FeatureCollection,
+    type FeatureProps,
+    type LngLat,
+  } from "../../utils/map-drawing";
 
-  // --- DOM refs ---
+  // === DOM refs ===
   const $mapEl = document.getElementById("mapdrawer-map")!;
   const $modePoint = document.getElementById("md-mode-point") as HTMLButtonElement;
   const $modeLine = document.getElementById("md-mode-line") as HTMLButtonElement;
@@ -131,6 +144,20 @@ import Button from "../button.astro";
   const $controls = document.getElementById("md-controls")!;
   const $collapseToggle = document.getElementById("md-collapse-toggle") as HTMLButtonElement;
 
+  // === State ===
+  // mode is null until the user explicitly picks Point or Line — map clicks are ignored otherwise.
+  let mode: "point" | "line" | null = null;
+  let features: DrawingFeature[] = [];
+  let linePoints: LngLat[] = [];
+  let myLocationMarker: maplibregl.Marker | null = null;
+  let searchMarker: maplibregl.Marker | null = null;
+  let activeColorIdx = 0;
+  // Counters are monotonic so two features never share an auto-name, even after edits.
+  let pointCounter = 0;
+  let lineCounter = 0;
+  let listExpanded = false;
+
+  // === Collapse toggle ===
   // Sets data-collapsed on the bar; CSS above hides every child except the caret itself
   // and rotates the caret icon 180deg. Persisted in localStorage so "view-only" survives reloads.
   const COLLAPSE_STORAGE_KEY = "md-controls-collapsed";
@@ -147,55 +174,7 @@ import Button from "../button.astro";
     localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? "1" : "0");
   });
 
-  // --- Types ---
-  type LngLat = [number, number];
-  type FeatureProps = { name: string; colorIdx: number; hideLabel?: boolean };
-  type PointFeature = {
-    type: "Feature";
-    geometry: { type: "Point"; coordinates: LngLat };
-    properties: FeatureProps;
-  };
-  type LineFeature = {
-    type: "Feature";
-    geometry: { type: "LineString"; coordinates: LngLat[] };
-    properties: FeatureProps;
-  };
-  type DrawingFeature = PointFeature | LineFeature;
-  type FeatureCollection = {
-    type: "FeatureCollection";
-    features: DrawingFeature[];
-  };
-
-  // --- Constants ---
-  // [label, hex]. Index into this array is the colorIdx stored on each feature.
-  // Gray sits near 50% lightness so it reads well in both light mode and the inverted dark-mode canvas.
-  const PALETTE: [string, string][] = [
-    ["red", "#dc2626"],
-    ["blue", "#2563eb"],
-    ["green", "#16a34a"],
-    ["yellow", "#eab308"],
-    ["gray", "#737373"],
-  ];
-  const SRC_DRAWINGS = "drawings";
-  const SRC_PREVIEW = "drawings-preview";
-
-  // --- State ---
-  // mode is null until the user explicitly picks Point or Line — map clicks are ignored otherwise.
-  let mode: "point" | "line" | null = null;
-  let features: DrawingFeature[] = [];
-  let linePoints: LngLat[] = [];
-  let myLocationMarker: maplibregl.Marker | null = null;
-  let searchMarker: maplibregl.Marker | null = null;
-  let activeColorIdx = 0;
-  // Counters are monotonic so two features never share an auto-name, even after edits.
-  let pointCounter = 0;
-  let lineCounter = 0;
-  let listExpanded = false;
-
-  // Round to 5 decimals (~1.1m) to keep URLs short.
-  function r(n: number): number {
-    return Math.round(n * 1e5) / 1e5;
-  }
+  // === Swatch rendering ===
 
   // Build a round colored swatch button of the given hex color.
   function makeSwatchButton(hex: string, label: string, active: boolean): HTMLButtonElement {
@@ -233,6 +212,8 @@ import Button from "../button.astro";
     }
   }
 
+  // === Row extras & address cache ===
+
   // Close any open per-row disclosure and disarm any "Sure?" delete buttons inside.
   function closeAllRowExtras() {
     $listBody.querySelectorAll("[data-row-extra]").forEach((el) => {
@@ -249,17 +230,6 @@ import Button from "../button.astro";
   // resolved when the user opens a feature's extras panel, to keep Nominatim traffic minimal.
   const addressCache = new WeakMap<DrawingFeature, string | null>();
   const addressPending = new WeakMap<DrawingFeature, Promise<string | null>>();
-
-  // For points, use the coordinate directly; for lines, use the geographic midpoint of the path
-  // so the resolved address represents the line's rough center.
-  function getFeatureCoord(f: DrawingFeature): { lat: number; lng: number } {
-    if (f.geometry.type === "Point") {
-      const [lng, lat] = f.geometry.coordinates;
-      return { lat, lng };
-    }
-    const pts = f.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }));
-    return geographicMidpoint(pts);
-  }
 
   // Kick off reverse geocoding for a feature if we haven't already. Re-runs onUpdate
   // after the result lands so the DOM bound to the extras panel can refresh.
@@ -278,6 +248,8 @@ import Button from "../button.astro";
     addressPending.set(f, p);
     onUpdate();
   }
+
+  // === Feature list rendering ===
 
   // Render the right-side list of features. One row per feature: color chip, name input, kind label.
   // e.g. "● [Home________] point" with a color popover below that opens on chip tap.
@@ -474,117 +446,27 @@ import Button from "../button.astro";
     }
   });
 
-  // --- URL state ---
-  // Serialize features to ?d=p:colorIdx:encodedName:lat,lng|l:colorIdx:encodedName:lat,lng;...
+  // === URL state (wraps utils/map-drawing) ===
+
+  // Serialize features to the "d" query param. See encodeFeaturesToSearchParam for the format.
   function writeUrl() {
     const url = new URL(window.location.href);
-    if (features.length === 0) {
-      url.searchParams.delete("d");
-    } else {
-      const parts: string[] = [];
-      for (const f of features) {
-        const { colorIdx, name, hideLabel } = f.properties;
-        const encName = encodeURIComponent(name);
-        // "h" prefix on the colorIdx segment signals label hidden; absence = shown.
-        const colorSeg = hideLabel ? `h${colorIdx}` : `${colorIdx}`;
-        if (f.geometry.type === "Point") {
-          const [lng, lat] = f.geometry.coordinates;
-          parts.push(`p:${colorSeg}:${encName}:${r(lat)},${r(lng)}`);
-        } else {
-          const coords = f.geometry.coordinates
-            .map(([lng, lat]) => `${r(lat)},${r(lng)}`)
-            .join(";");
-          parts.push(`l:${colorSeg}:${encName}:${coords}`);
-        }
-      }
-      url.searchParams.set("d", parts.join("|"));
-    }
+    const param = encodeFeaturesToSearchParam(features);
+    if (param === null) url.searchParams.delete("d");
+    else url.searchParams.set("d", param);
     history.replaceState(null, "", url.toString());
   }
 
-  // Parse ?d=... back into features. Supports new (p:idx:name:lat,lng) and legacy (p:lat,lng) formats.
-  // Unknown/garbled entries are dropped silently.
-  function readUrl(): DrawingFeature[] {
-    const param = new URLSearchParams(window.location.search).get("d");
-    if (!param) return [];
-    const result: DrawingFeature[] = [];
-    for (const entry of param.split("|")) {
-      const colon = entry.indexOf(":");
-      if (colon < 0) continue;
-      const kind = entry.slice(0, colon);
-      const body = entry.slice(colon + 1);
-
-      // Detect new format: body starts with an optional "h" (hide-label) + integer colorIdx,
-      // followed by ":name:coords". E.g. "2:Home:..." or "h2:Home:...".
-      let colorIdx = 0;
-      let hideLabel = false;
-      let name = "";
-      let coordBody = body;
-      const firstColon = body.indexOf(":");
-      if (firstColon >= 0) {
-        const maybeIdx = body.slice(0, firstColon);
-        const m = maybeIdx.match(/^(h?)(\d+)$/);
-        if (m && parseInt(m[2]) < PALETTE.length) {
-          const rest = body.slice(firstColon + 1);
-          const secondColon = rest.indexOf(":");
-          if (secondColon >= 0) {
-            hideLabel = m[1] === "h";
-            colorIdx = parseInt(m[2]);
-            name = decodeURIComponent(rest.slice(0, secondColon));
-            coordBody = rest.slice(secondColon + 1);
-          }
-        }
-      }
-
-      if (kind === "p") {
-        const [latStr, lngStr] = coordBody.split(",");
-        const lat = parseFloat(latStr);
-        const lng = parseFloat(lngStr);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          if (!name) {
-            pointCounter++;
-            name = `Point ${pointCounter}`;
-          }
-          result.push({
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [lng, lat] },
-            properties: { name, colorIdx, hideLabel },
-          });
-        }
-      } else if (kind === "l") {
-        const coords: LngLat[] = [];
-        for (const pair of coordBody.split(";")) {
-          const [latStr, lngStr] = pair.split(",");
-          const lat = parseFloat(latStr);
-          const lng = parseFloat(lngStr);
-          if (!isNaN(lat) && !isNaN(lng)) coords.push([lng, lat]);
-        }
-        if (coords.length >= 2) {
-          if (!name) {
-            lineCounter++;
-            name = `Line ${lineCounter}`;
-          }
-          result.push({
-            type: "Feature",
-            geometry: { type: "LineString", coordinates: coords },
-            properties: { name, colorIdx, hideLabel },
-          });
-        }
-      }
-    }
-    // Bump counters past any user-edited names that happen to match "Point N" / "Line N"
-    // (or legacy "Dot N" from older shared URLs) so next placement doesn't collide.
-    for (const f of result) {
-      const m = f.properties.name.match(/^(?:Point|Dot) (\d+)$/);
-      if (m) pointCounter = Math.max(pointCounter, parseInt(m[1]));
-      const m2 = f.properties.name.match(/^Line (\d+)$/);
-      if (m2) lineCounter = Math.max(lineCounter, parseInt(m2[1]));
-    }
-    return result;
+  // === Init features from URL ===
+  // Load before map creation so we can fit the initial bounds on the first frame.
+  {
+    const parsed = decodeFeaturesFromSearchParam(
+      new URLSearchParams(window.location.search).get("d"),
+    );
+    features = parsed.features;
+    pointCounter = parsed.pointCounter;
+    lineCounter = parsed.lineCounter;
   }
-
-  // --- Init features from URL before map creation (for initial fit) ---
-  features = readUrl();
   let initialBounds: maplibregl.LngLatBounds | null = null;
   if (features.length > 0) {
     initialBounds = new maplibregl.LngLatBounds();
@@ -597,7 +479,7 @@ import Button from "../button.astro";
     }
   }
 
-  // --- Map ---
+  // === Map init ===
   // Default to Boston when no drawing is loaded from the URL — users can hit "My location" to jump elsewhere.
   const BOSTON: LngLat = [-71.0589, 42.3601];
   const map = new maplibregl.Map({
@@ -623,7 +505,8 @@ import Button from "../button.astro";
     console.error("[MapDrawer] map error:", e.error ?? e);
   });
 
-  // Dark mode — invert canvas when site is in dark mode.
+  // === Dark mode ===
+  // Invert canvas when site is in dark mode.
   function applyDarkMode() {
     const isDark = document.documentElement.classList.contains("dark");
     const canvas = $mapEl.querySelector("canvas");
@@ -635,6 +518,8 @@ import Button from "../button.astro";
     attributes: true,
     attributeFilter: ["class"],
   });
+
+  // === Collection builders & rerender ===
 
   // Build the FeatureCollection currently rendered as the committed drawings.
   function collection(): FeatureCollection {
@@ -684,124 +569,20 @@ import Button from "../button.astro";
     writeUrl();
   }
 
-  // Data-driven color expression — picks the hex for each feature based on properties.colorIdx.
-  const COLOR_MATCH: any = [
-    "match",
-    ["get", "colorIdx"],
-    ...PALETTE.flatMap(([, hex], i) => [i, hex]),
-    /* default */ PALETTE[0][1],
-  ];
-
+  // === Map load: add sources + layers ===
   map.on("load", () => {
     applyDarkMode();
-
-    // Committed drawings source + layers.
-    map.addSource(SRC_DRAWINGS, { type: "geojson", data: collection() as any });
-    map.addLayer({
-      id: "drawings-lines",
-      type: "line",
-      source: SRC_DRAWINGS,
-      filter: ["==", ["geometry-type"], "LineString"],
-      paint: { "line-color": COLOR_MATCH, "line-width": 3 },
-      layout: { "line-cap": "round", "line-join": "round" },
+    createDrawingSourcesAndLayers(map, {
+      initialDrawings: collection(),
+      initialPreview: previewCollection(),
+      initialPreviewHex: PALETTE[activeColorIdx][1],
     });
-    map.addLayer({
-      id: "drawings-points",
-      type: "circle",
-      source: SRC_DRAWINGS,
-      filter: ["==", ["geometry-type"], "Point"],
-      paint: {
-        "circle-radius": 6,
-        "circle-color": COLOR_MATCH,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 2,
-      },
-    });
-
-    // Labels. Black text + white halo reads in both light and (inverted) dark mode.
-    map.addLayer({
-      id: "drawings-point-labels",
-      type: "symbol",
-      source: SRC_DRAWINGS,
-      filter: [
-        "all",
-        ["==", ["geometry-type"], "Point"],
-        ["!=", ["get", "hideLabel"], true],
-      ],
-      layout: {
-        "text-field": ["get", "name"],
-        "text-size": 12,
-        "text-offset": [0, 0.7],
-        "text-anchor": "top",
-        "text-allow-overlap": false,
-        "text-optional": true,
-      },
-      paint: {
-        "text-color": "#111111",
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1.5,
-      },
-    });
-    map.addLayer({
-      id: "drawings-line-labels",
-      type: "symbol",
-      source: SRC_DRAWINGS,
-      filter: [
-        "all",
-        ["==", ["geometry-type"], "LineString"],
-        ["!=", ["get", "hideLabel"], true],
-      ],
-      layout: {
-        "text-field": ["get", "name"],
-        "text-size": 12,
-        "symbol-placement": "line-center",
-        "text-allow-overlap": false,
-        "text-optional": true,
-      },
-      paint: {
-        "text-color": "#111111",
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1.5,
-      },
-    });
-
-    // In-progress line preview — active color, reduced opacity to distinguish from committed.
-    // Paint colors are kept in sync with activeColorIdx via setActiveColor().
-    const activeHex = PALETTE[activeColorIdx][1];
-    map.addSource(SRC_PREVIEW, { type: "geojson", data: previewCollection() as any });
-    map.addLayer({
-      id: "preview-line",
-      type: "line",
-      source: SRC_PREVIEW,
-      filter: ["==", ["geometry-type"], "LineString"],
-      paint: {
-        "line-color": activeHex,
-        "line-width": 3,
-        "line-opacity": 0.8,
-        // Tiny dash + round cap = circular dots, clearly signalling the line is still in-progress.
-        // A non-zero dash length renders more reliably than [0, x] across MapLibre versions.
-        "line-dasharray": [0.1, 2],
-      },
-      layout: { "line-cap": "round", "line-join": "round" },
-    });
-    map.addLayer({
-      id: "preview-point",
-      type: "circle",
-      source: SRC_PREVIEW,
-      filter: ["==", ["geometry-type"], "Point"],
-      paint: {
-        "circle-radius": 5,
-        "circle-color": activeHex,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 2,
-        "circle-opacity": 0.7,
-      },
-    });
-
     renderSwatches();
     renderList();
     applyLabelsVisible();
   });
+
+  // === Mode (point / line) ===
 
   // Apply primary (active) vs secondary (inactive) styling to a mode button.
   function styleButton(btn: HTMLButtonElement, active: boolean) {
@@ -831,7 +612,9 @@ import Button from "../button.astro";
   $modePoint.addEventListener("click", () => setMode(mode === "point" ? null : "point"));
   $modeLine.addEventListener("click", () => setMode(mode === "line" ? null : "line"));
 
-  // --- Finish line: commit in-progress line to features ---
+  // === Finish line / click handlers ===
+
+  // Commit the in-progress line to features.
   function finishLine() {
     if (linePoints.length < 2) return;
     lineCounter++;
@@ -845,7 +628,7 @@ import Button from "../button.astro";
   }
   $finishLine.addEventListener("click", finishLine);
 
-  // --- Map click: add point, or append to in-progress line. No-op if no mode is active. ---
+  // Map click: add point, or append to in-progress line. No-op if no mode is active.
   map.on("click", (e) => {
     if (mode === null) return;
     const coord: LngLat = [e.lngLat.lng, e.lngLat.lat];
@@ -870,7 +653,7 @@ import Button from "../button.astro";
     finishLine();
   });
 
-  // --- Clear all (two-step confirmation) ---
+  // === Clear all (two-step) ===
   // First click arms the button ("Sure?"); a second click within the timeout performs the wipe.
   // Clicking anywhere else, or waiting 3s, disarms it.
   let clearArmed = false;
@@ -915,7 +698,7 @@ import Button from "../button.astro";
     if (clearArmed && e.target !== $clear) disarmClear();
   });
 
-  // --- Map labels (street names, places, POIs) visibility ---
+  // === Map labels visibility ===
   // Toggles every symbol layer in the base style except our own drawing labels.
   // Persists as ?hl=1 in the URL (absent = labels shown, the default).
   const CUSTOM_LABEL_LAYER_IDS = new Set(["drawings-point-labels", "drawings-line-labels"]);
@@ -951,7 +734,7 @@ import Button from "../button.astro";
     writeLabelsParam();
   });
 
-  // --- Copy link ---
+  // === Copy link ===
   $copyLink.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -964,7 +747,8 @@ import Button from "../button.astro";
     }
   });
 
-  // --- My location: non-persistent blue marker + flyTo ---
+  // === My location ===
+  // Non-persistent blue marker + flyTo.
   $myLocation.addEventListener("click", () => {
     if (!navigator.geolocation) {
       $status.textContent = "Geolocation unavailable";
@@ -992,9 +776,10 @@ import Button from "../button.astro";
     );
   });
 
-  // --- Search: forward-geocode a query and fly the map to it with an ephemeral dashed pin ---
-  // The pin is deliberately a dashed ring (not a solid marker) so it reads as "temporary / where you just looked"
-  // rather than a committed point. Replaced on each search; cleared by Clear all.
+  // === Search (geocode) ===
+  // Forward-geocode a query and fly the map to it with an ephemeral dashed pin.
+  // The pin is deliberately a dashed ring (not a solid marker) so it reads as "temporary /
+  // where you just looked" rather than a committed point. Replaced on each search; cleared by Clear all.
   function setSearchStatus(text: string) {
     $searchStatus.textContent = text;
     $searchStatus.classList.toggle("hidden", !text);
