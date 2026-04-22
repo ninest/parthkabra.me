@@ -8,6 +8,6 @@ related: []
 # inReplyTo: microblog:2026/specific-post
 ---
 
-I wish it was easier to make “self editing” HTML files. I should be able to have a single HTML file, open it, put text in the inputs/textareas or wherever, save it, and the HTML file should update and have the content saved.
+I wish it was easier to make “self-editing” HTML files. I should be able to have a single HTML file, open it, put text in the inputs/textareas or wherever, save it, and have the HTML file itself update with that content.
 
-This is possible but only with a server. Chrome does have access to the native file system, but not on `file://` so you still need a server.
+Chrome gets close, but if you open a regular HTML file directly as `file://`, you don’t get file system access. You have to serve it from localhost/HTTPS instead of just opening the file.
