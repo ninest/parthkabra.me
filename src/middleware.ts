@@ -4,6 +4,12 @@ import { env } from "cloudflare:workers";
 export const onRequest = defineMiddleware((context, next) => {
   const { url, request } = context;
 
+  if (url.pathname === "/project" || url.pathname.startsWith("/project/")) {
+    const redirectUrl = new URL(url);
+    redirectUrl.pathname = redirectUrl.pathname.replace(/^\/project(?=\/|$)/, "/projects");
+    return Response.redirect(redirectUrl, 301);
+  }
+
   if (!url.pathname.startsWith("/admin")) {
     return next();
   }
