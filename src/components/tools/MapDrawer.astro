@@ -10,23 +10,32 @@ import XIcon from "../icons/x.astro";
   <div id="mapdrawer-map" class="w-full h-full"></div>
 
   <div
-    id="md-controls"
-    class="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-xl shadow px-3 py-2 backdrop-blur max-w-[calc(100%-2rem)]"
+    class="absolute bottom-4 left-4 flex flex-col items-start gap-2 max-w-[calc(100%-2rem)]"
   >
-    <Button id="md-mode-point" variant="secondary" class="text-sm">Point</Button>
-    <Button id="md-mode-line" variant="secondary" class="text-sm">Line</Button>
-    <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
-    <span class="mx-1 h-5 w-px bg-border"></span>
-    <div id="md-swatches" class="flex items-center gap-1 overflow-x-auto max-w-[9rem] min-w-0 px-1 py-1"></div>
-    <button
-      id="md-collapse-toggle"
-      type="button"
-      aria-label="Hide controls"
-      aria-expanded="true"
-      class="text-sm w-7 h-7 rounded hover:bg-muted flex items-center justify-center shrink-0 ml-auto"
+    <div
+      id="md-hint"
+      class="hidden select-none bg-background/90 border border-border rounded-lg shadow px-3 py-1.5 text-xs text-foreground backdrop-blur max-w-full"
     >
-      <span id="md-collapse-icon" aria-hidden="true">▾</span>
-    </button>
+    </div>
+    <div
+      id="md-controls"
+      class="flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-xl shadow px-3 py-2 backdrop-blur max-w-full"
+    >
+      <Button id="md-mode-point" variant="secondary" class="text-sm">Point</Button>
+      <Button id="md-mode-line" variant="secondary" class="text-sm">Line</Button>
+      <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
+      <span class="mx-1 h-5 w-px bg-border"></span>
+      <div id="md-swatches" class="flex items-center gap-1 overflow-x-auto max-w-[9rem] min-w-0 px-1 py-1"></div>
+      <button
+        id="md-collapse-toggle"
+        type="button"
+        aria-label="Hide controls"
+        aria-expanded="true"
+        class="text-sm w-7 h-7 rounded hover:bg-muted flex items-center justify-center shrink-0 ml-auto"
+      >
+        <span id="md-collapse-icon" aria-hidden="true">▾</span>
+      </button>
+    </div>
   </div>
 
   <style is:global>
@@ -190,6 +199,7 @@ import XIcon from "../icons/x.astro";
   const $searchClear = document.getElementById("md-search-clear") as HTMLButtonElement;
   const $controls = document.getElementById("md-controls")!;
   const $collapseToggle = document.getElementById("md-collapse-toggle") as HTMLButtonElement;
+  const $hint = document.getElementById("md-hint")!;
 
   // === State ===
   // mode is null until the user explicitly picks Point or Line — map clicks are ignored otherwise.
@@ -204,6 +214,31 @@ import XIcon from "../icons/x.astro";
   let lineCounter = 0;
   let listExpanded = false;
 
+  // Contextual instruction shown above the toolbar. Two small helpers so adding
+  // a new hint is one row in HINTS + one branch in currentHintKey, with copy
+  // kept separate from condition logic.
+  // Declared before applyControlsCollapsed so the init call to updateHint() can
+  // see HINTS (const declarations don't hoist; they sit in TDZ until this point).
+  const HINTS = {
+    idle: "Click Point or Line to start drawing",
+    point: "Tap the map to add a point",
+    lineEmpty: "Tap the map to start a line",
+    lineDrawing: "Tap to add more points; click Finish when done",
+  } as const;
+
+  function currentHintKey(): keyof typeof HINTS | null {
+    if (mode === null) return "idle";
+    if (mode === "point") return "point";
+    return linePoints.length === 0 ? "lineEmpty" : "lineDrawing";
+  }
+
+  function updateHint() {
+    const collapsed = $controls.getAttribute("data-collapsed") === "true";
+    const key = collapsed ? null : currentHintKey();
+    $hint.textContent = key ? HINTS[key] : "";
+    $hint.classList.toggle("hidden", !key);
+  }
+
   // === Collapse toggle ===
   // Sets data-collapsed on the bar; CSS above hides every child except the caret itself
   // and rotates the caret icon 180deg. Persisted in localStorage so "view-only" survives reloads.
@@ -213,6 +248,7 @@ import XIcon from "../icons/x.astro";
     else $controls.removeAttribute("data-collapsed");
     $collapseToggle.setAttribute("aria-expanded", String(!collapsed));
     $collapseToggle.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
+    updateHint();
   }
   applyControlsCollapsed(localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1");
   $collapseToggle.addEventListener("click", () => {
@@ -236,10 +272,13 @@ import XIcon from "../icons/x.astro";
   }
 
   // Render the palette row in the toolbar. Tap to set the active color for new features.
+  // The active highlight only renders while a draw mode is engaged — outside of
+  // Point/Line, color picking is a no-op so we don't suggest a "current" color.
   function renderSwatches() {
     $swatches.innerHTML = "";
     PALETTE.forEach(([label, hex], i) => {
-      const btn = makeSwatchButton(hex, `Use ${label}`, i === activeColorIdx);
+      const showActive = mode !== null && i === activeColorIdx;
+      const btn = makeSwatchButton(hex, `Use ${label}`, showActive);
       btn.addEventListener("click", () => setActiveColor(i));
       $swatches.appendChild(btn);
     });
@@ -629,6 +668,17 @@ import XIcon from "../icons/x.astro";
     btn.classList.toggle("bg-muted", !active);
   }
 
+  // Color picking only matters while drawing — disable swatches outside Point/Line modes
+  // so the toolbar doesn't suggest a no-op interaction.
+  function setSwatchesEnabled(enabled: boolean) {
+    $swatches.classList.toggle("opacity-50", !enabled);
+    $swatches.classList.toggle("pointer-events-none", !enabled);
+    $swatches.setAttribute("aria-disabled", enabled ? "false" : "true");
+    // Re-render so the active highlight reflects the new enabled/disabled state.
+    renderSwatches();
+  }
+  setSwatchesEnabled(false);
+
   function setMode(next: "point" | "line" | null) {
     if (next === mode) return;
     if (mode === "line" && next !== "line") {
@@ -643,6 +693,8 @@ import XIcon from "../icons/x.astro";
     }
     styleButton($modePoint, mode === "point");
     styleButton($modeLine, mode === "line");
+    setSwatchesEnabled(mode !== null);
+    updateHint();
     rerender();
   }
 
@@ -664,6 +716,7 @@ import XIcon from "../icons/x.astro";
     linePoints = [];
     rerender();
     setMode(null);
+    setListExpanded(true);
   }
   $finishLine.addEventListener("click", finishLine);
 
@@ -680,9 +733,11 @@ import XIcon from "../icons/x.astro";
       });
       rerender();
       setMode(null);
+      setListExpanded(true);
     } else if (mode === "line") {
       linePoints.push(coord);
       rerender();
+      updateHint();
     }
   });
 
