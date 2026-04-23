@@ -739,6 +739,30 @@ import XIcon from "../icons/x.astro";
     if (exitArmed && e.target !== $exitMode) disarmExit();
   });
 
+  // === Keyboard shortcuts ===
+  // Single-key shortcuts. Array (not map) so a future "Shortcuts" help panel can render
+  // them in a stable order. Add new entries here; the keydown handler picks them up.
+  const SHORTCUTS: ReadonlyArray<{
+    key: string;
+    label: string;
+    description: string;
+    action: () => void;
+  }> = [
+    { key: "p", label: "P", description: "Start drawing a point", action: () => setMode("point") },
+    { key: "l", label: "L", description: "Start drawing a line", action: () => setMode("line") },
+  ];
+
+  document.addEventListener("keydown", (e) => {
+    // Don't hijack typing in inputs/textareas or while a modifier is held (cmd+P = print, etc.)
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+    const match = SHORTCUTS.find((s) => s.key === e.key.toLowerCase());
+    if (!match) return;
+    e.preventDefault();
+    match.action();
+  });
+
   // === Finish line / click handlers ===
 
   // Commit the in-progress line to features.
