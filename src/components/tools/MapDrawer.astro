@@ -2,6 +2,8 @@
 import Button from "../button.astro";
 import SearchIcon from "../icons/search.astro";
 import CrosshairIcon from "../icons/crosshair.astro";
+import SpinnerIcon from "../icons/spinner.astro";
+import XIcon from "../icons/x.astro";
 ---
 
 <div id="mapdrawer" class="not-typography relative w-full h-full">
@@ -90,7 +92,12 @@ import CrosshairIcon from "../icons/crosshair.astro";
   <div class="flex items-stretch gap-2">
     <div class="relative flex-1">
       <SearchIcon
+        id="md-search-icon"
         class="absolute left-2.5 inset-y-0 my-auto z-10 w-4 h-4 text-muted-foreground pointer-events-none"
+      />
+      <SpinnerIcon
+        id="md-search-spinner"
+        class="hidden absolute left-2.5 inset-y-0 my-auto z-10 w-4 h-4 text-muted-foreground pointer-events-none"
       />
       <input
         id="md-search-input"
@@ -98,8 +105,25 @@ import CrosshairIcon from "../icons/crosshair.astro";
         placeholder="Search places"
         autocomplete="off"
         spellcheck="false"
-        class="w-full pl-8 pr-3 py-1.5 text-base leading-tight bg-background/90 border border-border rounded-lg shadow backdrop-blur focus:outline-none"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="md-suggestions"
+        aria-expanded="false"
+        class="w-full pl-8 pr-9 py-1.5 text-base leading-tight bg-background/90 border border-border rounded-lg shadow backdrop-blur focus:outline-none"
       />
+      <button
+        id="md-search-clear"
+        type="button"
+        aria-label="Clear search"
+        class="hidden absolute right-1.5 inset-y-0 my-auto z-10 w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+      >
+        <XIcon class="w-3.5 h-3.5" />
+      </button>
+      <ul
+        id="md-suggestions"
+        role="listbox"
+        class="hidden absolute left-0 right-0 top-full mt-1 z-20 bg-background/95 border border-border rounded-lg shadow backdrop-blur overflow-y-auto max-h-64"
+      ></ul>
     </div>
     <button
       id="md-my-location"
@@ -124,7 +148,7 @@ import CrosshairIcon from "../icons/crosshair.astro";
   import "maplibre-gl/dist/maplibre-gl.css";
   import { buttonClasses } from "../button";
   import { inputClasses } from "../input";
-  import { reverseGeocode, geocode } from "../../utils/geolocation";
+  import { reverseGeocode, geocode, suggestGeocode, type SuggestedPlace } from "../../utils/geolocation";
   import {
     PALETTE,
     SRC_DRAWINGS,
@@ -160,6 +184,10 @@ import CrosshairIcon from "../icons/crosshair.astro";
   const $listExtras = document.getElementById("md-list-extras")!;
   const $searchInput = document.getElementById("md-search-input") as HTMLInputElement;
   const $searchStatus = document.getElementById("md-search-status")!;
+  const $suggestions = document.getElementById("md-suggestions") as HTMLUListElement;
+  const $searchIcon = document.getElementById("md-search-icon")!;
+  const $searchSpinner = document.getElementById("md-search-spinner")!;
+  const $searchClear = document.getElementById("md-search-clear") as HTMLButtonElement;
   const $controls = document.getElementById("md-controls")!;
   const $collapseToggle = document.getElementById("md-collapse-toggle") as HTMLButtonElement;
 
@@ -805,6 +833,19 @@ import CrosshairIcon from "../icons/crosshair.astro";
     $searchStatus.classList.toggle("hidden", !text);
   }
 
+  // Drops the ephemeral dashed ring at the given coord and flies the camera.
+  // Shared between Enter-to-geocode and suggestion selection so both paths look identical.
+  function goToPlace(lat: number, lng: number) {
+    if (searchMarker) searchMarker.remove();
+    const el = document.createElement("div");
+    el.style.cssText =
+      "width:1.75rem;height:1.75rem;border:0.156rem dashed #2563eb;background:rgba(37,99,235,0.15);border-radius:50%;box-sizing:border-box;";
+    searchMarker = new maplibregl.Marker({ element: el })
+      .setLngLat([lng, lat])
+      .addTo(map);
+    map.flyTo({ center: [lng, lat], zoom: 14 });
+  }
+
   async function runSearch() {
     const q = $searchInput.value.trim();
     if (!q) return;
@@ -815,26 +856,135 @@ import CrosshairIcon from "../icons/crosshair.astro";
       return;
     }
     setSearchStatus("");
-    if (searchMarker) searchMarker.remove();
-    const el = document.createElement("div");
-    el.style.cssText =
-      "width:1.75rem;height:1.75rem;border:0.156rem dashed #2563eb;background:rgba(37,99,235,0.15);border-radius:50%;box-sizing:border-box;";
-    searchMarker = new maplibregl.Marker({ element: el })
-      .setLngLat([result.lng, result.lat])
-      .addTo(map);
-    map.flyTo({ center: [result.lng, result.lat], zoom: 14 });
+    goToPlace(result.lat, result.lng);
   }
 
+  // === Search suggestions (autocomplete) ===
+  let suggestItems: SuggestedPlace[] = [];
+  let suggestActiveIdx = -1;
+  let suggestDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function escapeHtml(s: string): string {
+    return s.replace(
+      /[&<>"']/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+    );
+  }
+
+  function renderSuggestions(items: SuggestedPlace[]) {
+    suggestItems = items;
+    suggestActiveIdx = -1;
+    $suggestions.innerHTML = "";
+    if (items.length === 0) {
+      $suggestions.classList.add("hidden");
+      $searchInput.setAttribute("aria-expanded", "false");
+      return;
+    }
+    items.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.setAttribute("role", "option");
+      li.className =
+        "px-3 py-2 cursor-pointer hover:bg-muted border-b border-border last:border-b-0";
+      li.innerHTML =
+        `<div class="text-sm text-foreground truncate">${escapeHtml(it.title)}</div>` +
+        (it.subtitle
+          ? `<div class="text-xs text-muted-foreground">${escapeHtml(it.subtitle)}</div>`
+          : "");
+      // mousedown fires before the input's blur, so the dropdown doesn't close before the click lands.
+      li.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        selectSuggestion(i);
+      });
+      $suggestions.appendChild(li);
+    });
+    $suggestions.classList.remove("hidden");
+    $searchInput.setAttribute("aria-expanded", "true");
+  }
+
+  function highlightActive() {
+    [...$suggestions.children].forEach((el, i) => {
+      el.classList.toggle("bg-muted", i === suggestActiveIdx);
+    });
+  }
+
+  function selectSuggestion(idx: number) {
+    const it = suggestItems[idx];
+    if (!it) return;
+    $searchInput.value = it.title;
+    setSearchClearVisible(true);
+    renderSuggestions([]);
+    setSearchStatus("");
+    goToPlace(it.lat, it.lng);
+  }
+
+  // Swaps the magnifier for a spinning loader while a suggestion request is in flight.
+  function setSearchLoading(loading: boolean) {
+    $searchIcon.classList.toggle("hidden", loading);
+    $searchSpinner.classList.toggle("hidden", !loading);
+  }
+
+  function setSearchClearVisible(visible: boolean) {
+    $searchClear.classList.toggle("hidden", !visible);
+  }
+
+  $searchClear.addEventListener("click", () => {
+    $searchInput.value = "";
+    if (suggestDebounceTimer) clearTimeout(suggestDebounceTimer);
+    setSearchLoading(false);
+    renderSuggestions([]);
+    setSearchClearVisible(false);
+    setSearchStatus("");
+    $searchInput.focus();
+  });
+
+  // Current map bounds → Nominatim viewbox, for soft "prefer nearby" ranking.
+  function currentViewbox(): string {
+    const b = map.getBounds();
+    return `${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`;
+  }
+
+  $searchInput.addEventListener("input", () => {
+    const q = $searchInput.value.trim();
+    setSearchClearVisible($searchInput.value.length > 0);
+    // Clear a lingering "No results" as soon as the user starts editing again.
+    if ($searchStatus.textContent === "No results") setSearchStatus("");
+    if (suggestDebounceTimer) clearTimeout(suggestDebounceTimer);
+    if (q.length < 2) {
+      setSearchLoading(false);
+      renderSuggestions([]);
+      return;
+    }
+    suggestDebounceTimer = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const items = await suggestGeocode(q, 5, currentViewbox());
+        // The user may have kept typing while we awaited; only render if still the same query.
+        if ($searchInput.value.trim() !== q) return;
+        renderSuggestions(items);
+      } finally {
+        if ($searchInput.value.trim() === q) setSearchLoading(false);
+      }
+    }, 300);
+  });
+
   $searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "ArrowDown" && suggestItems.length) {
       e.preventDefault();
-      runSearch();
+      suggestActiveIdx = (suggestActiveIdx + 1) % suggestItems.length;
+      highlightActive();
+    } else if (e.key === "ArrowUp" && suggestItems.length) {
+      e.preventDefault();
+      suggestActiveIdx = (suggestActiveIdx - 1 + suggestItems.length) % suggestItems.length;
+      highlightActive();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (suggestActiveIdx >= 0) selectSuggestion(suggestActiveIdx);
+      else runSearch();
+    } else if (e.key === "Escape") {
+      renderSuggestions([]);
     }
   });
-  // Clear a lingering "No results" as soon as the user starts editing again.
-  $searchInput.addEventListener("input", () => {
-    if ($searchStatus.textContent === "No results") setSearchStatus("");
-  });
+
 </script>
 
 <style>
