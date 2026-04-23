@@ -21,11 +21,12 @@ import XIcon from "../icons/x.astro";
       id="md-controls"
       class="flex flex-wrap items-center gap-2 bg-background/90 border border-border rounded-xl shadow px-3 py-2 backdrop-blur max-w-full"
     >
+      <Button id="md-exit-mode" variant="outline" class="text-sm text-error hidden" aria-label="Exit mode">✕</Button>
       <Button id="md-mode-point" variant="secondary" class="text-sm">Point</Button>
       <Button id="md-mode-line" variant="secondary" class="text-sm">Line</Button>
       <Button id="md-finish-line" variant="secondary" class="text-sm hidden">Finish line</Button>
       <span class="mx-1 h-5 w-px bg-border"></span>
-      <div id="md-swatches" class="flex items-center gap-1 overflow-x-auto max-w-[9rem] min-w-0 px-1 py-1"></div>
+      <div id="md-swatches" class="flex items-center gap-1 overflow-x-auto max-w-36 min-w-0 px-1 py-1"></div>
       <button
         id="md-collapse-toggle"
         type="button"
@@ -179,6 +180,7 @@ import XIcon from "../icons/x.astro";
   const $mapEl = document.getElementById("mapdrawer-map")!;
   const $modePoint = document.getElementById("md-mode-point") as HTMLButtonElement;
   const $modeLine = document.getElementById("md-mode-line") as HTMLButtonElement;
+  const $exitMode = document.getElementById("md-exit-mode") as HTMLButtonElement;
   const $finishLine = document.getElementById("md-finish-line") as HTMLButtonElement;
   const $myLocation = document.getElementById("md-my-location") as HTMLButtonElement;
   const $clear = document.getElementById("md-clear") as HTMLButtonElement;
@@ -693,14 +695,49 @@ import XIcon from "../icons/x.astro";
     }
     styleButton($modePoint, mode === "point");
     styleButton($modeLine, mode === "line");
+    // While a mode is active, swap the inactive mode button out for an explicit X,
+    // so "exit" is unambiguous and users don't accidentally discard an in-progress line
+    // by clicking the other mode.
+    $modePoint.classList.toggle("hidden", mode === "line");
+    $modeLine.classList.toggle("hidden", mode === "point");
+    $exitMode.classList.toggle("hidden", mode === null);
+    disarmExit();
     setSwatchesEnabled(mode !== null);
     updateHint();
     rerender();
   }
 
-  // Clicking an active mode deselects it — back to no mode.
-  $modePoint.addEventListener("click", () => setMode(mode === "point" ? null : "point"));
-  $modeLine.addEventListener("click", () => setMode(mode === "line" ? null : "line"));
+  $modePoint.addEventListener("click", () => setMode("point"));
+  $modeLine.addEventListener("click", () => setMode("line"));
+
+  // Exit button: two-step "✕" → "Sure?" confirm, mirroring Clear all. Protects in-progress
+  // line points (setMode(null) discards them) from being dropped by a stray click.
+  let exitArmed = false;
+  let exitResetTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function disarmExit() {
+    exitArmed = false;
+    $exitMode.textContent = "✕";
+    if (exitResetTimer) {
+      clearTimeout(exitResetTimer);
+      exitResetTimer = null;
+    }
+  }
+
+  $exitMode.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!exitArmed) {
+      exitArmed = true;
+      $exitMode.textContent = "Sure?";
+      exitResetTimer = setTimeout(disarmExit, 3000);
+      return;
+    }
+    setMode(null);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (exitArmed && e.target !== $exitMode) disarmExit();
+  });
 
   // === Finish line / click handlers ===
 
