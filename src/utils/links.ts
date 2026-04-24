@@ -20,6 +20,7 @@ export const getPageUrl = (id: string) => `/${id}`;
 export const getMicroblogUrl = (id: string) => `/micro/${id}`; // id is `{year}/{slug}`
 export const getCollectionUrl = (id: string) => `/collections/${id}`;
 export const getToolUrl = (id: string) => `/tools/${id}`;
+export const getToolAgentDocUrl = (id: string) => `${getToolUrl(id)}/agents.md`;
 
 // Collection-agnostic dispatcher (used by resolveRelated)
 export function getContentUrl(collection: string, id: string): string | null {
