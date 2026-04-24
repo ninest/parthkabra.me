@@ -17,11 +17,17 @@ type QueueItem = {
 const queue: QueueItem[] = [];
 let timer: ReturnType<typeof setInterval> | null = null;
 
-function enqueue<T>(fn: () => Promise<T>): Promise<T> {
+// `priority: true` pushes to the front of the queue, so user-initiated queries
+// (typing in search / autocomplete, opening a feature row) don't sit behind
+// background work like address prefetches. It doesn't preempt an in-flight
+// request — the worst-case wait is ~1 tick (1.1s) for the current task to finish.
+function enqueue<T>(fn: () => Promise<T>, priority = false): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    queue.push({
+    const item: QueueItem = {
       run: () => fn().then(resolve, reject),
-    });
+    };
+    if (priority) queue.unshift(item);
+    else queue.push(item);
     if (!timer) {
       processQueue();
       timer = setInterval(processQueue, 1100);
@@ -120,6 +126,7 @@ function searchNominatim(
   query: string,
   limit: number,
   viewbox?: string,
+  priority = false,
 ): Promise<SuggestedPlace[]> {
   const vbKey = viewbox ? `|${roundViewbox(viewbox)}` : "";
   const key = `${limit}:${normQuery(query)}${vbKey}`;
@@ -149,7 +156,7 @@ function searchNominatim(
     } catch {
       return [];
     }
-  }).finally(() => {
+  }, priority).finally(() => {
     forwardInFlight.delete(key);
   });
 
@@ -159,8 +166,10 @@ function searchNominatim(
 
 // --- Forward geocode ---
 
+// `geocode` and `suggestGeocode` are only called from user-facing typing paths —
+// always priority so background prefetches don't starve the autocomplete.
 export async function geocode(query: string): Promise<GeocodedLocation | null> {
-  const [first] = await searchNominatim(query, 1);
+  const [first] = await searchNominatim(query, 1, undefined, true);
   return first ? { lat: first.lat, lng: first.lng, display: first.display } : null;
 }
 
@@ -171,12 +180,18 @@ export async function suggestGeocode(
 ): Promise<SuggestedPlace[]> {
   const q = query.trim();
   if (q.length < 2) return [];
-  return searchNominatim(q, limit, viewbox);
+  return searchNominatim(q, limit, viewbox, true);
 }
 
 // --- Reverse geocode ---
 
-export function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+// `priority: true` lets a caller skip ahead of background prefetches — pass it
+// when the user is actively waiting (e.g. opened a feature row) vs. batch warming.
+export function reverseGeocode(
+  lat: number,
+  lng: number,
+  priority = false,
+): Promise<string | null> {
   const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
   if (reverseCache.has(key)) return Promise.resolve(reverseCache.get(key) ?? null);
   const pending = reverseInFlight.get(key);
@@ -195,7 +210,7 @@ export function reverseGeocode(lat: number, lng: number): Promise<string | null>
     } catch {
       return null;
     }
-  }).finally(() => {
+  }, priority).finally(() => {
     reverseInFlight.delete(key);
   });
 

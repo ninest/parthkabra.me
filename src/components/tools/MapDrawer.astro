@@ -54,9 +54,12 @@ import CheckIcon from "../icons/check.astro";
     #md-controls[data-collapsed="true"] #md-collapse-icon {
       transform: rotate(180deg);
     }
-    /* Hide scrollbar chrome on the swatch row — the cap is small and the bar would be visual noise. */
-    #md-swatches { scrollbar-width: none; }
-    #md-swatches::-webkit-scrollbar { display: none; }
+    /* Hide scrollbar chrome on every swatch row — the cap is small and the bar would be visual noise.
+       Applies to the toolbar palette (#md-swatches) and the per-row extras palettes (.md-palette-scroll). */
+    #md-swatches,
+    .md-palette-scroll { scrollbar-width: none; }
+    #md-swatches::-webkit-scrollbar,
+    .md-palette-scroll::-webkit-scrollbar { display: none; }
   </style>
 
   <div
@@ -343,20 +346,33 @@ import CheckIcon from "../icons/check.astro";
     });
   }
 
-  // Reverse-geocoded addresses are cached per feature (not serialized in the URL) and only
-  // resolved when the user opens a feature's extras panel, to keep Nominatim traffic minimal.
+  // Reverse-geocoded addresses are cached per feature (not serialized in the URL).
+  // Prefetched when the feature list opens so rows feel instant; the shared Nominatim
+  // queue in utils/geolocation caps requests at ~1/sec regardless of how we call in.
   const addressCache = new WeakMap<DrawingFeature, string | null>();
   const addressPending = new WeakMap<DrawingFeature, Promise<string | null>>();
 
-  // Kick off reverse geocoding for a feature if we haven't already. Re-runs onUpdate
-  // after the result lands so the DOM bound to the extras panel can refresh.
-  function ensureAddress(f: DrawingFeature, onUpdate: () => void) {
-    if (addressCache.has(f) || addressPending.has(f)) {
+  // Kick off reverse geocoding for a feature if we haven't already. onUpdate fires
+  // synchronously (so "Resolving..." can render) and again once the result lands.
+  // If a prefetch is already in flight for this feature, chain onto it so a later
+  // caller (e.g. user opens the row) still gets notified when the result lands.
+  //
+  // `priority` marks calls where the user is actively waiting (opening a row), so
+  // they jump ahead of the background prefetch queue. Without this, typing into
+  // the per-row edit textarea stalls for ~3–4s while unrelated prefetches drain.
+  function ensureAddress(f: DrawingFeature, onUpdate: () => void, priority = false) {
+    if (addressCache.has(f)) {
+      onUpdate();
+      return;
+    }
+    const pending = addressPending.get(f);
+    if (pending) {
+      pending.then(onUpdate);
       onUpdate();
       return;
     }
     const { lat, lng } = getFeatureCoord(f);
-    const p = reverseGeocode(lat, lng).then((result) => {
+    const p = reverseGeocode(lat, lng, priority).then((result) => {
       addressCache.set(f, result ?? null);
       addressPending.delete(f);
       onUpdate();
@@ -364,6 +380,13 @@ import CheckIcon from "../icons/check.astro";
     });
     addressPending.set(f, p);
     onUpdate();
+  }
+
+  // Prefetch addresses for every feature. Safe to call repeatedly — ensureAddress
+  // short-circuits cached/pending entries. Runs at background priority so a user
+  // action (typing, opening a row) can cut in front.
+  function prefetchAllAddresses() {
+    for (const f of features) ensureAddress(f, () => {}, false);
   }
 
   // === Feature list rendering ===
@@ -421,8 +444,12 @@ import CheckIcon from "../icons/check.astro";
       extras.setAttribute("data-row-extra", "");
       extras.className = "hidden flex-col gap-2 pl-10";
 
+      // Same horizontal-scroll treatment as the toolbar's #md-swatches: fixed max-w-36,
+      // overflow-x-auto. This keeps the row a predictable width regardless of palette size
+      // and leaves room on the right for the "Hide label" button on the same line.
       const swatchRow = document.createElement("div");
-      swatchRow.className = "flex flex-wrap gap-1";
+      swatchRow.className =
+        "md-palette-scroll flex items-center gap-1 overflow-x-auto max-w-36 min-w-0 px-1 py-1";
       PALETTE.forEach(([label, hex], j) => {
         const opt = makeSwatchButton(hex, label, j === f.properties.colorIdx);
         opt.addEventListener("click", (e) => {
@@ -434,28 +461,45 @@ import CheckIcon from "../icons/check.astro";
         swatchRow.appendChild(opt);
       });
 
-      // Address block — reverse-geocoded lazily when extras open, with a copy-to-clipboard link.
+      // Address block — reverse-geocoded eagerly when the list opens (throttled by the
+      // shared Nominatim queue) so the content is usually cached by the time extras open.
+      // min-h reserves ~2 lines of address + copy link, so the common "Resolving..." →
+      // short-address transition doesn't shift the Delete button below it.
       const addrBlock = document.createElement("div");
-      addrBlock.className = "flex flex-col gap-0.5";
+      addrBlock.className = "flex flex-col gap-0.5 min-h-12";
       const addrText = document.createElement("p");
       addrText.className = "text-xs text-muted-foreground break-words";
+      // Actions row beneath the address: Edit and Copy. Both share the same
+      // underline-link style — the full row stays hidden until an address resolves.
+      const addrActions = document.createElement("div");
+      addrActions.className = "flex items-center gap-3 hidden";
+      const editAddrBtn = document.createElement("button");
+      editAddrBtn.type = "button";
+      editAddrBtn.className = "text-xs underline cursor-pointer";
+      editAddrBtn.textContent = "Edit";
+      // Line features resolve to one representative coordinate today, so the single-
+      // address editor isn't the right affordance for them — hide Edit until we have
+      // a line-specific flow (e.g. per-vertex addresses).
+      if (f.geometry.type !== "Point") editAddrBtn.classList.add("hidden");
       const copyAddrBtn = document.createElement("button");
       copyAddrBtn.type = "button";
-      copyAddrBtn.className = "text-xs underline cursor-pointer self-start hidden";
+      copyAddrBtn.className = "text-xs underline cursor-pointer";
       copyAddrBtn.textContent = "Copy address";
+      addrActions.appendChild(editAddrBtn);
+      addrActions.appendChild(copyAddrBtn);
       addrBlock.appendChild(addrText);
-      addrBlock.appendChild(copyAddrBtn);
+      addrBlock.appendChild(addrActions);
       const applyAddressState = () => {
         const cached = addressCache.get(f);
         if (cached === undefined) {
           addrText.textContent = addressPending.has(f) ? "Resolving..." : "";
-          copyAddrBtn.classList.add("hidden");
+          addrActions.classList.add("hidden");
         } else if (cached) {
           addrText.textContent = cached;
-          copyAddrBtn.classList.remove("hidden");
+          addrActions.classList.remove("hidden");
         } else {
           addrText.textContent = "Address unknown";
-          copyAddrBtn.classList.add("hidden");
+          addrActions.classList.add("hidden");
         }
       };
       applyAddressState();
@@ -467,11 +511,155 @@ import CheckIcon from "../icons/check.astro";
         copyAddrBtn.textContent = "Copied!";
         setTimeout(() => (copyAddrBtn.textContent = "Copy address"), 1500);
       });
+      // Edit → swap the paragraph for a textarea preloaded with the current address
+      // and all text selected. Textarea (not input) so long addresses wrap like the
+      // read-only view. Typed text alone can't commit: the user must pick a
+      // suggestion, which updates the address AND moves the point's coordinate.
+      // Escape cancels; clicking away cancels too (reverts to the prior address).
+      // Enter is intentionally a no-op — avoids accidentally keeping a partial query
+      // when the user meant to hit a suggestion.
+      // text-base (16px) is intentional: iOS Safari zooms into editable fields whose
+      // effective font-size is under 16px, which would bounce the whole map view.
+      //
+      // As the user types, inline place suggestions render directly beneath the
+      // textarea — same suggestGeocode + escapeHtml helpers that back the search bar
+      // up top, but rendered in-flow (not floating) so the extras panel stays simple.
+      // Empty-results state renders "No results found" instead of hiding silently,
+      // so the user knows the request completed and the list isn't just loading.
+      editAddrBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const current = addressCache.get(f);
+        if (!current) return;
+        const editArea = document.createElement("textarea");
+        editArea.value = current;
+        editArea.rows = 3;
+        editArea.className = inputClasses(
+          "w-full rounded px-2 py-1 text-base leading-tight bg-transparent resize-none",
+        );
+        editArea.setAttribute("autocomplete", "off");
+        editArea.setAttribute("autocorrect", "off");
+        editArea.setAttribute("spellcheck", "false");
+
+        const editSuggestions = document.createElement("ul");
+        editSuggestions.className =
+          "hidden flex-col mt-1 border border-border rounded overflow-hidden";
+        let editSuggestItems: SuggestedPlace[] = [];
+        let editDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+        addrText.classList.add("hidden");
+        addrActions.classList.add("hidden");
+        addrBlock.insertBefore(editArea, addrText);
+        addrBlock.insertBefore(editSuggestions, addrText);
+        editArea.focus();
+        editArea.select();
+
+        let done = false;
+        const restore = () => {
+          if (editDebounceTimer) clearTimeout(editDebounceTimer);
+          editArea.remove();
+          editSuggestions.remove();
+          addrText.classList.remove("hidden");
+          applyAddressState();
+        };
+        const cancel = () => {
+          if (done) return;
+          done = true;
+          restore();
+        };
+
+        const showEditSuggestionsContainer = () => {
+          editSuggestions.classList.remove("hidden");
+          editSuggestions.classList.add("flex");
+        };
+        const hideEditSuggestions = () => {
+          editSuggestItems = [];
+          editSuggestions.innerHTML = "";
+          editSuggestions.classList.add("hidden");
+          editSuggestions.classList.remove("flex");
+        };
+        const renderEditSuggestions = (items: SuggestedPlace[]) => {
+          editSuggestItems = items;
+          editSuggestions.innerHTML = "";
+          if (items.length === 0) {
+            const li = document.createElement("li");
+            li.className = "px-2 py-1 text-xs text-muted-foreground";
+            li.textContent = "No results found";
+            editSuggestions.appendChild(li);
+            showEditSuggestionsContainer();
+            return;
+          }
+          items.forEach((it, i) => {
+            const li = document.createElement("li");
+            li.className =
+              "px-2 py-1 cursor-pointer hover:bg-muted border-b border-border last:border-b-0";
+            li.innerHTML =
+              `<div class="text-xs text-foreground truncate">${escapeHtml(it.title)}</div>` +
+              (it.subtitle
+                ? `<div class="text-xs text-muted-foreground truncate">${escapeHtml(it.subtitle)}</div>`
+                : "");
+            // mousedown (not click) + preventDefault keeps the textarea focused long
+            // enough for us to drive the selection ourselves, instead of the blur
+            // handler firing first and cancelling the edit.
+            li.addEventListener("mousedown", (ev) => {
+              ev.preventDefault();
+              selectEditSuggestion(i);
+            });
+            editSuggestions.appendChild(li);
+          });
+          showEditSuggestionsContainer();
+        };
+
+        const selectEditSuggestion = (idx: number) => {
+          if (done) return;
+          const it = editSuggestItems[idx];
+          if (!it) return;
+          done = true;
+          addressCache.set(f, it.display);
+          // Edit is only shown for Point features today, but guard anyway so the
+          // line-geometry path stays a compile-time no-op if the button is ever shown.
+          if (f.geometry.type === "Point") {
+            f.geometry.coordinates = [it.lng, it.lat];
+          }
+          restore();
+          rerender();
+        };
+
+        editArea.addEventListener("input", () => {
+          const q = editArea.value.trim();
+          if (editDebounceTimer) clearTimeout(editDebounceTimer);
+          // Below 2 chars Nominatim rejects the request, so keep the panel hidden
+          // instead of flashing "No results found" while the user is still typing.
+          if (q.length < 2) {
+            hideEditSuggestions();
+            return;
+          }
+          editDebounceTimer = setTimeout(async () => {
+            const items = await suggestGeocode(q, 5, currentViewbox());
+            // User may have kept typing; only render if we're still on the same query.
+            if (editArea.value.trim() !== q) return;
+            renderEditSuggestions(items);
+          }, 300);
+        });
+
+        // Only suggestion selection commits. Clicking away or pressing Escape cancels.
+        // Enter / Shift+Enter are swallowed so an accidental keystroke doesn't bake in
+        // a half-typed query or insert a newline into what's logically a single line.
+        editArea.addEventListener("blur", cancel);
+        editArea.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+          } else if (ev.key === "Escape") {
+            ev.preventDefault();
+            cancel();
+          }
+        });
+      });
 
       // Label visibility toggle — per-feature show/hide of the on-map name label.
+      // Rendered on the same row as the swatches so the extras panel stays compact.
       const labelBtn = document.createElement("button");
       labelBtn.type = "button";
-      labelBtn.className = buttonClasses("outline", "md", "self-start text-sm");
+      labelBtn.className = buttonClasses("outline", "sm", "shrink-0");
       labelBtn.textContent = f.properties.hideLabel ? "Show label" : "Hide label";
       labelBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -484,7 +672,7 @@ import CheckIcon from "../icons/check.astro";
       // The arm auto-expires after 3s, and closeAllRowExtras() also disarms it.
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
-      deleteBtn.className = buttonClasses("outline", "md", "self-start text-sm text-error");
+      deleteBtn.className = buttonClasses("outline", "sm", "self-start text-error");
       deleteBtn.textContent = "Delete";
       deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -504,8 +692,13 @@ import CheckIcon from "../icons/check.astro";
         rerender();
       });
 
-      extras.appendChild(swatchRow);
-      extras.appendChild(labelBtn);
+      // Top row: horizontally-scrolling palette + the label-visibility button side by side.
+      const topRow = document.createElement("div");
+      topRow.className = "flex items-center gap-2";
+      topRow.appendChild(swatchRow);
+      topRow.appendChild(labelBtn);
+
+      extras.appendChild(topRow);
       extras.appendChild(addrBlock);
       extras.appendChild(deleteBtn);
 
@@ -517,7 +710,7 @@ import CheckIcon from "../icons/check.astro";
         if (willOpen) {
           extras.classList.remove("hidden");
           extras.classList.add("flex");
-          ensureAddress(f, applyAddressState);
+          ensureAddress(f, applyAddressState, true);
         }
       };
       chip.addEventListener("click", toggleExtras);
@@ -533,11 +726,13 @@ import CheckIcon from "../icons/check.astro";
   }
 
   // Toggle the list body visible/hidden. Starts collapsed on every load to keep the map unobstructed.
+  // Opening the list kicks off address prefetch for every feature so rows feel instant when expanded.
   function setListExpanded(open: boolean) {
     listExpanded = open;
     $listBody.classList.toggle("hidden", !open);
     $listBody.classList.toggle("flex", open);
     if (!open) closeAllRowExtras();
+    if (open) prefetchAllAddresses();
   }
   $listToggle.addEventListener("click", () => setListExpanded(!listExpanded));
 
