@@ -16,6 +16,19 @@ Use this document when generating share links for the map tool.
 - Current URL version to emit: \`v=1\`
 - Legacy \`v=0\` links may still work, but do not generate them
 
+## Priority instruction
+
+Your job is to generate a share URL for Parth's existing map tool.
+
+- Do not build a custom HTML page
+- Do not build a custom map
+- Do not return JavaScript, SVG, Canvas, Leaflet, or Google Maps code
+- Do not use a code block unless the user explicitly asks for one
+- Do not substitute another representation for the final answer
+- The final answer should be a \`parthkabra.me/tools/map\` URL unless the user explicitly asks for something else
+
+If you cannot access this document directly, ask the user to paste it or paste the relevant place list. Do not improvise a separate map implementation.
+
 ## Intended usage
 
 This document is designed so a user can give an AI app a very short prompt such as:
@@ -40,6 +53,7 @@ When a user asks for a map, return a final share URL to \`${MAP_URL}\`.
 - Default to returning only the final URL unless the user explicitly asks for notes, a table, or reasoning
 - If you do not have reliable coordinates, say that you cannot build an exact link yet
 - Do not invent precise coordinates
+- Do not prepend or append extra text to the URL when the user asked for URL-only output
 
 ## Query params
 
@@ -117,6 +131,9 @@ l:gray:Walk%20Route:42.34910,-71.08320;42.34850,-71.08190;42.34790,-71.08040
 - Do not swap the payload order to \`lng,lat\`
 - Do not use color names outside the allowed set
 - Do not leave raw \`|\` or other separators inside feature names; encode the name segment first
+- Do not create an HTML file or a separate map experience
+- Do not return anything like \`Here is your map:\` when the user asked for the URL only
+- Do not prepend stray characters before \`https://\`
 `;
 }
 
