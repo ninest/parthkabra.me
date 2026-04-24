@@ -16,11 +16,28 @@ Use this document when generating share links for the map tool.
 - Current URL version to emit: \`v=1\`
 - Legacy \`v=0\` links may still work, but do not generate them
 
+## Intended usage
+
+This document is designed so a user can give an AI app a very short prompt such as:
+
+\`\`\`
+Read ${DOC_URL} and make me a map of the best restaurants in Back Bay, Boston.
+\`\`\`
+
+or:
+
+\`\`\`
+Read ${DOC_URL}. Turn this place list into a map link.
+\`\`\`
+
+If the user does not ask for extra explanation, default to returning only the final map URL.
+
 ## Output contract
 
 When a user asks for a map, return a final share URL to \`${MAP_URL}\`.
 
 - Prefer an absolute URL
+- Default to returning only the final URL unless the user explicitly asks for notes, a table, or reasoning
 - If you do not have reliable coordinates, say that you cannot build an exact link yet
 - Do not invent precise coordinates
 
@@ -86,6 +103,13 @@ l:gray:Walk%20Route:42.34910,-71.08320;42.34850,-71.08190;42.34790,-71.08040
 - If the user asked for a finished map: return the final URL
 - If the user gave a markdown file with names and coordinates: map those directly
 - If the user gave only names or addresses: geocode first, then build the URL
+
+## Recommended behavior for place maps
+
+- When the user asks for "best restaurants", "best cafes", or similar, choose a reasonable set of well-known places with verifiable coordinates
+- Keep point names short so labels fit on the map
+- Prefer points unless the user explicitly asks for lines or paths
+- Leave map labels visible unless the user asks to hide them
 
 ## Avoid
 
