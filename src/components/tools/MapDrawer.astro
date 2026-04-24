@@ -5,6 +5,7 @@ import CrosshairIcon from "../icons/crosshair.astro";
 import SpinnerIcon from "../icons/spinner.astro";
 import XIcon from "../icons/x.astro";
 import CheckIcon from "../icons/check.astro";
+import ChevronRightIcon from "../icons/chevron-right.astro";
 ---
 
 <div id="mapdrawer" class="not-typography relative w-full h-full">
@@ -110,7 +111,7 @@ import CheckIcon from "../icons/check.astro";
     </div>
     <div
       id="md-list-body"
-      class="hidden flex-col gap-2 p-2 max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto border-t border-border"
+      class="hidden flex-col gap-0.5 px-2 py-1 max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto border-t border-border"
     >
     </div>
     <div
@@ -124,12 +125,12 @@ import CheckIcon from "../icons/check.astro";
           aria-label="Back to list"
           class="shrink-0 w-8 h-8 rounded flex items-center justify-center text-muted-foreground hover:bg-muted"
         >
-          <XIcon class="w-4 h-4" />
+          <ChevronRightIcon class="w-4 h-4 rotate-180" />
         </button>
         <input
           id="md-detail-name"
           type="text"
-          class="flex-1 min-w-0 rounded px-2 py-1 bg-transparent border border-border focus:outline-none text-sm"
+          class="flex-1 min-w-0 rounded px-2 py-1 bg-transparent border border-border focus:outline-none text-base leading-tight"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="words"
@@ -458,9 +459,12 @@ import CheckIcon from "../icons/check.astro";
     $listPanel.classList.toggle("hidden", features.length === 0);
     $listCount.textContent = String(features.length);
     $listBody.innerHTML = "";
-    features.forEach((f, i) => {
+    features.forEach((f) => {
       const row = document.createElement("div");
-      row.className = "flex items-center gap-2";
+      // Single hover surface for the whole row — name + chevron both open detail,
+      // so two separate hover rectangles read as two distinct affordances. The chip
+      // keeps its own ring styling but doesn't fight the row hover.
+      row.className = "flex items-center gap-1.5 px-1 py-0.5 rounded hover:bg-muted";
 
       const chip = makeSwatchButton(PALETTE[f.properties.colorIdx][1], "Edit feature", false);
       chip.addEventListener("click", (e) => {
@@ -468,29 +472,15 @@ import CheckIcon from "../icons/check.astro";
         openDetail(f);
       });
 
-      const input = document.createElement("input");
-      input.type = "text";
-      input.value = f.properties.name;
-      input.className = inputClasses("flex-1 min-w-0 rounded px-2 py-1 bg-transparent");
-      input.setAttribute("autocomplete", "off");
-      input.setAttribute("autocorrect", "off");
-      input.setAttribute("autocapitalize", "words");
-      input.setAttribute("spellcheck", "false");
-      const commit = () => {
-        const v = input.value.trim();
-        if (v && v !== features[i].properties.name) {
-          features[i].properties.name = v;
-          writeUrl();
-        } else {
-          input.value = features[i].properties.name;
-        }
-      };
-      input.addEventListener("blur", commit);
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          commit();
-          input.blur();
-        }
+      // Name is a click target, not an input — editing happens on the detail page.
+      // truncate prevents long names from pushing the chevron off-row.
+      const name = document.createElement("button");
+      name.type = "button";
+      name.className = "flex-1 min-w-0 text-left text-sm px-1 py-0.5 truncate cursor-pointer";
+      name.textContent = f.properties.name;
+      name.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDetail(f);
       });
 
       // Chevron-right opens the detail page. Same target as the color chip.
@@ -500,7 +490,7 @@ import CheckIcon from "../icons/check.astro";
       chevron.type = "button";
       chevron.setAttribute("aria-label", "Open feature details");
       chevron.className =
-        "w-8 h-8 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:bg-muted";
+        "w-7 h-7 rounded flex items-center justify-center shrink-0 text-muted-foreground";
       chevron.innerHTML =
         '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="m9 6 6 6-6 6"></path></svg>';
       chevron.addEventListener("click", (e) => {
@@ -509,7 +499,7 @@ import CheckIcon from "../icons/check.astro";
       });
 
       row.appendChild(chip);
-      row.appendChild(input);
+      row.appendChild(name);
       row.appendChild(chevron);
       $listBody.appendChild(row);
     });
