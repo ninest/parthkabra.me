@@ -54,6 +54,12 @@ import CheckIcon from "../icons/check.astro";
     #md-controls[data-collapsed="true"] #md-collapse-icon {
       transform: rotate(180deg);
     }
+    /* Mirrors the toolbar caret: ▾ when expanded, rotated 180deg when collapsed.
+       data-collapsed lives on #md-list-toggle so the caret state stays local to the header button. */
+    #md-list-toggle[data-collapsed="true"] #md-list-caret {
+      transform: rotate(180deg);
+      display: inline-block;
+    }
     /* Hide scrollbar chrome on every swatch row — the cap is small and the bar would be visual noise.
        Applies to the toolbar palette (#md-swatches) and the per-row extras palettes (.md-palette-scroll). */
     #md-swatches,
@@ -63,7 +69,7 @@ import CheckIcon from "../icons/check.astro";
   </style>
 
   <div
-    class="absolute top-4 left-4 right-4 sm:left-auto sm:w-80 max-w-[calc(100vw-2rem)] flex flex-col gap-2"
+    class="absolute top-4 left-4 right-4 sm:left-auto sm:w-96 max-w-[calc(100vw-2rem)] flex flex-col gap-2"
   >
   <div
     id="md-list-panel"
@@ -73,9 +79,15 @@ import CheckIcon from "../icons/check.astro";
       <button
         id="md-list-toggle"
         type="button"
+        aria-expanded="false"
+        aria-controls="md-list-body"
+        data-collapsed="true"
         class="flex-1 px-3 py-2 flex items-center justify-between gap-2 text-sm bg-muted/60 hover:bg-muted"
       >
-        <span>Items</span>
+        <span class="flex items-center gap-2 min-w-0">
+          <span id="md-list-caret" aria-hidden="true" class="shrink-0">▾</span>
+          <span>Items</span>
+        </span>
         <span id="md-list-count" class="text-muted-foreground text-xs">0</span>
       </button>
       <button
@@ -759,6 +771,10 @@ import CheckIcon from "../icons/check.astro";
     listExpanded = open;
     $listBody.classList.toggle("hidden", !open);
     $listBody.classList.toggle("flex", open);
+    // Drive the caret rotation and a11y state from the same toggle that hides/shows the body.
+    if (open) $listToggle.removeAttribute("data-collapsed");
+    else $listToggle.setAttribute("data-collapsed", "true");
+    $listToggle.setAttribute("aria-expanded", String(open));
     if (!open) closeAllRowExtras();
     if (open) prefetchAllAddresses();
   }
