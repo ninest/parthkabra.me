@@ -3,21 +3,24 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { inputClasses } from "../input";
 import { reverseGeocode, geocode, suggestGeocode, type SuggestedPlace } from "../../utils/geolocation";
 import {
+  DEFAULT_COLOR_ID,
   PALETTE,
   SRC_DRAWINGS,
   SRC_PREVIEW,
-  getFeatureCoord,
   createDrawingSourcesAndLayers,
+  getFeatureCoord,
+  getPaletteEntryById,
   type DrawingFeature,
   type FeatureCollection,
   type FeatureProps,
   type LngLat,
 } from "../../utils/map-drawing";
 import {
-  readUrlState,
-  writeDrawingsParam,
-  writeLabelsParam,
-} from "../../utils/map-drawing-url";
+  readMapDrawerControlsCollapsed,
+  readMapDrawerShareState,
+  writeMapDrawerControlsCollapsed,
+  writeMapDrawerShareState,
+} from "../../utils/map-drawer-storage";
 
 // === DOM refs ===
 const $mapEl = document.getElementById("mapdrawer-map")!;
@@ -72,7 +75,7 @@ let searchMarker: maplibregl.Marker | null = null;
 // Populated while an "Add point: {title}" confirm panel is open under the search bar.
 // Cleared on commit, cancel, clear-search, or Clear all.
 let pendingPlace: { title: string; lat: number; lng: number } | null = null;
-let activeColorIdx = 0;
+let activeColorId = DEFAULT_COLOR_ID;
 // Counters are monotonic so two features never share an auto-name, even after edits.
 let pointCounter = 0;
 let lineCounter = 0;
@@ -114,7 +117,6 @@ function updateHint() {
 // === Collapse toggle ===
 // Sets data-collapsed on the bar; CSS above hides every child except the caret itself
 // and rotates the caret icon 180deg. Persisted in localStorage so "view-only" survives reloads.
-const COLLAPSE_STORAGE_KEY = "md-controls-collapsed";
 function applyControlsCollapsed(collapsed: boolean) {
   if (collapsed) $controls.setAttribute("data-collapsed", "true");
   else $controls.removeAttribute("data-collapsed");
@@ -122,11 +124,11 @@ function applyControlsCollapsed(collapsed: boolean) {
   $collapseToggle.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
   updateHint();
 }
-applyControlsCollapsed(localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1");
+applyControlsCollapsed(readMapDrawerControlsCollapsed());
 $collapseToggle.addEventListener("click", () => {
   const next = $controls.getAttribute("data-collapsed") !== "true";
   applyControlsCollapsed(next);
-  localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? "1" : "0");
+  writeMapDrawerControlsCollapsed(next);
 });
 
 // === Swatch rendering ===
@@ -148,19 +150,19 @@ function makeSwatchButton(hex: string, label: string, active: boolean): HTMLButt
 // Point/Line, color picking is a no-op so we don't suggest a "current" color.
 function renderSwatches() {
   $swatches.innerHTML = "";
-  PALETTE.forEach(([label, hex], i) => {
-    const showActive = mode !== null && i === activeColorIdx;
-    const btn = makeSwatchButton(hex, `Use ${label}`, showActive);
-    btn.addEventListener("click", () => setActiveColor(i));
+  PALETTE.forEach((entry) => {
+    const showActive = mode !== null && entry.id === activeColorId;
+    const btn = makeSwatchButton(entry.hex, `Use ${entry.label}`, showActive);
+    btn.addEventListener("click", () => setActiveColor(entry.id));
     $swatches.appendChild(btn);
   });
 }
 
 // Set the active color: updates the palette UI and the preview layers on the map.
-function setActiveColor(idx: number) {
-  activeColorIdx = idx;
+function setActiveColor(colorId: string) {
+  activeColorId = getPaletteEntryById(colorId).id;
   renderSwatches();
-  const hex = PALETTE[idx][1];
+  const hex = getPaletteEntryById(activeColorId).hex;
   if (map.loaded()) {
     if (map.getLayer("preview-point")) map.setPaintProperty("preview-point", "circle-color", hex);
     if (map.getLayer("preview-line")) map.setPaintProperty("preview-line", "line-color", hex);
@@ -228,7 +230,7 @@ function renderList() {
     // keeps its own ring styling but doesn't fight the row hover.
     row.className = "flex items-center gap-1.5 px-1 py-0.5 rounded hover:bg-muted";
 
-    const chip = makeSwatchButton(PALETTE[f.properties.colorIdx][1], "Edit feature", false);
+    const chip = makeSwatchButton(getPaletteEntryById(f.properties.colorId).hex, "Edit feature", false);
     chip.addEventListener("click", (e) => {
       e.stopPropagation();
       openDetail(f);
@@ -301,12 +303,16 @@ function disarmDetailDelete() {
 function renderDetailSwatches() {
   $detailSwatches.innerHTML = "";
   if (!detailFeature) return;
-  PALETTE.forEach(([label, hex], i) => {
-    const btn = makeSwatchButton(hex, label, i === detailFeature!.properties.colorIdx);
+  PALETTE.forEach((entry) => {
+    const btn = makeSwatchButton(
+      entry.hex,
+      entry.label,
+      entry.id === detailFeature!.properties.colorId,
+    );
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       if (!detailFeature) return;
-      detailFeature.properties.colorIdx = i;
+      detailFeature.properties.colorId = entry.id;
       rerender();
     });
     $detailSwatches.appendChild(btn);
@@ -614,20 +620,18 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// === URL state (wraps utils/map-drawing-url) ===
+// === Storage-backed share state ===
 
 // Parse every drawer-owned param up front (features, counters, labels flag) so map
 // init can fit bounds and labels apply on the first frame — one read, one source of truth.
-const initialUrlState = readUrlState(new URLSearchParams(window.location.search));
-features = initialUrlState.features;
-pointCounter = initialUrlState.pointCounter;
-lineCounter = initialUrlState.lineCounter;
+const initialShareState = readMapDrawerShareState();
+features = initialShareState.features;
+pointCounter = initialShareState.pointCounter;
+lineCounter = initialShareState.lineCounter;
 
-// Push `features` into the URL's drawings params.
-function writeUrl() {
-  const url = new URL(window.location.href);
-  writeDrawingsParam(url, features);
-  history.replaceState(null, "", url.toString());
+// Push the shareable drawer state into the current URL through the storage adapter.
+function writeShareState() {
+  writeMapDrawerShareState({ features, labelsVisible });
 }
 let initialBounds: maplibregl.LngLatBounds | null = null;
 if (features.length > 0) {
@@ -692,7 +696,7 @@ function collection(): FeatureCollection {
 // Preview paint uses the active color via setPaintProperty, so these properties aren't rendered —
 // we just fill them to satisfy FeatureProps.
 function previewCollection(): FeatureCollection {
-  const props: FeatureProps = { name: "", colorIdx: activeColorIdx };
+  const props: FeatureProps = { name: "", colorId: activeColorId };
   if (linePoints.length === 0) {
     return { type: "FeatureCollection", features: [] };
   }
@@ -735,7 +739,7 @@ function rerender() {
     if (features.indexOf(detailFeature) === -1) closeDetail();
     else populateDetail();
   }
-  writeUrl();
+  writeShareState();
 }
 
 // === Map load: add sources + layers ===
@@ -744,7 +748,7 @@ map.on("load", () => {
   createDrawingSourcesAndLayers(map, {
     initialDrawings: collection(),
     initialPreview: previewCollection(),
-    initialPreviewHex: PALETTE[activeColorIdx][1],
+    initialPreviewHex: getPaletteEntryById(activeColorId).hex,
   });
   renderSwatches();
   renderList();
@@ -874,7 +878,7 @@ function finishLine() {
   features.push({
     type: "Feature",
     geometry: { type: "LineString", coordinates: linePoints },
-    properties: { name: `Line ${lineCounter}`, colorIdx: activeColorIdx },
+    properties: { name: `Line ${lineCounter}`, colorId: activeColorId },
   });
   linePoints = [];
   rerender();
@@ -892,7 +896,7 @@ map.on("click", (e) => {
     features.push({
       type: "Feature",
       geometry: { type: "Point", coordinates: coord },
-      properties: { name: `Point ${pointCounter}`, colorIdx: activeColorIdx },
+      properties: { name: `Point ${pointCounter}`, colorId: activeColorId },
     });
     rerender();
     setMode(null);
@@ -961,7 +965,7 @@ document.addEventListener("click", (e) => {
 // Toggles every symbol layer in the base style except our own drawing labels.
 // Persists as ?hl=1 in the URL (absent = labels shown, the default).
 const CUSTOM_LABEL_LAYER_IDS = new Set(["drawings-point-labels", "drawings-line-labels"]);
-let labelsVisible = initialUrlState.labelsVisible;
+let labelsVisible = initialShareState.labelsVisible;
 
 function applyLabelsVisible() {
   // Don't gate on map.isStyleLoaded(): adding our drawing sources inside the load handler
@@ -986,9 +990,7 @@ $toggleLabels.addEventListener("click", (e) => {
   labelsVisible = !labelsVisible;
   updateLabelsButton();
   applyLabelsVisible();
-  const url = new URL(window.location.href);
-  writeLabelsParam(url, labelsVisible);
-  history.replaceState(null, "", url.toString());
+  writeShareState();
 });
 
 // === Copy link ===
@@ -1078,7 +1080,7 @@ $searchConfirmAdd.addEventListener("click", () => {
   features.push({
     type: "Feature",
     geometry: { type: "Point", coordinates: [pendingPlace.lng, pendingPlace.lat] },
-    properties: { name: pendingPlace.title, colorIdx: activeColorIdx },
+    properties: { name: pendingPlace.title, colorId: activeColorId },
   });
   // The committed point now renders at the same spot — drop the dashed preview.
   if (searchMarker) {

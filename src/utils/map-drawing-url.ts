@@ -1,14 +1,19 @@
-import { PALETTE, type DrawingFeature, type LngLat } from "./map-drawing";
+import {
+  DEFAULT_COLOR_ID,
+  getPaletteEntryById,
+  getPaletteEntryByIndex,
+  type DrawingFeature,
+  type LngLat,
+} from "./map-drawing";
 
 // ============================================================================
 // URL query-param state for the map drawer.
 //
 // Params:
-//   ?d=<payload>   serialized drawings. See the v0 codec section below for shape.
-//   ?v=<N>         version of the `d` payload. Omitted when v=0 so URLs produced
-//                  before versioning (which had no `v`) still round-trip.
+//   ?d=<payload>   serialized drawings. The payload shape depends on `v`.
+//   ?v=<N>         version of the drawer-owned URL state. Missing `v` means
+//                  legacy shared URL = v0.
 //   ?hl=1          map labels hidden. Omitted = labels visible (the default).
-//                  Not versioned — it's just a flag.
 //
 // Evolving the `d` format:
 //   1. Bump CURRENT_VERSION.
@@ -29,44 +34,60 @@ export type UrlState = DrawingState & {
   labelsVisible: boolean;
 };
 
-const CURRENT_VERSION = 0;
+const CURRENT_VERSION = 1;
 
-// --- v0 codec ---
-// p:[h]colorIdx:encodedName:lat,lng|l:[h]colorIdx:encodedName:lat,lng;...
-// "h" prefix on colorIdx means hideLabel=true. 5-decimal rounding (~1.1m) keeps URLs short.
+// --- Shared helpers ---
 
 function roundCoord(n: number): number {
   return Math.round(n * 1e5) / 1e5;
 }
 
-function encodeV0(features: DrawingFeature[]): string | null {
-  if (features.length === 0) return null;
-  const parts: string[] = [];
-  for (const f of features) {
-    const { colorIdx, name, hideLabel } = f.properties;
-    const encName = encodeURIComponent(name);
-    const colorSeg = hideLabel ? `h${colorIdx}` : `${colorIdx}`;
-    if (f.geometry.type === "Point") {
-      const [lng, lat] = f.geometry.coordinates;
-      parts.push(`p:${colorSeg}:${encName}:${roundCoord(lat)},${roundCoord(lng)}`);
-    } else {
-      const coords = f.geometry.coordinates
-        .map(([lng, lat]) => `${roundCoord(lat)},${roundCoord(lng)}`)
-        .join(";");
-      parts.push(`l:${colorSeg}:${encName}:${coords}`);
-    }
+function encodeFeatureCoords(feature: DrawingFeature): string {
+  if (feature.geometry.type === "Point") {
+    const [lng, lat] = feature.geometry.coordinates;
+    return `${roundCoord(lat)},${roundCoord(lng)}`;
   }
-  return parts.join("|");
+  return feature.geometry.coordinates
+    .map(([lng, lat]) => `${roundCoord(lat)},${roundCoord(lng)}`)
+    .join(";");
 }
 
-// Decode the v0 payload. Unknown/garbled entries are dropped silently.
-// The returned counters let the caller resume auto-naming ("Point N" / "Line N")
-// without colliding with existing names — they advance past both unnamed entries
-// we had to label here and any user-edited names that already match the pattern
-// (including legacy "Dot N" from older shared URLs).
+function decodeCounters(features: DrawingFeature[]): Pick<DrawingState, "pointCounter" | "lineCounter"> {
+  let pointCounter = 0;
+  let lineCounter = 0;
+  for (const f of features) {
+    const pointMatch = f.properties.name.match(/^(?:Point|Dot) (\d+)$/);
+    if (pointMatch) pointCounter = Math.max(pointCounter, parseInt(pointMatch[1]));
+    const lineMatch = f.properties.name.match(/^Line (\d+)$/);
+    if (lineMatch) lineCounter = Math.max(lineCounter, parseInt(lineMatch[1]));
+  }
+  return { pointCounter, lineCounter };
+}
+
+function finalizeDecodedFeatures(features: DrawingFeature[]): DrawingState {
+  const counters = decodeCounters(features);
+  return { features, ...counters };
+}
+
+function decodePointName(name: string, pointCounter: number): { name: string; pointCounter: number } {
+  if (name) return { name, pointCounter };
+  const next = pointCounter + 1;
+  return { name: `Point ${next}`, pointCounter: next };
+}
+
+function decodeLineName(name: string, lineCounter: number): { name: string; lineCounter: number } {
+  if (name) return { name, lineCounter };
+  const next = lineCounter + 1;
+  return { name: `Line ${next}`, lineCounter: next };
+}
+
+// --- v0 codec ---
+// p:[h]colorIdx:encodedName:lat,lng|l:[h]colorIdx:encodedName:lat,lng;...
+// "h" prefix on colorIdx means hideLabel=true. 5-decimal rounding (~1.1m) keeps URLs short.
 //
-// When we cut v1: move the "Dot N" → "Point N" coercion into the v0→v1 upgrader
-// so this stays a faithful decoder of v0's own format.
+// This is the legacy pre-versioned format. It stores palette indexes, so decoding
+// immediately upgrades those indexes to stable color IDs in the current state shape.
+
 function decodeV0(raw: string): DrawingState {
   let pointCounter = 0;
   let lineCounter = 0;
@@ -78,20 +99,20 @@ function decodeV0(raw: string): DrawingState {
     const kind = entry.slice(0, colon);
     const body = entry.slice(colon + 1);
 
-    let colorIdx = 0;
+    let colorId = DEFAULT_COLOR_ID;
     let hideLabel = false;
     let name = "";
     let coordBody = body;
     const firstColon = body.indexOf(":");
     if (firstColon >= 0) {
       const maybeIdx = body.slice(0, firstColon);
-      const m = maybeIdx.match(/^(h?)(\d+)$/);
-      if (m && parseInt(m[2]) < PALETTE.length) {
+      const match = maybeIdx.match(/^(h?)(\d+)$/);
+      if (match) {
         const rest = body.slice(firstColon + 1);
         const secondColon = rest.indexOf(":");
         if (secondColon >= 0) {
-          hideLabel = m[1] === "h";
-          colorIdx = parseInt(m[2]);
+          hideLabel = match[1] === "h";
+          colorId = getPaletteEntryByIndex(parseInt(match[2])).id;
           name = decodeURIComponent(rest.slice(0, secondColon));
           coordBody = rest.slice(secondColon + 1);
         }
@@ -103,14 +124,12 @@ function decodeV0(raw: string): DrawingState {
       const lat = parseFloat(latStr);
       const lng = parseFloat(lngStr);
       if (!isNaN(lat) && !isNaN(lng)) {
-        if (!name) {
-          pointCounter++;
-          name = `Point ${pointCounter}`;
-        }
+        const decoded = decodePointName(name, pointCounter);
+        pointCounter = decoded.pointCounter;
         features.push({
           type: "Feature",
           geometry: { type: "Point", coordinates: [lng, lat] },
-          properties: { name, colorIdx, hideLabel },
+          properties: { name: decoded.name, colorId, hideLabel },
         });
       }
     } else if (kind === "l") {
@@ -122,27 +141,103 @@ function decodeV0(raw: string): DrawingState {
         if (!isNaN(lat) && !isNaN(lng)) coords.push([lng, lat]);
       }
       if (coords.length >= 2) {
-        if (!name) {
-          lineCounter++;
-          name = `Line ${lineCounter}`;
-        }
+        const decoded = decodeLineName(name, lineCounter);
+        lineCounter = decoded.lineCounter;
         features.push({
           type: "Feature",
           geometry: { type: "LineString", coordinates: coords },
-          properties: { name, colorIdx, hideLabel },
+          properties: { name: decoded.name, colorId, hideLabel },
         });
       }
     }
   }
 
-  for (const f of features) {
-    const m = f.properties.name.match(/^(?:Point|Dot) (\d+)$/);
-    if (m) pointCounter = Math.max(pointCounter, parseInt(m[1]));
-    const m2 = f.properties.name.match(/^Line (\d+)$/);
-    if (m2) lineCounter = Math.max(lineCounter, parseInt(m2[1]));
+  return finalizeDecodedFeatures(features);
+}
+
+// --- v1 codec ---
+// p:[h]colorId:encodedName:lat,lng|l:[h]colorId:encodedName:lat,lng;...
+// Same compact shape as v0, but `colorId` is now a stable token instead of a palette index.
+
+function encodeV1(features: DrawingFeature[]): string | null {
+  if (features.length === 0) return null;
+  const parts: string[] = [];
+  for (const feature of features) {
+    const { colorId, name, hideLabel } = feature.properties;
+    const encName = encodeURIComponent(name);
+    const stableColorId = getPaletteEntryById(colorId).id;
+    const colorSeg = hideLabel ? `h${stableColorId}` : stableColorId;
+    const kind = feature.geometry.type === "Point" ? "p" : "l";
+    parts.push(`${kind}:${colorSeg}:${encName}:${encodeFeatureCoords(feature)}`);
+  }
+  return parts.join("|");
+}
+
+function decodeV1(raw: string): DrawingState {
+  let pointCounter = 0;
+  let lineCounter = 0;
+  const features: DrawingFeature[] = [];
+
+  for (const entry of raw.split("|")) {
+    const colon = entry.indexOf(":");
+    if (colon < 0) continue;
+    const kind = entry.slice(0, colon);
+    const body = entry.slice(colon + 1);
+
+    let colorId = DEFAULT_COLOR_ID;
+    let hideLabel = false;
+    let name = "";
+    let coordBody = body;
+    const firstColon = body.indexOf(":");
+    if (firstColon >= 0) {
+      const maybeColorId = body.slice(0, firstColon);
+      const match = maybeColorId.match(/^(h?)([a-z][a-z0-9-]*)$/i);
+      if (match) {
+        const rest = body.slice(firstColon + 1);
+        const secondColon = rest.indexOf(":");
+        if (secondColon >= 0) {
+          hideLabel = match[1] === "h";
+          colorId = getPaletteEntryById(match[2]).id;
+          name = decodeURIComponent(rest.slice(0, secondColon));
+          coordBody = rest.slice(secondColon + 1);
+        }
+      }
+    }
+
+    if (kind === "p") {
+      const [latStr, lngStr] = coordBody.split(",");
+      const lat = parseFloat(latStr);
+      const lng = parseFloat(lngStr);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const decoded = decodePointName(name, pointCounter);
+        pointCounter = decoded.pointCounter;
+        features.push({
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [lng, lat] },
+          properties: { name: decoded.name, colorId, hideLabel },
+        });
+      }
+    } else if (kind === "l") {
+      const coords: LngLat[] = [];
+      for (const pair of coordBody.split(";")) {
+        const [latStr, lngStr] = pair.split(",");
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lngStr);
+        if (!isNaN(lat) && !isNaN(lng)) coords.push([lng, lat]);
+      }
+      if (coords.length >= 2) {
+        const decoded = decodeLineName(name, lineCounter);
+        lineCounter = decoded.lineCounter;
+        features.push({
+          type: "Feature",
+          geometry: { type: "LineString", coordinates: coords },
+          properties: { name: decoded.name, colorId, hideLabel },
+        });
+      }
+    }
   }
 
-  return { features, pointCounter, lineCounter };
+  return finalizeDecodedFeatures(features);
 }
 
 // --- Version registry ---
@@ -151,11 +246,14 @@ function decodeV0(raw: string): DrawingState {
 // it understands. The only cast callers see is the final one in decodeAndUpgrade.
 const decoders: Record<number, (raw: string) => unknown> = {
   0: decodeV0,
+  1: decodeV1,
 };
 
 const upgraders: Record<number, (state: unknown) => unknown> = {
-  // Example for a future bump:
-  // 0: (s) => { const v0 = s as DrawingState; return { ...v0, /* new field */ }; },
+  // v0 already decodes into the current DrawingState shape, so the first explicit
+  // upgrader lands on an identity function. Keeping the step in the registry makes
+  // the version chain explicit and leaves room for a real v1 -> v2 transform later.
+  0: (state) => state,
 };
 
 // --- Public API ---
@@ -168,23 +266,26 @@ export function readUrlState(search: URLSearchParams): UrlState {
   return { ...drawings, labelsVisible: search.get("hl") !== "1" };
 }
 
-// Mutates `url` in place: sets/removes the drawings + version params.
-export function writeDrawingsParam(url: URL, features: DrawingFeature[]): void {
-  const encoded = encodeV0(features);
+// Mutates `url` in place: sets/removes the drawer-owned query params.
+export function writeUrlState(
+  url: URL,
+  state: Pick<UrlState, "features" | "labelsVisible">,
+): void {
+  const encoded = encodeV1(state.features);
   if (encoded === null) {
     url.searchParams.delete("d");
+  } else {
+    url.searchParams.set("d", encoded);
+  }
+
+  if (state.labelsVisible) url.searchParams.delete("hl");
+  else url.searchParams.set("hl", "1");
+
+  if (encoded === null && state.labelsVisible) {
     url.searchParams.delete("v");
     return;
   }
-  url.searchParams.set("d", encoded);
-  // Omit v=0 so URLs produced before versioning stay byte-identical.
-  if (CURRENT_VERSION === 0) url.searchParams.delete("v");
-  else url.searchParams.set("v", String(CURRENT_VERSION));
-}
-
-export function writeLabelsParam(url: URL, labelsVisible: boolean): void {
-  if (labelsVisible) url.searchParams.delete("hl");
-  else url.searchParams.set("hl", "1");
+  url.searchParams.set("v", String(CURRENT_VERSION));
 }
 
 // --- internals ---
@@ -207,9 +308,9 @@ function decodeAndUpgrade(raw: string, fromVersion: number): DrawingState {
   if (!decoder) return emptyState();
   let state = decoder(raw);
   for (let v = fromVersion; v < CURRENT_VERSION; v++) {
-    const up = upgraders[v];
-    if (!up) return emptyState();
-    state = up(state);
+    const upgrade = upgraders[v];
+    if (!upgrade) return emptyState();
+    state = upgrade(state);
   }
   return state as DrawingState;
 }

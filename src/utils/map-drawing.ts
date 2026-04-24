@@ -6,7 +6,7 @@ import { geographicMidpoint } from "./geolocation";
 export type LngLat = [number, number];
 export type FeatureProps = {
   name: string;
-  colorIdx: number;
+  colorId: string;
   hideLabel?: boolean;
 };
 export type PointFeature = {
@@ -27,15 +27,36 @@ export type FeatureCollection = {
 
 // --- Constants ---
 
-// [label, hex]. Index into this array is the colorIdx stored on each feature.
+export type PaletteEntry = {
+  id: string;
+  label: string;
+  hex: string;
+};
+
+// Stable IDs decouple persisted drawing state from palette order, so shared URLs
+// keep decoding even if we reorder or extend the swatch list later.
 // Gray sits near 50% lightness so it reads well in both light mode and the inverted dark-mode canvas.
-export const PALETTE: readonly [string, string][] = [
-  ["red", "#dc2626"],
-  ["blue", "#2563eb"],
-  ["green", "#16a34a"],
-  ["yellow", "#eab308"],
-  ["gray", "#737373"],
+export const PALETTE: readonly PaletteEntry[] = [
+  { id: "red", label: "red", hex: "#dc2626" },
+  { id: "blue", label: "blue", hex: "#2563eb" },
+  { id: "green", label: "green", hex: "#16a34a" },
+  { id: "yellow", label: "yellow", hex: "#eab308" },
+  { id: "gray", label: "gray", hex: "#737373" },
 ];
+export const DEFAULT_COLOR_ID = PALETTE[0].id;
+
+const PALETTE_BY_ID = new Map(PALETTE.map((entry) => [entry.id, entry]));
+
+// Resolves a stored color ID to the current palette entry, defaulting safely for
+// malformed or future IDs instead of breaking map rendering.
+export function getPaletteEntryById(colorId: string): PaletteEntry {
+  return PALETTE_BY_ID.get(colorId) ?? PALETTE[0];
+}
+
+// Maps legacy palette indexes from old shared URLs onto today's stable IDs.
+export function getPaletteEntryByIndex(idx: number): PaletteEntry {
+  return PALETTE[idx] ?? PALETTE[0];
+}
 
 export const SRC_DRAWINGS = "drawings";
 export const SRC_PREVIEW = "drawings-preview";
@@ -61,7 +82,7 @@ export function getFeatureCoord(f: DrawingFeature): { lat: number; lng: number }
 // layers: line, point, point labels, line labels (committed) and line, point (preview).
 //
 // The data-driven color expression is built from PALETTE so the map stays in sync with
-// feature `colorIdx`. Label layers use black text with a white halo so they read in both
+// feature `colorId`. Label layers use black text with a white halo so they read in both
 // light and the inverted dark-mode canvas. The preview layers are initialized with a
 // single hex; the caller keeps them in sync with the active swatch via setPaintProperty
 // on layer IDs "preview-point" / "preview-line".
@@ -75,9 +96,9 @@ export function createDrawingSourcesAndLayers(
 ): void {
   const colorMatch: any = [
     "match",
-    ["get", "colorIdx"],
-    ...PALETTE.flatMap(([, hex], i) => [i, hex]),
-    /* default */ PALETTE[0][1],
+    ["get", "colorId"],
+    ...PALETTE.flatMap(({ id, hex }) => [id, hex]),
+    /* default */ getPaletteEntryById(DEFAULT_COLOR_ID).hex,
   ];
 
   map.addSource(SRC_DRAWINGS, { type: "geojson", data: opts.initialDrawings as any });
