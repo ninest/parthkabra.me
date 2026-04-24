@@ -75,7 +75,7 @@ import CheckIcon from "../icons/check.astro";
     id="md-list-panel"
     class="hidden bg-background/90 border border-border rounded-lg shadow backdrop-blur overflow-hidden"
   >
-    <div class="flex items-stretch">
+    <div id="md-list-header" class="flex items-stretch">
       <button
         id="md-list-toggle"
         type="button"
@@ -112,6 +112,47 @@ import CheckIcon from "../icons/check.astro";
       id="md-list-body"
       class="hidden flex-col gap-2 p-2 max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto border-t border-border"
     >
+    </div>
+    <div
+      id="md-list-detail"
+      class="hidden flex-col max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto"
+    >
+      <div class="flex items-center gap-2 p-2 border-b border-border">
+        <button
+          id="md-detail-back"
+          type="button"
+          aria-label="Back to list"
+          class="shrink-0 w-8 h-8 rounded flex items-center justify-center text-muted-foreground hover:bg-muted"
+        >
+          <XIcon class="w-4 h-4" />
+        </button>
+        <input
+          id="md-detail-name"
+          type="text"
+          class="flex-1 min-w-0 rounded px-2 py-1 bg-transparent border border-border focus:outline-none text-sm"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="words"
+          spellcheck="false"
+        />
+      </div>
+      <div class="flex flex-col gap-3 p-3">
+        <div class="flex items-center gap-2">
+          <div
+            id="md-detail-swatches"
+            class="md-palette-scroll flex items-center gap-1 overflow-x-auto max-w-36 min-w-0 px-1 py-1"
+          ></div>
+          <Button id="md-detail-label-toggle" variant="outline" size="sm" class="shrink-0">Hide label</Button>
+        </div>
+        <div id="md-detail-address-block" class="flex flex-col gap-1 min-h-12">
+          <p id="md-detail-address" class="text-xs text-muted-foreground break-words"></p>
+          <div id="md-detail-address-actions" class="hidden items-center gap-3">
+            <button id="md-detail-edit-address" type="button" class="text-xs underline cursor-pointer">Edit</button>
+            <button id="md-detail-copy-address" type="button" class="text-xs underline cursor-pointer">Copy address</button>
+          </div>
+        </div>
+        <Button id="md-detail-delete" variant="outline" size="sm" class="self-start text-error">Delete</Button>
+      </div>
     </div>
   </div>
 
@@ -196,7 +237,6 @@ import CheckIcon from "../icons/check.astro";
 <script>
   import maplibregl from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
-  import { buttonClasses } from "../button";
   import { inputClasses } from "../input";
   import { reverseGeocode, geocode, suggestGeocode, type SuggestedPlace } from "../../utils/geolocation";
   import {
@@ -233,6 +273,18 @@ import CheckIcon from "../icons/check.astro";
   const $listBody = document.getElementById("md-list-body")!;
   const $listOverflow = document.getElementById("md-list-overflow") as HTMLButtonElement;
   const $listExtras = document.getElementById("md-list-extras")!;
+  const $detail = document.getElementById("md-list-detail")!;
+  const $detailHeaderRow = document.getElementById("md-list-header")!;
+  const $detailBack = document.getElementById("md-detail-back") as HTMLButtonElement;
+  const $detailName = document.getElementById("md-detail-name") as HTMLInputElement;
+  const $detailSwatches = document.getElementById("md-detail-swatches")!;
+  const $detailLabelToggle = document.getElementById("md-detail-label-toggle") as HTMLButtonElement;
+  const $detailAddressBlock = document.getElementById("md-detail-address-block")!;
+  const $detailAddress = document.getElementById("md-detail-address")!;
+  const $detailAddressActions = document.getElementById("md-detail-address-actions")!;
+  const $detailEditAddress = document.getElementById("md-detail-edit-address") as HTMLButtonElement;
+  const $detailCopyAddress = document.getElementById("md-detail-copy-address") as HTMLButtonElement;
+  const $detailDelete = document.getElementById("md-detail-delete") as HTMLButtonElement;
   const $searchInput = document.getElementById("md-search-input") as HTMLInputElement;
   const $searchStatus = document.getElementById("md-search-status")!;
   const $suggestions = document.getElementById("md-suggestions") as HTMLUListElement;
@@ -262,6 +314,14 @@ import CheckIcon from "../icons/check.astro";
   let pointCounter = 0;
   let lineCounter = 0;
   let listExpanded = false;
+  // Reference (not index) so deletes/inserts in `features` don't strand the wrong feature.
+  // Resolve to an index lazily via features.indexOf when needed.
+  let detailFeature: DrawingFeature | null = null;
+  // Delete-armed state for the detail page's two-step delete, mirroring the toolbar's exit/clear pattern.
+  let detailDeleteArmed = false;
+  let detailDeleteResetTimer: ReturnType<typeof setTimeout> | null = null;
+  // Cleanup hook for the in-progress address edit (if any) — invoked by closeDetail().
+  let detailEditCleanup: (() => void) | null = null;
 
   // Contextual instruction shown above the toolbar. Two small helpers so adding
   // a new hint is one row in HINTS + one branch in currentHintKey, with copy
@@ -344,19 +404,7 @@ import CheckIcon from "../icons/check.astro";
     }
   }
 
-  // === Row extras & address cache ===
-
-  // Close any open per-row disclosure and disarm any "Sure?" delete buttons inside.
-  function closeAllRowExtras() {
-    $listBody.querySelectorAll("[data-row-extra]").forEach((el) => {
-      el.classList.add("hidden");
-      el.classList.remove("flex");
-    });
-    $listBody.querySelectorAll("[data-delete-armed]").forEach((el) => {
-      (el as HTMLButtonElement).textContent = "Delete";
-      el.removeAttribute("data-delete-armed");
-    });
-  }
+  // === Address cache ===
 
   // Reverse-geocoded addresses are cached per feature (not serialized in the URL).
   // Prefetched when the feature list opens so rows feel instant; the shared Nominatim
@@ -403,20 +451,22 @@ import CheckIcon from "../icons/check.astro";
 
   // === Feature list rendering ===
 
-  // Render the right-side list of features. One row per feature: color chip, name input, kind label.
-  // e.g. "● [Home________] point" with a color popover below that opens on chip tap.
+  // Render the right-side list of features. One row per feature: color chip, name input,
+  // chevron-right that opens the detail page. The chip is also a shortcut into the same
+  // detail page (matches the original "tap chip to edit color" affordance).
   function renderList() {
     $listPanel.classList.toggle("hidden", features.length === 0);
     $listCount.textContent = String(features.length);
     $listBody.innerHTML = "";
     features.forEach((f, i) => {
-      const wrap = document.createElement("div");
-      wrap.className = "flex flex-col gap-1";
-
       const row = document.createElement("div");
       row.className = "flex items-center gap-2";
 
-      const chip = makeSwatchButton(PALETTE[f.properties.colorIdx][1], "Change color", false);
+      const chip = makeSwatchButton(PALETTE[f.properties.colorIdx][1], "Edit feature", false);
+      chip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDetail(f);
+      });
 
       const input = document.createElement("input");
       input.type = "text";
@@ -443,325 +493,25 @@ import CheckIcon from "../icons/check.astro";
         }
       });
 
-      // Overflow menu — same target as the color chip: toggles the shared extras panel below.
-      const overflow = document.createElement("button");
-      overflow.type = "button";
-      overflow.setAttribute("aria-label", "More actions");
-      overflow.className =
+      // Chevron-right opens the detail page. Same target as the color chip.
+      // Inline SVG because rows are JS-constructed; the chevron-right.astro icon
+      // component is available for any future static placements.
+      const chevron = document.createElement("button");
+      chevron.type = "button";
+      chevron.setAttribute("aria-label", "Open feature details");
+      chevron.className =
         "w-8 h-8 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:bg-muted";
-      overflow.textContent = "\u22EF"; // ⋯
-
-      // Shared row-extras panel: palette picker on top, delete underneath.
-      const extras = document.createElement("div");
-      extras.setAttribute("data-row-extra", "");
-      extras.className = "hidden flex-col gap-2 pl-10";
-
-      // Same horizontal-scroll treatment as the toolbar's #md-swatches: fixed max-w-36,
-      // overflow-x-auto. This keeps the row a predictable width regardless of palette size
-      // and leaves room on the right for the "Hide label" button on the same line.
-      const swatchRow = document.createElement("div");
-      swatchRow.className =
-        "md-palette-scroll flex items-center gap-1 overflow-x-auto max-w-36 min-w-0 px-1 py-1";
-      PALETTE.forEach(([label, hex], j) => {
-        const opt = makeSwatchButton(hex, label, j === f.properties.colorIdx);
-        opt.addEventListener("click", (e) => {
-          e.stopPropagation();
-          features[i].properties.colorIdx = j;
-          closeAllRowExtras();
-          rerender();
-        });
-        swatchRow.appendChild(opt);
-      });
-
-      // Address block — reverse-geocoded eagerly when the list opens (throttled by the
-      // shared Nominatim queue) so the content is usually cached by the time extras open.
-      // min-h reserves ~2 lines of address + copy link, so the common "Resolving..." →
-      // short-address transition doesn't shift the Delete button below it.
-      const addrBlock = document.createElement("div");
-      addrBlock.className = "flex flex-col gap-0.5 min-h-12";
-      const addrText = document.createElement("p");
-      addrText.className = "text-xs text-muted-foreground break-words";
-      // Actions row beneath the address: Edit and Copy. Both share the same
-      // underline-link style — the full row stays hidden until an address resolves.
-      const addrActions = document.createElement("div");
-      addrActions.className = "flex items-center gap-3 hidden";
-      const editAddrBtn = document.createElement("button");
-      editAddrBtn.type = "button";
-      editAddrBtn.className = "text-xs underline cursor-pointer";
-      editAddrBtn.textContent = "Edit";
-      // Line features resolve to one representative coordinate today, so the single-
-      // address editor isn't the right affordance for them — hide Edit until we have
-      // a line-specific flow (e.g. per-vertex addresses).
-      if (f.geometry.type !== "Point") editAddrBtn.classList.add("hidden");
-      const copyAddrBtn = document.createElement("button");
-      copyAddrBtn.type = "button";
-      copyAddrBtn.className = "text-xs underline cursor-pointer";
-      copyAddrBtn.textContent = "Copy address";
-      addrActions.appendChild(editAddrBtn);
-      addrActions.appendChild(copyAddrBtn);
-      addrBlock.appendChild(addrText);
-      addrBlock.appendChild(addrActions);
-      const applyAddressState = () => {
-        const cached = addressCache.get(f);
-        if (cached === undefined) {
-          addrText.textContent = addressPending.has(f) ? "Resolving..." : "";
-          addrActions.classList.add("hidden");
-        } else if (cached) {
-          addrText.textContent = cached;
-          addrActions.classList.remove("hidden");
-        } else {
-          addrText.textContent = "Address unknown";
-          addrActions.classList.add("hidden");
-        }
-      };
-      applyAddressState();
-      copyAddrBtn.addEventListener("click", (e) => {
+      chevron.innerHTML =
+        '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="m9 6 6 6-6 6"></path></svg>';
+      chevron.addEventListener("click", (e) => {
         e.stopPropagation();
-        const text = addrText.textContent;
-        if (!text) return;
-        navigator.clipboard.writeText(text);
-        copyAddrBtn.textContent = "Copied!";
-        setTimeout(() => (copyAddrBtn.textContent = "Copy address"), 1500);
+        openDetail(f);
       });
-      // Edit → swap the paragraph for a textarea preloaded with the current address
-      // and all text selected. Textarea (not input) so long addresses wrap like the
-      // read-only view. Typed text alone can't commit: the user must pick a
-      // suggestion, which updates the address AND moves the point's coordinate.
-      // Escape cancels; clicking away cancels too (reverts to the prior address).
-      // Enter is intentionally a no-op — avoids accidentally keeping a partial query
-      // when the user meant to hit a suggestion.
-      // text-base (16px) is intentional: iOS Safari zooms into editable fields whose
-      // effective font-size is under 16px, which would bounce the whole map view.
-      //
-      // As the user types, inline place suggestions render directly beneath the
-      // textarea — same suggestGeocode + escapeHtml helpers that back the search bar
-      // up top, but rendered in-flow (not floating) so the extras panel stays simple.
-      // Empty-results state renders "No results found" instead of hiding silently,
-      // so the user knows the request completed and the list isn't just loading.
-      editAddrBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const current = addressCache.get(f);
-        if (!current) return;
-        const editArea = document.createElement("textarea");
-        editArea.value = current;
-        editArea.rows = 3;
-        // pr-8 reserves room for the absolute-positioned loading spinner at the
-        // top-right, matching the search bar's spinner placement pattern.
-        editArea.className = inputClasses(
-          "w-full rounded pl-2 pr-8 py-1 text-base leading-tight bg-transparent resize-none",
-        );
-        editArea.setAttribute("autocomplete", "off");
-        editArea.setAttribute("autocorrect", "off");
-        editArea.setAttribute("spellcheck", "false");
-
-        // Wrapper makes `absolute` positioning relative to the textarea's box.
-        const editAreaWrap = document.createElement("div");
-        editAreaWrap.className = "relative";
-        editAreaWrap.appendChild(editArea);
-
-        // Spinner visually matches the search bar's <SpinnerIcon> — shown between
-        // the debounce firing and the response landing. innerHTML is fine here
-        // since the SVG is a static literal with no user content.
-        const editSpinner = document.createElement("div");
-        editSpinner.className =
-          "hidden absolute top-2 right-2 pointer-events-none text-muted-foreground";
-        editSpinner.innerHTML =
-          '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="animate-spin w-4 h-4"><circle cx="12" cy="12" r="9" opacity="0.25"></circle><path d="M21 12a9 9 0 0 0-9-9"></path></svg>';
-        editAreaWrap.appendChild(editSpinner);
-        const setEditLoading = (loading: boolean) => {
-          editSpinner.classList.toggle("hidden", !loading);
-        };
-
-        const editSuggestions = document.createElement("ul");
-        editSuggestions.className =
-          "hidden flex-col mt-1 border border-border rounded overflow-hidden";
-        let editSuggestItems: SuggestedPlace[] = [];
-        let editDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-        addrText.classList.add("hidden");
-        addrActions.classList.add("hidden");
-        addrBlock.insertBefore(editAreaWrap, addrText);
-        addrBlock.insertBefore(editSuggestions, addrText);
-        editArea.focus();
-        editArea.select();
-
-        let done = false;
-        const restore = () => {
-          if (editDebounceTimer) clearTimeout(editDebounceTimer);
-          editAreaWrap.remove();
-          editSuggestions.remove();
-          addrText.classList.remove("hidden");
-          applyAddressState();
-        };
-        const cancel = () => {
-          if (done) return;
-          done = true;
-          restore();
-        };
-
-        const showEditSuggestionsContainer = () => {
-          editSuggestions.classList.remove("hidden");
-          editSuggestions.classList.add("flex");
-        };
-        const hideEditSuggestions = () => {
-          editSuggestItems = [];
-          editSuggestions.innerHTML = "";
-          editSuggestions.classList.add("hidden");
-          editSuggestions.classList.remove("flex");
-        };
-        const renderEditSuggestions = (items: SuggestedPlace[]) => {
-          editSuggestItems = items;
-          editSuggestions.innerHTML = "";
-          if (items.length === 0) {
-            const li = document.createElement("li");
-            li.className = "px-2 py-1 text-xs text-muted-foreground";
-            li.textContent = "No results found";
-            editSuggestions.appendChild(li);
-            showEditSuggestionsContainer();
-            return;
-          }
-          items.forEach((it, i) => {
-            const li = document.createElement("li");
-            li.className =
-              "px-2 py-1 cursor-pointer hover:bg-muted border-b border-border last:border-b-0";
-            li.innerHTML =
-              `<div class="text-xs text-foreground truncate">${escapeHtml(it.title)}</div>` +
-              (it.subtitle
-                ? `<div class="text-xs text-muted-foreground truncate">${escapeHtml(it.subtitle)}</div>`
-                : "");
-            // mousedown (not click) + preventDefault keeps the textarea focused long
-            // enough for us to drive the selection ourselves, instead of the blur
-            // handler firing first and cancelling the edit.
-            li.addEventListener("mousedown", (ev) => {
-              ev.preventDefault();
-              selectEditSuggestion(i);
-            });
-            editSuggestions.appendChild(li);
-          });
-          showEditSuggestionsContainer();
-        };
-
-        const selectEditSuggestion = (idx: number) => {
-          if (done) return;
-          const it = editSuggestItems[idx];
-          if (!it) return;
-          done = true;
-          addressCache.set(f, it.display);
-          // Edit is only shown for Point features today, but guard anyway so the
-          // line-geometry path stays a compile-time no-op if the button is ever shown.
-          if (f.geometry.type === "Point") {
-            f.geometry.coordinates = [it.lng, it.lat];
-          }
-          restore();
-          rerender();
-        };
-
-        editArea.addEventListener("input", () => {
-          const q = editArea.value.trim();
-          if (editDebounceTimer) clearTimeout(editDebounceTimer);
-          // Below 2 chars Nominatim rejects the request, so keep the panel hidden
-          // instead of flashing "No results found" while the user is still typing.
-          if (q.length < 2) {
-            hideEditSuggestions();
-            setEditLoading(false);
-            return;
-          }
-          editDebounceTimer = setTimeout(async () => {
-            setEditLoading(true);
-            try {
-              const items = await suggestGeocode(q, 5, currentViewbox());
-              // User may have kept typing; only render if we're still on the same query.
-              if (editArea.value.trim() !== q) return;
-              renderEditSuggestions(items);
-            } finally {
-              // Leave the spinner on if the user kept typing — the next tick will
-              // either turn it off (short query) or kick off a fresh fetch.
-              if (editArea.value.trim() === q) setEditLoading(false);
-            }
-          }, 300);
-        });
-
-        // Only suggestion selection commits. Clicking away or pressing Escape cancels.
-        // Enter / Shift+Enter are swallowed so an accidental keystroke doesn't bake in
-        // a half-typed query or insert a newline into what's logically a single line.
-        editArea.addEventListener("blur", cancel);
-        editArea.addEventListener("keydown", (ev) => {
-          if (ev.key === "Enter") {
-            ev.preventDefault();
-          } else if (ev.key === "Escape") {
-            ev.preventDefault();
-            cancel();
-          }
-        });
-      });
-
-      // Label visibility toggle — per-feature show/hide of the on-map name label.
-      // Rendered on the same row as the swatches so the extras panel stays compact.
-      const labelBtn = document.createElement("button");
-      labelBtn.type = "button";
-      labelBtn.className = buttonClasses("outline", "sm", "shrink-0");
-      labelBtn.textContent = f.properties.hideLabel ? "Show label" : "Hide label";
-      labelBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        features[i].properties.hideLabel = !features[i].properties.hideLabel;
-        closeAllRowExtras();
-        rerender();
-      });
-
-      // Delete uses a two-step "Delete" → "Sure?" arm, mirroring the Clear all button.
-      // The arm auto-expires after 3s, and closeAllRowExtras() also disarms it.
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.className = buttonClasses("outline", "sm", "self-start text-error");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (!deleteBtn.hasAttribute("data-delete-armed")) {
-          deleteBtn.setAttribute("data-delete-armed", "");
-          deleteBtn.textContent = "Sure?";
-          setTimeout(() => {
-            if (deleteBtn.hasAttribute("data-delete-armed")) {
-              deleteBtn.removeAttribute("data-delete-armed");
-              deleteBtn.textContent = "Delete";
-            }
-          }, 3000);
-          return;
-        }
-        features.splice(i, 1);
-        closeAllRowExtras();
-        rerender();
-      });
-
-      // Top row: horizontally-scrolling palette + the label-visibility button side by side.
-      const topRow = document.createElement("div");
-      topRow.className = "flex items-center gap-2";
-      topRow.appendChild(swatchRow);
-      topRow.appendChild(labelBtn);
-
-      extras.appendChild(topRow);
-      extras.appendChild(addrBlock);
-      extras.appendChild(deleteBtn);
-
-      // Both chip and overflow open/close the same panel.
-      const toggleExtras = (e: Event) => {
-        e.stopPropagation();
-        const willOpen = extras.classList.contains("hidden");
-        closeAllRowExtras();
-        if (willOpen) {
-          extras.classList.remove("hidden");
-          extras.classList.add("flex");
-          ensureAddress(f, applyAddressState, true);
-        }
-      };
-      chip.addEventListener("click", toggleExtras);
-      overflow.addEventListener("click", toggleExtras);
 
       row.appendChild(chip);
       row.appendChild(input);
-      row.appendChild(overflow);
-      wrap.appendChild(row);
-      wrap.appendChild(extras);
-      $listBody.appendChild(wrap);
+      row.appendChild(chevron);
+      $listBody.appendChild(row);
     });
   }
 
@@ -775,10 +525,321 @@ import CheckIcon from "../icons/check.astro";
     if (open) $listToggle.removeAttribute("data-collapsed");
     else $listToggle.setAttribute("data-collapsed", "true");
     $listToggle.setAttribute("aria-expanded", String(open));
-    if (!open) closeAllRowExtras();
     if (open) prefetchAllAddresses();
   }
   $listToggle.addEventListener("click", () => setListExpanded(!listExpanded));
+
+  // === Detail page ===
+  // The detail view replaces the list inside #md-list-panel — header row + body + extras
+  // are hidden while open; closeDetail restores them to their prior state. Only one feature
+  // is visible at a time, and the markup is rendered once (in the .astro template) and
+  // re-populated per open, so per-render cost stays flat regardless of feature count.
+
+  // Disarm the detail's two-step delete and clear its 3s reset timer.
+  function disarmDetailDelete() {
+    detailDeleteArmed = false;
+    $detailDelete.textContent = "Delete";
+    if (detailDeleteResetTimer) {
+      clearTimeout(detailDeleteResetTimer);
+      detailDeleteResetTimer = null;
+    }
+  }
+
+  // Build the swatch row inside the detail page. Active highlight reflects the current feature's color.
+  function renderDetailSwatches() {
+    $detailSwatches.innerHTML = "";
+    if (!detailFeature) return;
+    PALETTE.forEach(([label, hex], i) => {
+      const btn = makeSwatchButton(hex, label, i === detailFeature!.properties.colorIdx);
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!detailFeature) return;
+        detailFeature.properties.colorIdx = i;
+        rerender();
+      });
+      $detailSwatches.appendChild(btn);
+    });
+  }
+
+  // Mirrors the per-row applyAddressState (now removed): paints the address text, toggles
+  // the Edit/Copy actions, shows "Resolving..." while a reverse-geocode is in flight.
+  function applyDetailAddressState() {
+    if (!detailFeature) return;
+    const cached = addressCache.get(detailFeature);
+    if (cached === undefined) {
+      $detailAddress.textContent = addressPending.has(detailFeature) ? "Resolving..." : "";
+      $detailAddressActions.classList.add("hidden");
+      $detailAddressActions.classList.remove("flex");
+    } else if (cached) {
+      $detailAddress.textContent = cached;
+      $detailAddressActions.classList.remove("hidden");
+      $detailAddressActions.classList.add("flex");
+    } else {
+      $detailAddress.textContent = "Address unknown";
+      $detailAddressActions.classList.add("hidden");
+      $detailAddressActions.classList.remove("flex");
+    }
+  }
+
+  // Read detailFeature → write every detail DOM element. Called on open and on every rerender
+  // while the detail is visible, so external mutations (color/name/coord changes) stay reflected.
+  function populateDetail() {
+    if (!detailFeature) return;
+    $detailName.value = detailFeature.properties.name;
+    renderDetailSwatches();
+    $detailLabelToggle.textContent = detailFeature.properties.hideLabel ? "Show label" : "Hide label";
+    // Edit only makes sense for Points today (single coord) — hide for lines.
+    $detailEditAddress.classList.toggle("hidden", detailFeature.geometry.type !== "Point");
+    applyDetailAddressState();
+    ensureAddress(detailFeature, applyDetailAddressState, true);
+  }
+
+  // Show the detail page, hide list pieces. Does NOT mutate listExpanded so closing returns
+  // the list to its prior expand/collapse state.
+  function openDetail(f: DrawingFeature) {
+    detailFeature = f;
+    setListExtrasOpen(false);
+    $detailHeaderRow.classList.add("hidden");
+    $listExtras.classList.add("hidden");
+    $listExtras.classList.remove("flex");
+    $listBody.classList.add("hidden");
+    $listBody.classList.remove("flex");
+    $detail.classList.remove("hidden");
+    $detail.classList.add("flex");
+    disarmDetailDelete();
+    populateDetail();
+  }
+
+  // Hide the detail page, restore list to its prior state. Cancels any in-progress
+  // address edit so it can't outlive the view it lives in.
+  function closeDetail() {
+    if (detailEditCleanup) {
+      detailEditCleanup();
+      detailEditCleanup = null;
+    }
+    detailFeature = null;
+    disarmDetailDelete();
+    $detail.classList.add("hidden");
+    $detail.classList.remove("flex");
+    $detailHeaderRow.classList.remove("hidden");
+    // Restore body visibility based on the saved listExpanded flag.
+    $listBody.classList.toggle("hidden", !listExpanded);
+    $listBody.classList.toggle("flex", listExpanded);
+  }
+
+  // In-place address editor: replaces the static address paragraph with a textarea +
+  // Nominatim suggestions (same flow as the search bar's autocomplete). Selecting a
+  // suggestion commits — typing alone never does, so a half-typed query can't bake in.
+  // Returns a cleanup function (also stored on detailEditCleanup) so closeDetail can
+  // tear it down without leaking handlers.
+  function beginDetailEditAddress() {
+    if (!detailFeature) return;
+    const f = detailFeature;
+    const current = addressCache.get(f);
+    if (!current) return;
+
+    const editArea = document.createElement("textarea");
+    editArea.value = current;
+    editArea.rows = 3;
+    // pr-8 reserves room for the absolute-positioned spinner, matching the search bar pattern.
+    editArea.className = inputClasses(
+      "w-full rounded pl-2 pr-8 py-1 text-base leading-tight bg-transparent resize-none",
+    );
+    editArea.setAttribute("autocomplete", "off");
+    editArea.setAttribute("autocorrect", "off");
+    editArea.setAttribute("spellcheck", "false");
+
+    const editAreaWrap = document.createElement("div");
+    editAreaWrap.className = "relative";
+    editAreaWrap.appendChild(editArea);
+
+    const editSpinner = document.createElement("div");
+    editSpinner.className =
+      "hidden absolute top-2 right-2 pointer-events-none text-muted-foreground";
+    editSpinner.innerHTML =
+      '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="animate-spin w-4 h-4"><circle cx="12" cy="12" r="9" opacity="0.25"></circle><path d="M21 12a9 9 0 0 0-9-9"></path></svg>';
+    editAreaWrap.appendChild(editSpinner);
+    const setEditLoading = (loading: boolean) => {
+      editSpinner.classList.toggle("hidden", !loading);
+    };
+
+    const editSuggestions = document.createElement("ul");
+    editSuggestions.className =
+      "hidden flex-col mt-1 border border-border rounded overflow-hidden";
+    let editSuggestItems: SuggestedPlace[] = [];
+    let editDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    $detailAddress.classList.add("hidden");
+    $detailAddressActions.classList.add("hidden");
+    $detailAddressBlock.insertBefore(editAreaWrap, $detailAddress);
+    $detailAddressBlock.insertBefore(editSuggestions, $detailAddress);
+    editArea.focus();
+    editArea.select();
+
+    let done = false;
+    const restore = () => {
+      if (editDebounceTimer) clearTimeout(editDebounceTimer);
+      editAreaWrap.remove();
+      editSuggestions.remove();
+      $detailAddress.classList.remove("hidden");
+      applyDetailAddressState();
+    };
+    const cancel = () => {
+      if (done) return;
+      done = true;
+      restore();
+      detailEditCleanup = null;
+    };
+    detailEditCleanup = cancel;
+
+    const showEditSuggestionsContainer = () => {
+      editSuggestions.classList.remove("hidden");
+      editSuggestions.classList.add("flex");
+    };
+    const hideEditSuggestions = () => {
+      editSuggestItems = [];
+      editSuggestions.innerHTML = "";
+      editSuggestions.classList.add("hidden");
+      editSuggestions.classList.remove("flex");
+    };
+    const renderEditSuggestions = (items: SuggestedPlace[]) => {
+      editSuggestItems = items;
+      editSuggestions.innerHTML = "";
+      if (items.length === 0) {
+        const li = document.createElement("li");
+        li.className = "px-2 py-1 text-xs text-muted-foreground";
+        li.textContent = "No results found";
+        editSuggestions.appendChild(li);
+        showEditSuggestionsContainer();
+        return;
+      }
+      items.forEach((it, i) => {
+        const li = document.createElement("li");
+        li.className =
+          "px-2 py-1 cursor-pointer hover:bg-muted border-b border-border last:border-b-0";
+        li.innerHTML =
+          `<div class="text-xs text-foreground truncate">${escapeHtml(it.title)}</div>` +
+          (it.subtitle
+            ? `<div class="text-xs text-muted-foreground truncate">${escapeHtml(it.subtitle)}</div>`
+            : "");
+        // mousedown + preventDefault keeps the textarea focused so blur doesn't cancel before the click.
+        li.addEventListener("mousedown", (ev) => {
+          ev.preventDefault();
+          selectEditSuggestion(i);
+        });
+        editSuggestions.appendChild(li);
+      });
+      showEditSuggestionsContainer();
+    };
+
+    const selectEditSuggestion = (idx: number) => {
+      if (done) return;
+      const it = editSuggestItems[idx];
+      if (!it) return;
+      done = true;
+      addressCache.set(f, it.display);
+      if (f.geometry.type === "Point") {
+        f.geometry.coordinates = [it.lng, it.lat];
+      }
+      restore();
+      detailEditCleanup = null;
+      rerender();
+    };
+
+    editArea.addEventListener("input", () => {
+      const q = editArea.value.trim();
+      if (editDebounceTimer) clearTimeout(editDebounceTimer);
+      if (q.length < 2) {
+        hideEditSuggestions();
+        setEditLoading(false);
+        return;
+      }
+      editDebounceTimer = setTimeout(async () => {
+        setEditLoading(true);
+        try {
+          const items = await suggestGeocode(q, 5, currentViewbox());
+          if (editArea.value.trim() !== q) return;
+          renderEditSuggestions(items);
+        } finally {
+          if (editArea.value.trim() === q) setEditLoading(false);
+        }
+      }, 300);
+    });
+
+    editArea.addEventListener("blur", cancel);
+    editArea.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+      } else if (ev.key === "Escape") {
+        ev.preventDefault();
+        cancel();
+      }
+    });
+  }
+
+  // === Detail page event wiring (one-time) ===
+
+  $detailBack.addEventListener("click", closeDetail);
+
+  // Name input: same blur/Enter commit pattern as the row input.
+  $detailName.addEventListener("blur", () => {
+    if (!detailFeature) return;
+    const v = $detailName.value.trim();
+    if (v && v !== detailFeature.properties.name) {
+      detailFeature.properties.name = v;
+      rerender();
+    } else {
+      $detailName.value = detailFeature.properties.name;
+    }
+  });
+  $detailName.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      $detailName.blur();
+    }
+  });
+
+  $detailLabelToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!detailFeature) return;
+    detailFeature.properties.hideLabel = !detailFeature.properties.hideLabel;
+    rerender();
+  });
+
+  $detailCopyAddress.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const text = $detailAddress.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    const prev = $detailCopyAddress.textContent;
+    $detailCopyAddress.textContent = "Copied!";
+    setTimeout(() => ($detailCopyAddress.textContent = prev), 1500);
+  });
+
+  $detailEditAddress.addEventListener("click", (e) => {
+    e.stopPropagation();
+    beginDetailEditAddress();
+  });
+
+  $detailDelete.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!detailFeature) return;
+    if (!detailDeleteArmed) {
+      detailDeleteArmed = true;
+      $detailDelete.textContent = "Sure?";
+      detailDeleteResetTimer = setTimeout(disarmDetailDelete, 3000);
+      return;
+    }
+    const idx = features.indexOf(detailFeature);
+    if (idx >= 0) features.splice(idx, 1);
+    closeDetail();
+    rerender();
+  });
+
+  // Any click outside the delete button disarms the "Sure?" state.
+  document.addEventListener("click", (e) => {
+    if (detailDeleteArmed && e.target !== $detailDelete) disarmDetailDelete();
+  });
 
   // Toggles the list-level overflow panel (Copy link / Clear all).
   // Closing always disarms the Clear button so reopening never shows a stale "Sure?" state.
@@ -793,10 +854,9 @@ import CheckIcon from "../icons/check.astro";
     setListExtrasOpen($listExtras.classList.contains("hidden"));
   });
 
-  // Close per-row popovers and the list-level overflow on any click outside them.
+  // Close the list-level overflow on any click outside it.
   document.addEventListener("click", (e) => {
     const target = e.target as Node;
-    if (!$listBody.contains(target)) closeAllRowExtras();
     if (!$listExtras.contains(target) && !$listOverflow.contains(target)) {
       setListExtrasOpen(false);
     }
@@ -909,6 +969,9 @@ import CheckIcon from "../icons/check.astro";
   }
 
   // Push current state into maplibre sources + URL + list.
+  // If the detail page is open and its feature was deleted out from under it
+  // (e.g. Clear all), close the detail; otherwise refresh it in place so
+  // external mutations (color/coord/name from elsewhere) stay reflected.
   function rerender() {
     const drawings = map.getSource(SRC_DRAWINGS) as maplibregl.GeoJSONSource | undefined;
     if (drawings) drawings.setData(collection() as any);
@@ -916,6 +979,10 @@ import CheckIcon from "../icons/check.astro";
     if (preview) preview.setData(previewCollection() as any);
     $finishLine.classList.toggle("hidden", !(mode === "line" && linePoints.length >= 2));
     renderList();
+    if (detailFeature) {
+      if (features.indexOf(detailFeature) === -1) closeDetail();
+      else populateDetail();
+    }
     writeUrl();
   }
 
@@ -1022,6 +1089,18 @@ import CheckIcon from "../icons/check.astro";
     { key: "p", label: "P", description: "Start drawing a point", action: () => setMode("point") },
     { key: "l", label: "L", description: "Start drawing a line", action: () => setMode("line") },
   ];
+
+  // Escape closes the detail page — runs before the single-key shortcuts so it isn't
+  // gated by their "ignore when typing" guard. We still defer to the address-edit textarea's
+  // own Escape handler (which cancels the edit) and to the detail name input (so a stray
+  // Escape doesn't drop unsaved typing); Escape only closes detail when focus is elsewhere.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !detailFeature) return;
+    const active = document.activeElement as HTMLElement | null;
+    if (active && $detail.contains(active) && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) return;
+    e.preventDefault();
+    closeDetail();
+  });
 
   document.addEventListener("keydown", (e) => {
     // Don't hijack typing in inputs/textareas or while a modifier is held (cmd+P = print, etc.)
