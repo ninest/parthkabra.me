@@ -1,0 +1,109 @@
+---
+import Button from "../button.astro";
+import ArrowUpIcon from "../icons/arrow-up.astro";
+import { inputBaseClasses } from "../input";
+import { getToolAgentTextDocUrl } from "../../utils/links";
+
+const mapAgentDocUrl = getToolAgentTextDocUrl("map");
+const chatGptUrl = "https://chatgpt.com/";
+---
+
+<div class="not-typography absolute inset-0 flex items-center justify-center px-4">
+  <div
+    id="ai-mapmaker"
+    data-doc-url={mapAgentDocUrl}
+    data-chatgpt-url={chatGptUrl}
+    class="w-full max-w-3xl"
+  >
+    <div class="mx-auto max-w-2xl">
+      <div class="relative h-50 w-full">
+        <textarea
+          id="aimm-prompt"
+          rows="5"
+          placeholder="Describe what you want on your map..."
+          class:list={[
+            inputBaseClasses,
+            "absolute inset-0 h-full w-full resize-none rounded-sm bg-background px-2 py-2 pb-12 pr-12 text-left text-lg leading-relaxed",
+          ]}
+        ></textarea>
+        <Button
+          id="aimm-send"
+          type="button"
+          variant="primary"
+          size="sm"
+          aria-label="Open in ChatGPT"
+          class="absolute bottom-2 right-2 z-10 h-8 w-8 rounded-sm p-0 leading-none"
+        >
+          <ArrowUpIcon class="block w-3.5 h-3.5" />
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $root = document.getElementById("ai-mapmaker") as HTMLDivElement | null;
+  const $prompt = document.getElementById("aimm-prompt") as HTMLTextAreaElement | null;
+  const $send = document.getElementById("aimm-send") as HTMLButtonElement | null;
+
+  if (!$root || !$prompt || !$send) {
+    throw new Error("[AIMapMaker] Missing required DOM nodes");
+  }
+
+  // Builds the full prompt by prepending the published map-agent instructions.
+  async function buildPrompt(userRequest: string): Promise<string> {
+    const response = await fetch($root.dataset.docUrl || "");
+    if (!response.ok) {
+      throw new Error(`Failed to load map agent docs (${response.status})`);
+    }
+    const docs = await response.text();
+    return `${docs}\n\n---\n\nUser request:\n${userRequest.trim()}`;
+  }
+
+  // Uses ChatGPT's query string as a best-effort prefill, with clipboard as fallback.
+  function buildChatGptLink(prompt: string): string {
+    const url = new URL($root.dataset.chatgptUrl || "https://chatgpt.com/");
+    url.searchParams.set("q", prompt);
+    return url.toString();
+  }
+
+  async function copyPrompt(prompt: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function sendToChatGpt(): Promise<void> {
+    const request = $prompt.value.trim();
+    if (!request) {
+      $prompt.focus();
+      return;
+    }
+
+    $send.disabled = true;
+
+    try {
+      const fullPrompt = await buildPrompt(request);
+      await copyPrompt(fullPrompt);
+      window.open(buildChatGptLink(fullPrompt), "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("[AIMapMaker] send failed:", error);
+    } finally {
+      $send.disabled = false;
+    }
+  }
+
+  $send.addEventListener("click", () => {
+    void sendToChatGpt();
+  });
+
+  $prompt.addEventListener("keydown", (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+      event.preventDefault();
+      void sendToChatGpt();
+    }
+  });
+</script>

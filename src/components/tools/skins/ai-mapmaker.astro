@@ -1,0 +1,31 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+import Base from "../../../layouts/Base.astro";
+import Navbar from "../../navbar.astro";
+import { routes } from "../../../utils/links";
+
+interface Props {
+  entry: CollectionEntry<"tools">;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Base head={{ title: entry.data.title, description: entry.data.description }}>
+  <div class="fixed inset-0 flex flex-col">
+    <div class="px-4 py-3 border-b border-border bg-background">
+      <Navbar
+        breadcrumbs={[
+          { label: "Parth Kabra", href: "/" },
+          { label: "Tools", href: routes.tools },
+          { label: entry.data.title },
+        ]}
+      />
+    </div>
+    <div class="flex-1 min-h-0 relative">
+      <Content />
+    </div>
+  </div>
+</Base>
