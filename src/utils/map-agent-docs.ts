@@ -91,11 +91,30 @@ If the user says "near", "around", or names a neighborhood, use reasonable place
 When a user asks for a map, return a final share URL to \`${mapUrl}\`.
 
 - Prefer an absolute URL
-- Default to returning only the final URL unless the user explicitly asks for notes, a table, or reasoning
+- Default to a minimal 3-line response unless the user explicitly asks for notes, a table, or reasoning
 - If you do not have reliable coordinates, say that you cannot build an exact link yet
 - Do not invent precise coordinates
-- Do not prepend or append extra text to the URL when the user asked for URL-only output
+- Do not add extra explanation beyond the minimal response unless the user asks for it
 - If the request is plain-language but clearly about places on a map, still return the final URL as the main answer
+
+## Default response format
+
+Unless the user explicitly asks for something else, respond in this shape:
+
+\`\`\`
+Open this link in your browser:
+https://parthkabra.me/tools/map?...
+Let me know if you want any changes.
+\`\`\`
+
+Acceptable variations:
+
+- "Click to open this map in your browser:"
+- "Open this map in your browser:"
+- "Let me know if you want any changes."
+- "Tell me if you want any changes."
+
+The response should stay short and should not include extra bullets, tables, reasoning, or place-by-place explanations by default.
 
 ## Query params
 
@@ -169,6 +188,7 @@ l:gray:Walk%20Route:42.34910,-71.08320;42.34850,-71.08190;42.34790,-71.08040
 - If the user asked for a finished map: return the final URL
 - If the user gave a markdown file with names and coordinates: map those directly
 - If the user gave only names or addresses: geocode first, then build the URL
+- If the user asks for a normal map in plain language: use the minimal response format above
 
 ## Recommended behavior for place maps
 
@@ -185,7 +205,7 @@ l:gray:Walk%20Route:42.34910,-71.08320;42.34850,-71.08190;42.34790,-71.08040
 - Do not use color names outside the allowed set
 - Do not leave raw \`|\` or other separators inside feature names; encode the name segment first
 - Do not create an HTML file or a separate map experience
-- Do not return anything like \`Here is your map:\` when the user asked for the URL only
+- Do not return a long preamble before the link
 - Do not prepend stray characters before \`https://\`
 - Do not respond with "I need more technical details" for normal requests like neighborhood maps, restaurant maps, or mapping a short place list
 `;
