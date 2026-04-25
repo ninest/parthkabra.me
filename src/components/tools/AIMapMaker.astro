@@ -90,6 +90,7 @@ const chatGptUrl = "https://chatgpt.com/";
       $prompt.focus();
       return;
     }
+    window.posthog?.capture("tool_used", { tool: "ai_mapmaker", query: request });
     void copyPrompt(buildPrompt(request));
   });
 
