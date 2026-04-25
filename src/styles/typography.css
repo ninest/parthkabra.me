@@ -20,10 +20,9 @@
       scroll-margin: calc(var(--spacing) * 20);
       border-bottom: 1px solid var(--color-border);
       padding-bottom: calc(var(--spacing) * 2);
-      font-size: var(--text-3xl);
-      line-height: var(--text-3xl--line-height);
-      font-weight: 600;
-      letter-spacing: var(--tracking-tight);
+      font-size: var(--text-lg);
+      line-height: var(--text-lg--line-height);
+      font-weight: 700;
       margin-top: calc(var(--spacing) * 12);
 
       &:first-child {
@@ -33,10 +32,9 @@
 
     & h3:not(.not-typography h3) {
       scroll-margin: calc(var(--spacing) * 20);
-      font-size: var(--text-2xl);
-      line-height: var(--text-2xl--line-height);
-      font-weight: 600;
-      letter-spacing: var(--tracking-tight);
+      font-size: var(--text-base);
+      line-height: var(--text-base--line-height);
+      font-weight: 700;
       margin-top: calc(var(--spacing) * 12);
 
       &:first-child {
@@ -46,10 +44,9 @@
 
     & h4:not(.not-typography h4) {
       scroll-margin: calc(var(--spacing) * 20);
-      font-size: var(--text-xl);
-      line-height: var(--text-xl--line-height);
-      font-weight: 600;
-      letter-spacing: var(--tracking-tight);
+      font-size: var(--text-base);
+      line-height: var(--text-base--line-height);
+      font-weight: 700;
       margin-top: calc(var(--spacing) * 12);
 
       &:first-child {
@@ -59,10 +56,9 @@
 
     & h5:not(.not-typography h5) {
       scroll-margin: calc(var(--spacing) * 20);
-      font-size: var(--text-lg);
-      line-height: var(--text-lg--line-height);
-      font-weight: 600;
-      letter-spacing: var(--tracking-tight);
+      font-size: var(--text-base);
+      line-height: var(--text-base--line-height);
+      font-weight: 700;
       margin-top: calc(var(--spacing) * 12);
 
       &:first-child {
@@ -74,8 +70,7 @@
       scroll-margin: calc(var(--spacing) * 20);
       font-size: var(--text-base);
       line-height: var(--text-base--line-height);
-      font-weight: 600;
-      letter-spacing: var(--tracking-tight);
+      font-weight: 700;
       margin-top: calc(var(--spacing) * 12);
 
       &:first-child {
