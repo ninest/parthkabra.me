@@ -9,6 +9,11 @@ export type FeatureProps = {
   colorId: string;
   hideLabel?: boolean;
   routeMatchMode?: "walk" | "bike" | "drive";
+  // For matched lines, the user's original clicks. The line's `geometry.coordinates`
+  // holds the dense OSRM-snapped path (used for render); `waypoints` is what we ship
+  // to the URL and what gets fed back into OSRM to reconstruct the snapped geometry
+  // on load. Unmatched lines don't set this — their geometry already is the waypoints.
+  waypoints?: LngLat[];
 };
 export type PointFeature = {
   type: "Feature";

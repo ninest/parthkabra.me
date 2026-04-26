@@ -34,7 +34,19 @@ export type UrlState = DrawingState & {
   labelsVisible: boolean;
 };
 
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
+
+const ROUTE_MODE_TO_TOKEN: Record<NonNullable<DrawingFeature["properties"]["routeMatchMode"]>, string> = {
+  walk: "w",
+  bike: "b",
+  drive: "d",
+};
+
+const TOKEN_TO_ROUTE_MODE: Record<string, NonNullable<DrawingFeature["properties"]["routeMatchMode"]>> = {
+  w: "walk",
+  b: "bike",
+  d: "drive",
+};
 
 // --- Shared helpers ---
 
@@ -47,7 +59,11 @@ function encodeFeatureCoords(feature: DrawingFeature): string {
     const [lng, lat] = feature.geometry.coordinates;
     return `${roundCoord(lat)},${roundCoord(lng)}`;
   }
-  return feature.geometry.coordinates
+  // For matched lines, ship the sparse user waypoints — the dense snapped geometry
+  // is reconstructed on load via OSRM. Falls back to the rendered geometry for
+  // unmatched lines (and for matched lines that somehow lost their waypoints).
+  const coords = feature.properties.waypoints ?? feature.geometry.coordinates;
+  return coords
     .map(([lng, lat]) => `${roundCoord(lat)},${roundCoord(lng)}`)
     .join(";");
 }
@@ -240,6 +256,122 @@ function decodeV1(raw: string): DrawingState {
   return finalizeDecodedFeatures(features);
 }
 
+// --- v2 codec ---
+// p:[h]colorId:encodedName:lat,lng
+// l:[h]colorId[:m{w|b|d}]:encodedName:lat,lng;...
+//
+// Same as v1 but lines may carry an extra `m<token>` segment after the color segment
+// to record `routeMatchMode`. The token is a single char (w/b/d) to keep URLs short.
+// Points are unchanged. Decoder peeks at the segment after color: if it matches /^m[wbd]$/,
+// it's the route mode; otherwise that segment is the (encoded) name.
+
+function encodeV2(features: DrawingFeature[]): string | null {
+  if (features.length === 0) return null;
+  const parts: string[] = [];
+  for (const feature of features) {
+    const { colorId, name, hideLabel, routeMatchMode } = feature.properties;
+    const encName = encodeURIComponent(name);
+    const stableColorId = getPaletteEntryById(colorId).id;
+    const colorSeg = hideLabel ? `h${stableColorId}` : stableColorId;
+    const kind = feature.geometry.type === "Point" ? "p" : "l";
+    const modeSeg =
+      kind === "l" && routeMatchMode ? `:m${ROUTE_MODE_TO_TOKEN[routeMatchMode]}` : "";
+    parts.push(`${kind}:${colorSeg}${modeSeg}:${encName}:${encodeFeatureCoords(feature)}`);
+  }
+  return parts.join("|");
+}
+
+function decodeV2(raw: string): DrawingState {
+  let pointCounter = 0;
+  let lineCounter = 0;
+  const features: DrawingFeature[] = [];
+
+  for (const entry of raw.split("|")) {
+    const colon = entry.indexOf(":");
+    if (colon < 0) continue;
+    const kind = entry.slice(0, colon);
+    const body = entry.slice(colon + 1);
+
+    let colorId = DEFAULT_COLOR_ID;
+    let hideLabel = false;
+    let name = "";
+    let coordBody = body;
+    let routeMatchMode: NonNullable<DrawingFeature["properties"]["routeMatchMode"]> | undefined;
+
+    const firstColon = body.indexOf(":");
+    if (firstColon >= 0) {
+      const maybeColorId = body.slice(0, firstColon);
+      const colorMatch = maybeColorId.match(/^(h?)([a-z][a-z0-9-]*)$/i);
+      if (colorMatch) {
+        hideLabel = colorMatch[1] === "h";
+        colorId = getPaletteEntryById(colorMatch[2]).id;
+
+        let rest = body.slice(firstColon + 1);
+        // Optional m<token> segment, lines only.
+        if (kind === "l") {
+          const nextColon = rest.indexOf(":");
+          if (nextColon >= 0) {
+            const seg = rest.slice(0, nextColon);
+            const modeMatch = seg.match(/^m([wbd])$/);
+            if (modeMatch) {
+              routeMatchMode = TOKEN_TO_ROUTE_MODE[modeMatch[1]];
+              rest = rest.slice(nextColon + 1);
+            }
+          }
+        }
+
+        const nameColon = rest.indexOf(":");
+        if (nameColon >= 0) {
+          name = decodeURIComponent(rest.slice(0, nameColon));
+          coordBody = rest.slice(nameColon + 1);
+        }
+      }
+    }
+
+    if (kind === "p") {
+      const [latStr, lngStr] = coordBody.split(",");
+      const lat = parseFloat(latStr);
+      const lng = parseFloat(lngStr);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const decoded = decodePointName(name, pointCounter);
+        pointCounter = decoded.pointCounter;
+        features.push({
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [lng, lat] },
+          properties: { name: decoded.name, colorId, hideLabel },
+        });
+      }
+    } else if (kind === "l") {
+      const coords: LngLat[] = [];
+      for (const pair of coordBody.split(";")) {
+        const [latStr, lngStr] = pair.split(",");
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lngStr);
+        if (!isNaN(lat) && !isNaN(lng)) coords.push([lng, lat]);
+      }
+      if (coords.length >= 2) {
+        const decoded = decodeLineName(name, lineCounter);
+        lineCounter = decoded.lineCounter;
+        const props: DrawingFeature["properties"] = { name: decoded.name, colorId, hideLabel };
+        if (routeMatchMode) {
+          props.routeMatchMode = routeMatchMode;
+          // For matched lines, the wire coords ARE the user waypoints. Stash them so the
+          // load-time re-match has the original input; geometry.coordinates starts as the
+          // raw waypoints and gets replaced by the OSRM-snapped path once it lands.
+          props.waypoints = coords.map(([lng, lat]) => [lng, lat]);
+        }
+        features.push({
+          type: "Feature",
+          geometry: { type: "LineString", coordinates: coords },
+          properties: props,
+        });
+      }
+    }
+  }
+
+  return finalizeDecodedFeatures(features);
+}
+
 // --- Version registry ---
 // Each decoder produces that version's decoded shape; upgraders[N] turns vN into v(N+1).
 // Return types are `unknown` so the chain stays honest — each step casts to the shape
@@ -247,13 +379,16 @@ function decodeV1(raw: string): DrawingState {
 const decoders: Record<number, (raw: string) => unknown> = {
   0: decodeV0,
   1: decodeV1,
+  2: decodeV2,
 };
 
 const upgraders: Record<number, (state: unknown) => unknown> = {
   // v0 already decodes into the current DrawingState shape, so the first explicit
   // upgrader lands on an identity function. Keeping the step in the registry makes
-  // the version chain explicit and leaves room for a real v1 -> v2 transform later.
+  // the version chain explicit.
   0: (state) => state,
+  // v1 → v2 added optional routeMatchMode on lines; absence on a v1 line just means unmatched.
+  1: (state) => state,
 };
 
 // --- Public API ---
@@ -271,7 +406,7 @@ export function writeUrlState(
   url: URL,
   state: Pick<UrlState, "features" | "labelsVisible">,
 ): void {
-  const encoded = encodeV1(state.features);
+  const encoded = encodeV2(state.features);
   if (encoded === null) {
     url.searchParams.delete("d");
   } else {

@@ -21,6 +21,7 @@ import {
   writeMapDrawerControlsCollapsed,
   writeMapDrawerShareState,
 } from "../../utils/map-drawer-storage";
+import { getRouteMatchedPath, type RouteProfile } from "../../utils/route-matching";
 
 // === DOM refs ===
 const $mapEl = document.getElementById("mapdrawer-map")!;
@@ -72,8 +73,22 @@ const $searchConfirmAdd = document.getElementById("md-search-confirm-add") as HT
 // mode is null until the user explicitly picks Point or Line — map clicks are ignored otherwise.
 let mode: "point" | "line" | null = null;
 let features: DrawingFeature[] = [];
-let linePoints: LngLat[] = [];
+// User clicks during line mode — the canonical input to OSRM. Stays sparse.
+let lineWaypoints: LngLat[] = [];
+// What gets rendered as the in-progress preview and saved on Finish.
+// Equals lineWaypoints when unmatched; equals OSRM's snapped output when matched.
+let lineDisplayPoints: LngLat[] = [];
 let routeMatchMode: FeatureProps["routeMatchMode"] | null = null;
+// Sequence number for OSRM fetches: discard responses where the seq has moved on
+// (user clicked again, switched profile, exited mode). Paired with an AbortController
+// so the in-flight request actually stops on the wire too.
+let routeFetchSeq = 0;
+let routeFetchAbort: AbortController | null = null;
+// Which mode (if any) is currently fetching — used to dim the right button.
+let routeFetchingMode: FeatureProps["routeMatchMode"] | null = null;
+// Inline error message ("No walking route found") shown via the same $hint element.
+// Cleared on the next mode-changing user action.
+let routeError: string | null = null;
 let myLocationMarker: maplibregl.Marker | null = null;
 let searchMarker: maplibregl.Marker | null = null;
 // Populated while an "Add point: {title}" confirm panel is open under the search bar.
@@ -108,14 +123,15 @@ const HINTS = {
 function currentHintKey(): keyof typeof HINTS | null {
   if (mode === null) return "idle";
   if (mode === "point") return "point";
-  return linePoints.length === 0 ? "lineEmpty" : "lineDrawing";
+  return lineWaypoints.length === 0 ? "lineEmpty" : "lineDrawing";
 }
 
 function updateHint() {
   const collapsed = $controls.getAttribute("data-collapsed") === "true";
-  const key = collapsed ? null : currentHintKey();
-  $hint.textContent = key ? HINTS[key] : "";
-  $hint.classList.toggle("hidden", !key);
+  // routeError takes precedence over the contextual hint so a failed match is visible.
+  const text = collapsed ? "" : (routeError ?? (currentHintKey() ? HINTS[currentHintKey()!] : ""));
+  $hint.textContent = text;
+  $hint.classList.toggle("hidden", !text);
 }
 
 // === Collapse toggle ===
@@ -711,16 +727,16 @@ function collection(): FeatureCollection {
 function previewCollection(): FeatureCollection {
   const props: FeatureProps = { name: "", colorId: activeColorId };
   if (routeMatchMode) props.routeMatchMode = routeMatchMode;
-  if (linePoints.length === 0) {
+  if (lineDisplayPoints.length === 0) {
     return { type: "FeatureCollection", features: [] };
   }
-  if (linePoints.length === 1) {
+  if (lineDisplayPoints.length === 1) {
     return {
       type: "FeatureCollection",
       features: [
         {
           type: "Feature",
-          geometry: { type: "Point", coordinates: linePoints[0] },
+          geometry: { type: "Point", coordinates: lineDisplayPoints[0] },
           properties: props,
         },
       ],
@@ -731,7 +747,7 @@ function previewCollection(): FeatureCollection {
     features: [
       {
         type: "Feature",
-        geometry: { type: "LineString", coordinates: linePoints },
+        geometry: { type: "LineString", coordinates: lineDisplayPoints },
         properties: props,
       },
     ],
@@ -747,7 +763,7 @@ function rerender() {
   if (drawings) drawings.setData(collection() as any);
   const preview = map.getSource(SRC_PREVIEW) as maplibregl.GeoJSONSource | undefined;
   if (preview) preview.setData(previewCollection() as any);
-  $finishLine.classList.toggle("hidden", !(mode === "line" && linePoints.length >= 2));
+  $finishLine.classList.toggle("hidden", !(mode === "line" && lineWaypoints.length >= 2));
   updateRouteMatchControls();
   renderList();
   if (detailFeature) {
@@ -768,7 +784,42 @@ map.on("load", () => {
   renderSwatches();
   renderList();
   applyLabelsVisible();
+  // Saved matched lines arrive from the URL with raw waypoints as their geometry.
+  // Re-snap them via OSRM so the rendered line follows roads. Failures keep the
+  // raw straight-segment fallback in place — the badge still tells the user
+  // what mode it was matched against.
+  void resnapMatchedFeatures();
 });
+
+// For each saved matched line, re-fetch the OSRM-snapped path from its waypoints
+// and replace `geometry.coordinates`. Each line's request is independent — failures
+// for one don't block the others. Runs once on load; not retriggered after edits.
+async function resnapMatchedFeatures() {
+  const targets = features.filter(
+    (f): f is typeof f & { geometry: { type: "LineString" } } =>
+      f.geometry.type === "LineString" &&
+      !!f.properties.routeMatchMode &&
+      !!f.properties.waypoints &&
+      f.properties.waypoints.length >= 2,
+  );
+  await Promise.all(
+    targets.map(async (f) => {
+      const mode = f.properties.routeMatchMode!;
+      try {
+        const snapped = await getRouteMatchedPath(
+          f.properties.waypoints!,
+          ROUTE_MATCH_TO_PROFILE[mode],
+        );
+        // Feature could have been removed (Clear all) while the request was in flight.
+        if (features.indexOf(f) === -1) return;
+        f.geometry.coordinates = snapped;
+      } catch {
+        // Leave the raw waypoint geometry in place — better than a blank line.
+      }
+    }),
+  );
+  rerender();
+}
 
 // === Mode (point / line) ===
 
@@ -789,23 +840,89 @@ const ROUTE_MATCH_BUTTONS: ReadonlyArray<{
 ];
 
 function canRouteMatchCurrentLine() {
-  return mode === "line" && linePoints.length >= 2;
+  return mode === "line" && lineWaypoints.length >= 2;
 }
 
 function updateRouteMatchControls() {
   const visible = canRouteMatchCurrentLine();
   for (const { mode: matchMode, button } of ROUTE_MATCH_BUTTONS) {
     const active = routeMatchMode === matchMode;
+    const fetching = routeFetchingMode === matchMode;
     button.classList.toggle("hidden", !visible);
     button.setAttribute("aria-pressed", String(visible && active));
+    button.setAttribute("aria-busy", String(visible && fetching));
+    button.classList.toggle("opacity-60", visible && fetching);
+    button.classList.toggle("pointer-events-none", visible && fetching);
     styleButton(button, visible && active);
+  }
+}
+
+// UI mode tokens are shorter than the OSRM profile names; convert at the boundary.
+const ROUTE_MATCH_TO_PROFILE: Record<NonNullable<FeatureProps["routeMatchMode"]>, RouteProfile> = {
+  walk: "walking",
+  bike: "cycling",
+  drive: "driving",
+};
+
+const ROUTE_MATCH_ERROR_LABEL: Record<NonNullable<FeatureProps["routeMatchMode"]>, string> = {
+  walk: "walking",
+  bike: "biking",
+  drive: "driving",
+};
+
+// Cancel any in-flight OSRM call. Subsequent successful responses for older seqs are dropped
+// by the seq check, but aborting saves the round-trip and makes the spinner end immediately.
+function cancelRouteFetch() {
+  if (routeFetchAbort) {
+    routeFetchAbort.abort();
+    routeFetchAbort = null;
+  }
+  routeFetchingMode = null;
+}
+
+// Fire an OSRM request for the current waypoints in the current mode. Latest call wins;
+// stale responses are dropped via the seq guard. On failure, revert mode and surface a hint.
+async function runRouteMatch() {
+  if (!routeMatchMode || lineWaypoints.length < 2) return;
+  cancelRouteFetch();
+  const seq = ++routeFetchSeq;
+  const ctrl = new AbortController();
+  routeFetchAbort = ctrl;
+  routeFetchingMode = routeMatchMode;
+  routeError = null;
+  // Re-render so the dimmed spinner state lands immediately, before the network round-trip.
+  rerender();
+
+  const targetMode = routeMatchMode;
+  const waypointsAtFetch = lineWaypoints.slice();
+  try {
+    const snapped = await getRouteMatchedPath(
+      waypointsAtFetch,
+      ROUTE_MATCH_TO_PROFILE[targetMode],
+      ctrl.signal,
+    );
+    if (seq !== routeFetchSeq) return;
+    lineDisplayPoints = snapped;
+    routeFetchingMode = null;
+    routeFetchAbort = null;
+    rerender();
+  } catch (err) {
+    if (seq !== routeFetchSeq) return;
+    if ((err as { name?: string })?.name === "AbortError") return;
+    routeMatchMode = null;
+    lineDisplayPoints = lineWaypoints.slice();
+    routeFetchingMode = null;
+    routeFetchAbort = null;
+    routeError = `No ${ROUTE_MATCH_ERROR_LABEL[targetMode]} route found`;
+    rerender();
   }
 }
 
 function setRouteMatchMode(next: NonNullable<FeatureProps["routeMatchMode"]>) {
   if (!canRouteMatchCurrentLine()) return;
   routeMatchMode = next;
-  rerender();
+  routeError = null;
+  void runRouteMatch();
 }
 
 // Color picking only matters while drawing — disable swatches outside Point/Line modes
@@ -823,8 +940,11 @@ function setMode(next: "point" | "line" | null) {
   if (next === mode) return;
   if (mode === "line" && next !== "line") {
     // Switching away from line mode discards any in-progress line.
-    linePoints = [];
+    lineWaypoints = [];
+    lineDisplayPoints = [];
     routeMatchMode = null;
+    routeError = null;
+    cancelRouteFetch();
   }
   mode = next;
   if (mode === "line") {
@@ -922,19 +1042,28 @@ document.addEventListener("keydown", (e) => {
 
 // === Finish line / click handlers ===
 
-// Commit the in-progress line to features.
+// Commit the in-progress line to features. The saved geometry is the displayed line —
+// the snapped OSRM result when matched, or the user's raw clicks when not.
 function finishLine() {
-  if (linePoints.length < 2) return;
+  if (lineWaypoints.length < 2 || lineDisplayPoints.length < 2) return;
   lineCounter++;
   const props: FeatureProps = { name: `Line ${lineCounter}`, colorId: activeColorId };
-  if (routeMatchMode) props.routeMatchMode = routeMatchMode;
+  if (routeMatchMode) {
+    props.routeMatchMode = routeMatchMode;
+    // Persist the user's clicks separately from the snapped render so the URL stays
+    // short and the snapped path can be reconstructed on load via OSRM.
+    props.waypoints = lineWaypoints.slice();
+  }
   features.push({
     type: "Feature",
-    geometry: { type: "LineString", coordinates: linePoints },
+    geometry: { type: "LineString", coordinates: lineDisplayPoints.slice() },
     properties: props,
   });
-  linePoints = [];
+  lineWaypoints = [];
+  lineDisplayPoints = [];
   routeMatchMode = null;
+  routeError = null;
+  cancelRouteFetch();
   rerender();
   setMode(null);
   setListExpanded(true);
@@ -956,10 +1085,19 @@ map.on("click", (e) => {
     setMode(null);
     setListExpanded(true);
   } else if (mode === "line") {
-    if (routeMatchMode) routeMatchMode = null;
-    linePoints.push(coord);
-    rerender();
-    updateHint();
+    lineWaypoints.push(coord);
+    routeError = null;
+    if (routeMatchMode) {
+      // Re-snap through all waypoints. runRouteMatch handles the seq + abort, so the latest
+      // click's fetch supersedes any in-flight one. While it's loading we leave displayPoints
+      // showing the previous snapped route — adding the raw click point would cause a visual
+      // jolt to a straight segment that the new fetch will immediately replace.
+      void runRouteMatch();
+    } else {
+      lineDisplayPoints = lineWaypoints.slice();
+      rerender();
+      updateHint();
+    }
   }
 });
 
@@ -995,8 +1133,11 @@ $clear.addEventListener("click", (e) => {
   }
   disarmClear();
   features = [];
-  linePoints = [];
+  lineWaypoints = [];
+  lineDisplayPoints = [];
   routeMatchMode = null;
+  routeError = null;
+  cancelRouteFetch();
   pointCounter = 0;
   lineCounter = 0;
   if (myLocationMarker) {

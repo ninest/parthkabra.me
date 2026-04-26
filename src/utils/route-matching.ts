@@ -34,9 +34,9 @@ function roundPoint(point: LngLat): string {
   return `${lng.toFixed(6)},${lat.toFixed(6)}`;
 }
 
-function buildOsrmRouteUrl(start: LngLat, end: LngLat, profile: RouteProfile): string {
+function buildOsrmRouteUrl(waypoints: LngLat[], profile: RouteProfile): string {
   const endpoint = OSRM_ENDPOINTS[profile];
-  const coordinates = `${roundPoint(start)};${roundPoint(end)}`;
+  const coordinates = waypoints.map(roundPoint).join(";");
   const params = new URLSearchParams({
     overview: "full",
     geometries: "geojson",
@@ -67,10 +67,23 @@ export async function getRouteMatchedPoints(
   end: LngLat,
   profile: RouteProfile,
 ): Promise<LngLat[]> {
-  validatePoint(start, "start");
-  validatePoint(end, "end");
+  return getRouteMatchedPath([start, end], profile);
+}
 
-  const resp = await fetch(buildOsrmRouteUrl(start, end, profile));
+// Returns the road-following geometry through an arbitrary list of waypoints. OSRM stitches
+// the segments into one LineString, so the result is denser than the input. The optional
+// AbortSignal lets callers cancel an in-flight request when a newer one supersedes it.
+export async function getRouteMatchedPath(
+  waypoints: LngLat[],
+  profile: RouteProfile,
+  signal?: AbortSignal,
+): Promise<LngLat[]> {
+  if (waypoints.length < 2) {
+    throw new Error("Route matching requires at least two waypoints.");
+  }
+  waypoints.forEach((p, i) => validatePoint(p, `waypoint ${i + 1}`));
+
+  const resp = await fetch(buildOsrmRouteUrl(waypoints, profile), { signal });
   if (!resp.ok) {
     throw new Error(`OSRM route request failed with HTTP ${resp.status}.`);
   }
