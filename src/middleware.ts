@@ -10,6 +10,20 @@ export const onRequest = defineMiddleware((context, next) => {
     return Response.redirect(redirectUrl, 301);
   }
 
+  const toolAgentDocMatch = url.pathname.match(/^\/tools\/([^/]+)\/agents\.(md|txt)$/i);
+  if (toolAgentDocMatch) {
+    const redirectUrl = new URL(url);
+    redirectUrl.pathname = `/tools/${toolAgentDocMatch[1]}/agents`;
+    return Response.redirect(redirectUrl, 301);
+  }
+
+  const toolAgentMatch = url.pathname.match(/^\/tools\/([^/]+)\/agents$/i);
+  if (toolAgentMatch && url.pathname !== `/tools/${toolAgentMatch[1]}/agents`) {
+    const redirectUrl = new URL(url);
+    redirectUrl.pathname = `/tools/${toolAgentMatch[1]}/agents`;
+    return Response.redirect(redirectUrl, 301);
+  }
+
   if (!url.pathname.startsWith("/admin")) {
     return next();
   }

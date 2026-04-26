@@ -1,4 +1,10 @@
-import { getToolAgentDocUrl, getToolAgentTextDocUrl, getToolUrl, routes } from "./links";
+import {
+  getToolAgentDocUrl,
+  getToolAgentMarkdownDocUrl,
+  getToolAgentTextDocUrl,
+  getToolUrl,
+  routes,
+} from "./links";
 
 const SITE_ORIGIN = "https://parthkabra.me";
 
@@ -6,8 +12,12 @@ export function getMapToolUrl(): string {
   return `${SITE_ORIGIN}${getToolUrl("map")}`;
 }
 
-export function getMapAgentMarkdownUrl(): string {
+export function getMapAgentDocUrl(): string {
   return `${SITE_ORIGIN}${getToolAgentDocUrl("map")}`;
+}
+
+export function getMapAgentMarkdownUrl(): string {
+  return `${SITE_ORIGIN}${getToolAgentMarkdownDocUrl("map")}`;
 }
 
 export function getMapAgentTextUrl(): string {
@@ -20,6 +30,7 @@ export function getLlmsUrl(): string {
 
 export function buildMapAgentDocs(): string {
   const mapUrl = getMapToolUrl();
+  const docsUrl = getMapAgentDocUrl();
   const markdownUrl = getMapAgentMarkdownUrl();
   const textUrl = getMapAgentTextUrl();
   const llmsUrl = getLlmsUrl();
@@ -29,7 +40,8 @@ export function buildMapAgentDocs(): string {
 Use this document when generating share links for the map tool.
 
 - Canonical map tool URL: ${mapUrl}
-- Canonical docs URL: ${markdownUrl}
+- Canonical docs URL: ${docsUrl}
+- Markdown compatibility URL: ${markdownUrl}
 - Plain-text fallback URL: ${textUrl}
 - LLM discovery file: ${llmsUrl}
 - Current URL version to emit: \`v=1\`
@@ -46,7 +58,7 @@ Your job is to generate a share URL for Parth's existing map tool.
 - Do not substitute another representation for the final answer
 - The final answer should be a \`parthkabra.me/tools/map\` URL unless the user explicitly asks for something else
 
-If you cannot access this document directly, try the plain-text fallback URL above. If you still cannot access it, ask the user to paste it or paste the relevant place list. Do not improvise a separate map implementation.
+If you cannot access this document directly, try the markdown compatibility URL or the plain-text fallback URL above. If you still cannot access it, ask the user to paste it or paste the relevant place list. Do not improvise a separate map implementation.
 
 ## Assume the user is not technical
 
@@ -62,13 +74,13 @@ The user may not know anything about URL versions, payload encoding, or map data
 This document is designed so a user can give an AI app a very short prompt such as:
 
 \`\`\`
-Read ${markdownUrl} and make me a map of the best restaurants in Back Bay, Boston.
+Read ${docsUrl} and make me a map of the best restaurants in Back Bay, Boston.
 \`\`\`
 
 or:
 
 \`\`\`
-Read ${markdownUrl}. Turn this place list into a map link.
+Read ${docsUrl}. Turn this place list into a map link.
 \`\`\`
 
 If the user does not ask for extra explanation, default to returning only the final map URL.
@@ -212,6 +224,7 @@ l:gray:Walk%20Route:42.34910,-71.08320;42.34850,-71.08190;42.34790,-71.08040
 }
 
 export function buildLlmsTxt(): string {
+  const docsUrl = getMapAgentDocUrl();
   const markdownUrl = getMapAgentMarkdownUrl();
   const textUrl = getMapAgentTextUrl();
   const mapUrl = getMapToolUrl();
@@ -224,13 +237,14 @@ Primary site: https://parthkabra.me
 ## Available tool docs
 
 - Map tool: ${mapUrl}
-- Map tool agent docs (markdown): ${markdownUrl}
+- Map tool agent docs: ${docsUrl}
+- Map tool agent docs (markdown compatibility): ${markdownUrl}
 - Map tool agent docs (plain text): ${textUrl}
 
 ## Notes
 
 - The map tool accepts shareable URL state through query params
 - Agents generating map links should read the map tool docs before responding
-- If markdown fetch fails, use the plain-text map tool docs
+- If the canonical docs URL fails, use the markdown or plain-text fallback
 `;
 }
