@@ -4,8 +4,8 @@ export type ButtonSize = "sm" | "md";
 export const buttonBaseClasses = "rounded flex items-center justify-center";
 
 export const buttonSizeClasses: Record<ButtonSize, string> = {
-  sm: "px-2 py-0.5 text-xs",
-  md: "px-3 py-1",
+  sm: "h-5 px-2 py-0.5 text-xs",
+  md: "h-7 px-3 py-1",
 };
 
 export const buttonVariantClasses: Record<ButtonVariant, string> = {
