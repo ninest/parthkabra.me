@@ -28,6 +28,9 @@ const $modePoint = document.getElementById("md-mode-point") as HTMLButtonElement
 const $modeLine = document.getElementById("md-mode-line") as HTMLButtonElement;
 const $exitMode = document.getElementById("md-exit-mode") as HTMLButtonElement;
 const $finishLine = document.getElementById("md-finish-line") as HTMLButtonElement;
+const $routeWalk = document.getElementById("md-route-walk") as HTMLButtonElement;
+const $routeBike = document.getElementById("md-route-bike") as HTMLButtonElement;
+const $routeDrive = document.getElementById("md-route-drive") as HTMLButtonElement;
 const $myLocation = document.getElementById("md-my-location") as HTMLButtonElement;
 const $clear = document.getElementById("md-clear") as HTMLButtonElement;
 const $copyLink = document.getElementById("md-copy-link") as HTMLButtonElement;
@@ -70,6 +73,7 @@ const $searchConfirmAdd = document.getElementById("md-search-confirm-add") as HT
 let mode: "point" | "line" | null = null;
 let features: DrawingFeature[] = [];
 let linePoints: LngLat[] = [];
+let routeMatchMode: FeatureProps["routeMatchMode"] | null = null;
 let myLocationMarker: maplibregl.Marker | null = null;
 let searchMarker: maplibregl.Marker | null = null;
 // Populated while an "Add point: {title}" confirm panel is open under the search bar.
@@ -247,6 +251,14 @@ function renderList() {
       openDetail(f);
     });
 
+    const matchBadge = document.createElement("span");
+    matchBadge.className =
+      "hidden shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[0.6875rem] leading-none text-primary";
+    if (f.geometry.type === "LineString" && f.properties.routeMatchMode) {
+      matchBadge.classList.remove("hidden");
+      matchBadge.textContent = `${f.properties.routeMatchMode} matched`;
+    }
+
     // Chevron-right opens the detail page. Same target as the color chip.
     // Inline SVG because rows are JS-constructed; the chevron-right.astro icon
     // component is available for any future static placements.
@@ -264,6 +276,7 @@ function renderList() {
 
     row.appendChild(chip);
     row.appendChild(name);
+    row.appendChild(matchBadge);
     row.appendChild(chevron);
     $listBody.appendChild(row);
   });
@@ -697,6 +710,7 @@ function collection(): FeatureCollection {
 // we just fill them to satisfy FeatureProps.
 function previewCollection(): FeatureCollection {
   const props: FeatureProps = { name: "", colorId: activeColorId };
+  if (routeMatchMode) props.routeMatchMode = routeMatchMode;
   if (linePoints.length === 0) {
     return { type: "FeatureCollection", features: [] };
   }
@@ -734,6 +748,7 @@ function rerender() {
   const preview = map.getSource(SRC_PREVIEW) as maplibregl.GeoJSONSource | undefined;
   if (preview) preview.setData(previewCollection() as any);
   $finishLine.classList.toggle("hidden", !(mode === "line" && linePoints.length >= 2));
+  updateRouteMatchControls();
   renderList();
   if (detailFeature) {
     if (features.indexOf(detailFeature) === -1) closeDetail();
@@ -764,6 +779,35 @@ function styleButton(btn: HTMLButtonElement, active: boolean) {
   btn.classList.toggle("bg-muted", !active);
 }
 
+const ROUTE_MATCH_BUTTONS: ReadonlyArray<{
+  mode: NonNullable<FeatureProps["routeMatchMode"]>;
+  button: HTMLButtonElement;
+}> = [
+  { mode: "walk", button: $routeWalk },
+  { mode: "bike", button: $routeBike },
+  { mode: "drive", button: $routeDrive },
+];
+
+function canRouteMatchCurrentLine() {
+  return mode === "line" && linePoints.length >= 2;
+}
+
+function updateRouteMatchControls() {
+  const visible = canRouteMatchCurrentLine();
+  for (const { mode: matchMode, button } of ROUTE_MATCH_BUTTONS) {
+    const active = routeMatchMode === matchMode;
+    button.classList.toggle("hidden", !visible);
+    button.setAttribute("aria-pressed", String(visible && active));
+    styleButton(button, visible && active);
+  }
+}
+
+function setRouteMatchMode(next: NonNullable<FeatureProps["routeMatchMode"]>) {
+  if (!canRouteMatchCurrentLine()) return;
+  routeMatchMode = next;
+  rerender();
+}
+
 // Color picking only matters while drawing — disable swatches outside Point/Line modes
 // so the toolbar doesn't suggest a no-op interaction.
 function setSwatchesEnabled(enabled: boolean) {
@@ -780,6 +824,7 @@ function setMode(next: "point" | "line" | null) {
   if (mode === "line" && next !== "line") {
     // Switching away from line mode discards any in-progress line.
     linePoints = [];
+    routeMatchMode = null;
   }
   mode = next;
   if (mode === "line") {
@@ -803,6 +848,12 @@ function setMode(next: "point" | "line" | null) {
 
 $modePoint.addEventListener("click", () => setMode("point"));
 $modeLine.addEventListener("click", () => setMode("line"));
+for (const { mode: matchMode, button } of ROUTE_MATCH_BUTTONS) {
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setRouteMatchMode(matchMode);
+  });
+}
 
 // Exit button: two-step "✕" → "Sure?" confirm, mirroring Clear all. Protects in-progress
 // line points (setMode(null) discards them) from being dropped by a stray click.
@@ -875,12 +926,15 @@ document.addEventListener("keydown", (e) => {
 function finishLine() {
   if (linePoints.length < 2) return;
   lineCounter++;
+  const props: FeatureProps = { name: `Line ${lineCounter}`, colorId: activeColorId };
+  if (routeMatchMode) props.routeMatchMode = routeMatchMode;
   features.push({
     type: "Feature",
     geometry: { type: "LineString", coordinates: linePoints },
-    properties: { name: `Line ${lineCounter}`, colorId: activeColorId },
+    properties: props,
   });
   linePoints = [];
+  routeMatchMode = null;
   rerender();
   setMode(null);
   setListExpanded(true);
@@ -902,6 +956,7 @@ map.on("click", (e) => {
     setMode(null);
     setListExpanded(true);
   } else if (mode === "line") {
+    if (routeMatchMode) routeMatchMode = null;
     linePoints.push(coord);
     rerender();
     updateHint();
@@ -941,6 +996,7 @@ $clear.addEventListener("click", (e) => {
   disarmClear();
   features = [];
   linePoints = [];
+  routeMatchMode = null;
   pointCounter = 0;
   lineCounter = 0;
   if (myLocationMarker) {

@@ -8,6 +8,7 @@ export type FeatureProps = {
   name: string;
   colorId: string;
   hideLabel?: boolean;
+  routeMatchMode?: "walk" | "bike" | "drive";
 };
 export type PointFeature = {
   type: "Feature";
@@ -103,11 +104,30 @@ export function createDrawingSourcesAndLayers(
 
   map.addSource(SRC_DRAWINGS, { type: "geojson", data: opts.initialDrawings as any });
   map.addLayer({
+    id: "drawings-matched-lines-halo",
+    type: "line",
+    source: SRC_DRAWINGS,
+    filter: [
+      "all",
+      ["==", ["geometry-type"], "LineString"],
+      ["has", "routeMatchMode"],
+    ],
+    paint: {
+      "line-color": "#111827",
+      "line-width": 8,
+      "line-opacity": 0.28,
+    },
+    layout: { "line-cap": "round", "line-join": "round" },
+  });
+  map.addLayer({
     id: "drawings-lines",
     type: "line",
     source: SRC_DRAWINGS,
     filter: ["==", ["geometry-type"], "LineString"],
-    paint: { "line-color": colorMatch, "line-width": 3 },
+    paint: {
+      "line-color": colorMatch,
+      "line-width": ["case", ["has", "routeMatchMode"], 4.5, 3],
+    },
     layout: { "line-cap": "round", "line-join": "round" },
   });
   map.addLayer({
@@ -169,6 +189,22 @@ export function createDrawingSourcesAndLayers(
   });
 
   map.addSource(SRC_PREVIEW, { type: "geojson", data: opts.initialPreview as any });
+  map.addLayer({
+    id: "preview-matched-line-halo",
+    type: "line",
+    source: SRC_PREVIEW,
+    filter: [
+      "all",
+      ["==", ["geometry-type"], "LineString"],
+      ["has", "routeMatchMode"],
+    ],
+    paint: {
+      "line-color": "#111827",
+      "line-width": 8,
+      "line-opacity": 0.24,
+    },
+    layout: { "line-cap": "round", "line-join": "round" },
+  });
   map.addLayer({
     id: "preview-line",
     type: "line",
