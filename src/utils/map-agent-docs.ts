@@ -95,9 +95,11 @@ Treat prompts like these as normal valid requests for the map tool:
 - "Can you map these places for me?"
 - "Make a date-night map for Boston."
 - "Plot the best dumpling spots in Cambridge."
+- "Find coffee shops in Boston for studying."
 - "Make me a walking route from Boston Common to Fenway."
 - "Make a biking route from MIT to Harvard and label the start and end."
 - "Make a driving route from Logan Airport to Back Bay via Seaport."
+- "Find me a route to explore Harvard."
 
 If the user says "near", "around", or names a neighborhood, use reasonable place selection centered on that area.
 
@@ -179,6 +181,9 @@ Plain-language route interpretation:
 - "bike route", "biking route", "cycling route", or similar means use \`:mb\`
 - "driving route", "drive from A to B", "road route", or similar means use \`:md\`
 - "route from A to B via C" means include C as an intermediate coordinate in the line
+- Requests with a time/order sequence, itinerary, tour, crawl, route, walk, or "explore" intent should usually be one line with intermediate waypoints
+- Requests like "find {places} in Boston for {purpose}" should usually be point features, unless the user also asks for an ordered route or timed itinerary
+- If the user gives or implies an order, preserve that order in the line coordinates and any \`:n...\` labels
 - Start, end, and intermediate point labels are optional. Add them when the user asks for labels or when labels make the map clearer
 - Use the line's main \`encodedName\` for the overall route name, such as \`Fenway%20Walk\`
 
@@ -203,7 +208,9 @@ Plain-language route interpretation:
 When a request is underspecified but still reasonable, make pragmatic choices instead of asking unnecessary follow-up questions.
 
 - For "best restaurants" or similar, choose a sensible set of well-known, well-reviewed places
+- For "find {places} in {area} for {purpose}", choose useful places and render them as points
 - For "near" or "around" a named area, pick places actually clustered in or near that area
+- For "explore {area}", "tour {area}", "crawl", "itinerary", or requests with times/order, choose a useful sequence and render it as a line
 - For a short place list from the user, map all valid items you can identify reliably
 - If only some places can be verified confidently, include only those and omit uncertain ones
 - Ask a follow-up only when the request is too ambiguous to produce a useful map
@@ -261,13 +268,16 @@ l:green:mb:Cambridge%20Ride:42.36009,-71.09416;42.37362,-71.11902;42.37444,-71.1
 - If the user gave only names or addresses: geocode first, then build the URL
 - If the user asks for a normal map in plain language: use the minimal response format above
 - If the user asks for a walking, biking, or driving route: generate a route-matched line with the right \`:m...\` segment
+- If the user asks to find places for a category or purpose: generate points by default
+- If the user asks for an itinerary, tour, crawl, ordered visit, or exploration route: generate a line by default
 - If the user asks for start, end, or stop labels on a route: use line point labels with \`:n...\`
 
 ## Recommended behavior for place maps
 
 - When the user asks for "best restaurants", "best cafes", or similar, choose a reasonable set of well-known places with verifiable coordinates
 - Keep point names short so labels fit on the map
-- Prefer points unless the user explicitly asks for lines or paths
+- Prefer points for unordered discovery requests, such as finding places in an area for a purpose
+- Prefer lines for ordered, timed, itinerary, tour, crawl, route, walk, or exploration requests
 - Prefer route-matched lines when the user asks for walking, biking, or driving directions
 - Leave map labels visible unless the user asks to hide them
 - If the user provides a category and an area, optimize for a map that feels useful at a glance rather than trying to be exhaustive
