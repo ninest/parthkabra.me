@@ -14,6 +14,10 @@ export type FeatureProps = {
   // to the URL and what gets fed back into OSRM to reconstruct the snapped geometry
   // on load. Unmatched lines don't set this — their geometry already is the waypoints.
   waypoints?: LngLat[];
+  // Optional per-user-point labels for lines (e.g. start = "Hopkinton", end = "Boston").
+  // Indexed parallel to the user-point set returned by getLineUserPoints — i.e. `waypoints`
+  // for matched lines, `geometry.coordinates` for unmatched. Empty/missing slots are unnamed.
+  pointNames?: string[];
 };
 export type PointFeature = {
   type: "Feature";
@@ -29,6 +33,20 @@ export type DrawingFeature = PointFeature | LineFeature;
 export type FeatureCollection = {
   type: "FeatureCollection";
   features: DrawingFeature[];
+};
+type LinePointLabelFeature = {
+  type: "Feature";
+  geometry: { type: "Point"; coordinates: LngLat };
+  properties: {
+    name: string;
+    colorId: string;
+    hideLabel?: boolean;
+    labelPlacement: "start" | "middle" | "end";
+  };
+};
+export type LinePointLabelCollection = {
+  type: "FeatureCollection";
+  features: LinePointLabelFeature[];
 };
 
 // --- Constants ---
@@ -66,6 +84,7 @@ export function getPaletteEntryByIndex(idx: number): PaletteEntry {
 
 export const SRC_DRAWINGS = "drawings";
 export const SRC_PREVIEW = "drawings-preview";
+export const SRC_LINE_POINT_LABELS = "drawings-line-point-labels";
 
 // --- Pure helpers ---
 
@@ -78,6 +97,37 @@ export function getFeatureCoord(f: DrawingFeature): { lat: number; lng: number }
   }
   const pts = f.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }));
   return geographicMidpoint(pts);
+}
+
+// Returns the user-added points of a line. Matched routes keep the clicked points
+// in `waypoints`; unmatched lines use their raw rendered vertices.
+export function getLineUserPoints(f: LineFeature): LngLat[] {
+  return f.properties.waypoints ?? f.geometry.coordinates;
+}
+
+// Builds point-label features for named line vertices so one line can render
+// multiple labels at its user-added points.
+export function linePointLabelCollection(features: DrawingFeature[]): LinePointLabelCollection {
+  const labels: LinePointLabelFeature[] = [];
+  for (const feature of features) {
+    if (feature.geometry.type !== "LineString") continue;
+    const points = getLineUserPoints(feature);
+    points.forEach((coordinates, i) => {
+      const name = feature.properties.pointNames?.[i]?.trim();
+      if (!name) return;
+      labels.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates },
+        properties: {
+          name,
+          colorId: feature.properties.colorId,
+          hideLabel: feature.properties.hideLabel,
+          labelPlacement: i === 0 ? "start" : i === points.length - 1 ? "end" : "middle",
+        },
+      });
+    });
+  }
+  return { type: "FeatureCollection", features: labels };
 }
 
 // URL codec for drawings lives in ./map-drawing-url.ts.
@@ -96,6 +146,7 @@ export function createDrawingSourcesAndLayers(
   map: MapLibreMap,
   opts: {
     initialDrawings: FeatureCollection;
+    initialLinePointLabels: LinePointLabelCollection;
     initialPreview: FeatureCollection;
     initialPreviewHex: string;
   },
@@ -185,6 +236,40 @@ export function createDrawingSourcesAndLayers(
       "symbol-placement": "line-center",
       "text-allow-overlap": false,
       "text-optional": true,
+    },
+    paint: {
+      "text-color": "#111111",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.5,
+    },
+  });
+  map.addSource(SRC_LINE_POINT_LABELS, {
+    type: "geojson",
+    data: opts.initialLinePointLabels as any,
+  });
+  map.addLayer({
+    id: "drawings-line-point-dots",
+    type: "circle",
+    source: SRC_LINE_POINT_LABELS,
+    filter: ["!=", ["get", "hideLabel"], true],
+    paint: {
+      "circle-radius": 3.5,
+      "circle-color": colorMatch,
+      "circle-opacity": 0.95,
+    },
+  });
+  map.addLayer({
+    id: "drawings-line-point-labels",
+    type: "symbol",
+    source: SRC_LINE_POINT_LABELS,
+    filter: ["!=", ["get", "hideLabel"], true],
+    layout: {
+      "text-field": ["get", "name"],
+      "text-size": 12,
+      "text-offset": [0, -0.65],
+      "text-anchor": "bottom",
+      "text-allow-overlap": true,
+      "text-ignore-placement": true,
     },
     paint: {
       "text-color": "#111111",

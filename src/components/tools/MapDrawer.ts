@@ -6,13 +6,17 @@ import {
   DEFAULT_COLOR_ID,
   PALETTE,
   SRC_DRAWINGS,
+  SRC_LINE_POINT_LABELS,
   SRC_PREVIEW,
   createDrawingSourcesAndLayers,
   getFeatureCoord,
+  getLineUserPoints,
   getPaletteEntryById,
+  linePointLabelCollection,
   type DrawingFeature,
   type FeatureCollection,
   type FeatureProps,
+  type LineFeature,
   type LngLat,
 } from "../../utils/map-drawing";
 import {
@@ -54,6 +58,7 @@ const $detailAddress = document.getElementById("md-detail-address")!;
 const $detailAddressActions = document.getElementById("md-detail-address-actions")!;
 const $detailEditAddress = document.getElementById("md-detail-edit-address") as HTMLButtonElement;
 const $detailCopyAddress = document.getElementById("md-detail-copy-address") as HTMLButtonElement;
+const $detailPointsList = document.getElementById("md-detail-points-list")!;
 const $detailDelete = document.getElementById("md-detail-delete") as HTMLButtonElement;
 const $detailMode = document.getElementById("md-detail-mode")!;
 const $detailModeWalk = document.getElementById("md-detail-mode-walk")!;
@@ -358,7 +363,7 @@ function renderDetailSwatches() {
 // Mirrors the per-row applyAddressState (now removed): paints the address text, toggles
 // the Edit/Copy actions, shows "Resolving..." while a reverse-geocode is in flight.
 function applyDetailAddressState() {
-  if (!detailFeature) return;
+  if (!detailFeature || detailFeature.geometry.type !== "Point") return;
   const cached = addressCache.get(detailFeature);
   if (cached === undefined) {
     $detailAddress.textContent = addressPending.has(detailFeature) ? "Resolving..." : "";
@@ -375,6 +380,42 @@ function applyDetailAddressState() {
   }
 }
 
+function ensureLinePointNames(feature: LineFeature, pointCount: number): string[] {
+  const existing = feature.properties.pointNames ?? [];
+  const names = Array.from({ length: pointCount }, (_, i) => existing[i] ?? "");
+  feature.properties.pointNames = names;
+  return names;
+}
+
+// Renders editable labels for the user-added points that make up a line.
+function renderDetailPointsList(feature: LineFeature) {
+  const points = getLineUserPoints(feature);
+  const names = feature.properties.pointNames ?? [];
+  $detailPointsList.innerHTML = "";
+  points.forEach((_, i) => {
+    const input = document.createElement("input");
+    input.type = "text";
+    const placeholder =
+      i === 0 ? "Start" : i === points.length - 1 ? "End" : `Point ${i + 1}`;
+    input.placeholder = placeholder;
+    input.setAttribute("aria-label", placeholder);
+    input.value = names[i] ?? "";
+    input.className = inputClasses(
+      "w-full rounded px-2 py-1 text-base leading-tight bg-transparent",
+    );
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("autocorrect", "off");
+    input.setAttribute("spellcheck", "false");
+    input.setAttribute("autocapitalize", "words");
+    input.addEventListener("input", () => {
+      const nextNames = ensureLinePointNames(feature, points.length);
+      nextNames[i] = input.value;
+      writeShareState();
+    });
+    $detailPointsList.appendChild(input);
+  });
+}
+
 // Read detailFeature → write every detail DOM element. Called on open and on every rerender
 // while the detail is visible, so external mutations (color/name/coord changes) stay reflected.
 function populateDetail() {
@@ -382,8 +423,13 @@ function populateDetail() {
   $detailName.value = detailFeature.properties.name;
   renderDetailSwatches();
   $detailLabelToggle.textContent = detailFeature.properties.hideLabel ? "Show label" : "Hide label";
+  const isPoint = detailFeature.geometry.type === "Point";
+  $detailAddressBlock.classList.toggle("hidden", !isPoint);
+  $detailAddressBlock.classList.toggle("flex", isPoint);
+  $detailPointsList.classList.toggle("hidden", isPoint);
+  $detailPointsList.classList.toggle("flex", !isPoint);
   // Edit only makes sense for Points today (single coord) — hide for lines.
-  $detailEditAddress.classList.toggle("hidden", detailFeature.geometry.type !== "Point");
+  $detailEditAddress.classList.toggle("hidden", !isPoint);
   // Show the route-match glyph (walk/bike/car) only on LineStrings that have a mode set.
   // The same icon appears in the list row — keeping them in lockstep avoids a "what mode is this?" round-trip.
   const detailMode =
@@ -394,8 +440,15 @@ function populateDetail() {
   $detailModeDrive.classList.toggle("hidden", detailMode !== "drive");
   if (detailMode) $detailMode.setAttribute("aria-label", `${detailMode} matched`);
   else $detailMode.removeAttribute("aria-label");
-  applyDetailAddressState();
-  ensureAddress(detailFeature, applyDetailAddressState, true);
+  if (isPoint) {
+    $detailPointsList.innerHTML = "";
+    applyDetailAddressState();
+    ensureAddress(detailFeature, applyDetailAddressState, true);
+  } else {
+    $detailAddressActions.classList.add("hidden");
+    $detailAddressActions.classList.remove("flex");
+    renderDetailPointsList(detailFeature);
+  }
 }
 
 // Show the detail page, hide list pieces. Does NOT mutate listExpanded so closing returns
@@ -437,7 +490,7 @@ function closeDetail() {
 // Returns a cleanup function (also stored on detailEditCleanup) so closeDetail can
 // tear it down without leaking handlers.
 function beginDetailEditAddress() {
-  if (!detailFeature) return;
+  if (!detailFeature || detailFeature.geometry.type !== "Point") return;
   const f = detailFeature;
   const current = addressCache.get(f);
   if (!current) return;
@@ -778,6 +831,8 @@ function previewCollection(): FeatureCollection {
 function rerender() {
   const drawings = map.getSource(SRC_DRAWINGS) as maplibregl.GeoJSONSource | undefined;
   if (drawings) drawings.setData(collection() as any);
+  const linePointLabels = map.getSource(SRC_LINE_POINT_LABELS) as maplibregl.GeoJSONSource | undefined;
+  if (linePointLabels) linePointLabels.setData(linePointLabelCollection(features) as any);
   const preview = map.getSource(SRC_PREVIEW) as maplibregl.GeoJSONSource | undefined;
   if (preview) preview.setData(previewCollection() as any);
   $finishLine.classList.toggle("hidden", !(mode === "line" && lineWaypoints.length >= 2));
@@ -795,6 +850,7 @@ map.on("load", () => {
   applyDarkMode();
   createDrawingSourcesAndLayers(map, {
     initialDrawings: collection(),
+    initialLinePointLabels: linePointLabelCollection(features),
     initialPreview: previewCollection(),
     initialPreviewHex: getPaletteEntryById(activeColorId).hex,
   });
@@ -1186,7 +1242,11 @@ document.addEventListener("click", (e) => {
 // === Map labels visibility ===
 // Toggles every symbol layer in the base style except our own drawing labels.
 // Persists as ?hl=1 in the URL (absent = labels shown, the default).
-const CUSTOM_LABEL_LAYER_IDS = new Set(["drawings-point-labels", "drawings-line-labels"]);
+const CUSTOM_LABEL_LAYER_IDS = new Set([
+  "drawings-point-labels",
+  "drawings-line-labels",
+  "drawings-line-point-labels",
+]);
 let labelsVisible = initialShareState.labelsVisible;
 
 function applyLabelsVisible() {

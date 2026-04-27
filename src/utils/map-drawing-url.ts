@@ -2,7 +2,9 @@ import {
   DEFAULT_COLOR_ID,
   getPaletteEntryById,
   getPaletteEntryByIndex,
+  getLineUserPoints,
   type DrawingFeature,
+  type LineFeature,
   type LngLat,
 } from "./map-drawing";
 
@@ -62,7 +64,7 @@ function encodeFeatureCoords(feature: DrawingFeature): string {
   // For matched lines, ship the sparse user waypoints — the dense snapped geometry
   // is reconstructed on load via OSRM. Falls back to the rendered geometry for
   // unmatched lines (and for matched lines that somehow lost their waypoints).
-  const coords = feature.properties.waypoints ?? feature.geometry.coordinates;
+  const coords = getLineUserPoints(feature);
   return coords
     .map(([lng, lat]) => `${roundCoord(lat)},${roundCoord(lng)}`)
     .join(";");
@@ -175,20 +177,6 @@ function decodeV0(raw: string): DrawingState {
 // p:[h]colorId:encodedName:lat,lng|l:[h]colorId:encodedName:lat,lng;...
 // Same compact shape as v0, but `colorId` is now a stable token instead of a palette index.
 
-function encodeV1(features: DrawingFeature[]): string | null {
-  if (features.length === 0) return null;
-  const parts: string[] = [];
-  for (const feature of features) {
-    const { colorId, name, hideLabel } = feature.properties;
-    const encName = encodeURIComponent(name);
-    const stableColorId = getPaletteEntryById(colorId).id;
-    const colorSeg = hideLabel ? `h${stableColorId}` : stableColorId;
-    const kind = feature.geometry.type === "Point" ? "p" : "l";
-    parts.push(`${kind}:${colorSeg}:${encName}:${encodeFeatureCoords(feature)}`);
-  }
-  return parts.join("|");
-}
-
 function decodeV1(raw: string): DrawingState {
   let pointCounter = 0;
   let lineCounter = 0;
@@ -258,12 +246,25 @@ function decodeV1(raw: string): DrawingState {
 
 // --- v2 codec ---
 // p:[h]colorId:encodedName:lat,lng
-// l:[h]colorId[:m{w|b|d}]:encodedName:lat,lng;...
+// l:[h]colorId[:m{w|b|d}]:encodedName:lat,lng;...[:nencodedPointName;encodedPointName;...]
 //
 // Same as v1 but lines may carry an extra `m<token>` segment after the color segment
 // to record `routeMatchMode`. The token is a single char (w/b/d) to keep URLs short.
-// Points are unchanged. Decoder peeks at the segment after color: if it matches /^m[wbd]$/,
-// it's the route mode; otherwise that segment is the (encoded) name.
+// Lines may also carry an optional `n` segment for per-user-point labels. The names
+// array aligns with getLineUserPoints(feature), not dense snapped route vertices.
+
+function encodeLinePointNames(feature: LineFeature): string {
+  const pointCount = getLineUserPoints(feature).length;
+  const names = Array.from({ length: pointCount }, (_, i) => feature.properties.pointNames?.[i] ?? "");
+  if (!names.some((name) => name !== "")) return "";
+  return `:n${names.map((name) => encodeURIComponent(name)).join(";")}`;
+}
+
+function decodeLinePointNames(raw: string, pointCount: number): string[] | undefined {
+  const names = raw.split(";").slice(0, pointCount).map((name) => decodeURIComponent(name));
+  while (names.length < pointCount) names.push("");
+  return names.some((name) => name !== "") ? names : undefined;
+}
 
 function encodeV2(features: DrawingFeature[]): string | null {
   if (features.length === 0) return null;
@@ -276,7 +277,8 @@ function encodeV2(features: DrawingFeature[]): string | null {
     const kind = feature.geometry.type === "Point" ? "p" : "l";
     const modeSeg =
       kind === "l" && routeMatchMode ? `:m${ROUTE_MODE_TO_TOKEN[routeMatchMode]}` : "";
-    parts.push(`${kind}:${colorSeg}${modeSeg}:${encName}:${encodeFeatureCoords(feature)}`);
+    const namesSeg = feature.geometry.type === "LineString" ? encodeLinePointNames(feature) : "";
+    parts.push(`${kind}:${colorSeg}${modeSeg}:${encName}:${encodeFeatureCoords(feature)}${namesSeg}`);
   }
   return parts.join("|");
 }
@@ -296,6 +298,7 @@ function decodeV2(raw: string): DrawingState {
     let hideLabel = false;
     let name = "";
     let coordBody = body;
+    let pointNamesRaw: string | undefined;
     let routeMatchMode: NonNullable<DrawingFeature["properties"]["routeMatchMode"]> | undefined;
 
     const firstColon = body.indexOf(":");
@@ -324,6 +327,13 @@ function decodeV2(raw: string): DrawingState {
         if (nameColon >= 0) {
           name = decodeURIComponent(rest.slice(0, nameColon));
           coordBody = rest.slice(nameColon + 1);
+          if (kind === "l") {
+            const namesMarker = coordBody.indexOf(":n");
+            if (namesMarker >= 0) {
+              pointNamesRaw = coordBody.slice(namesMarker + 2);
+              coordBody = coordBody.slice(0, namesMarker);
+            }
+          }
         }
       }
     }
@@ -359,6 +369,9 @@ function decodeV2(raw: string): DrawingState {
           // load-time re-match has the original input; geometry.coordinates starts as the
           // raw waypoints and gets replaced by the OSRM-snapped path once it lands.
           props.waypoints = coords.map(([lng, lat]) => [lng, lat]);
+        }
+        if (pointNamesRaw !== undefined) {
+          props.pointNames = decodeLinePointNames(pointNamesRaw, coords.length);
         }
         features.push({
           type: "Feature",
