@@ -1,7 +1,14 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { inputClasses } from "../input";
-import { reverseGeocode, geocode, suggestGeocode, type SuggestedPlace } from "../../utils/geolocation";
+import {
+  reverseGeocode,
+  geocode,
+  suggestGeocode,
+  haversineMeters,
+  type StreetGeometry,
+  type SuggestedPlace,
+} from "../../utils/geolocation";
 import {
   DEFAULT_COLOR_ID,
   PALETTE,
@@ -26,6 +33,10 @@ import {
   writeMapDrawerShareState,
 } from "../../utils/map-drawer-storage";
 import { getRouteMatchedPath, type RouteProfile } from "../../utils/route-matching";
+
+// MapLibre source ID for the dashed search-preview line. Local to this file —
+// the shared map-drawing helpers don't know about it.
+const SRC_SEARCH_PREVIEW = "search-preview";
 
 // === DOM refs ===
 const $mapEl = document.getElementById("mapdrawer-map")!;
@@ -100,9 +111,17 @@ let routeFetchingMode: FeatureProps["routeMatchMode"] | null = null;
 let routeError: string | null = null;
 let myLocationMarker: maplibregl.Marker | null = null;
 let searchMarker: maplibregl.Marker | null = null;
-// Populated while an "Add point: {title}" confirm panel is open under the search bar.
+// True while the search-preview line layer is showing a dashed street outline.
+// Cleared alongside `searchMarker` whenever the search preview is dismissed.
+let searchLineActive = false;
+// Populated while an "Add point/line: {title}" confirm panel is open under the search bar.
+// `kind` decides whether commit creates a Point feature or a LineString feature.
+// `lineCoords` is only set when kind === "line"; it's the flattened LineString to commit.
 // Cleared on commit, cancel, clear-search, or Clear all.
-let pendingPlace: { title: string; lat: number; lng: number } | null = null;
+let pendingPlace:
+  | { kind: "point"; title: string; lat: number; lng: number }
+  | { kind: "line"; title: string; lat: number; lng: number; lineCoords: LngLat[] }
+  | null = null;
 let activeColorId = DEFAULT_COLOR_ID;
 // Counters are monotonic so two features never share an auto-name, even after edits.
 let pointCounter = 0;
@@ -616,7 +635,7 @@ function beginDetailEditAddress() {
       try {
         const items = await suggestGeocode(q, 5, currentViewbox());
         if (editArea.value.trim() !== q) return;
-        renderEditSuggestions(items);
+        renderEditSuggestions(sortByDistanceFromOrigin(items));
       } finally {
         if (editArea.value.trim() === q) setEditLoading(false);
       }
@@ -853,6 +872,24 @@ map.on("load", () => {
     initialLinePointLabels: linePointLabelCollection(features),
     initialPreview: previewCollection(),
     initialPreviewHex: getPaletteEntryById(activeColorId).hex,
+  });
+  // Dashed-blue line shown while a street search result is previewed but not yet committed.
+  // Empty collection until `previewStreet` populates it; cleared back to empty on dismiss.
+  map.addSource(SRC_SEARCH_PREVIEW, {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] } as any,
+  });
+  map.addLayer({
+    id: "search-preview-line",
+    type: "line",
+    source: SRC_SEARCH_PREVIEW,
+    paint: {
+      "line-color": "#2563eb",
+      "line-width": 4,
+      "line-opacity": 0.85,
+      "line-dasharray": [2, 1.5],
+    },
+    layout: { "line-cap": "round", "line-join": "round" },
   });
   renderSwatches();
   renderList();
@@ -1225,10 +1262,7 @@ $clear.addEventListener("click", (e) => {
     myLocationMarker.remove();
     myLocationMarker = null;
   }
-  if (searchMarker) {
-    searchMarker.remove();
-    searchMarker = null;
-  }
+  clearSearchPreview();
   hideSearchConfirm();
   setListExtrasOpen(false);
   rerender();
@@ -1336,11 +1370,19 @@ function setSearchStatus(text: string) {
   $searchStatus.classList.toggle("hidden", !text);
 }
 
-// Show the inline "Add point: {title}" confirmation panel under the search bar.
-// Stores the pending target so the ✓ button can commit without re-geocoding.
-function showSearchConfirm(title: string, lat: number, lng: number) {
-  pendingPlace = { title, lat, lng };
+// Show the inline "Add point/line: {title}" confirmation panel under the search bar.
+// Stores the pending target (with geometry, for streets) so the ✓ button commits
+// without re-geocoding.
+function showSearchConfirmPoint(title: string, lat: number, lng: number) {
+  pendingPlace = { kind: "point", title, lat, lng };
   $searchConfirmText.textContent = `Add point: ${title}`;
+  $searchConfirm.classList.remove("hidden");
+  $searchConfirm.classList.add("flex");
+}
+
+function showSearchConfirmLine(title: string, lat: number, lng: number, lineCoords: LngLat[]) {
+  pendingPlace = { kind: "line", title, lat, lng, lineCoords };
+  $searchConfirmText.textContent = `Add line: ${title}`;
   $searchConfirm.classList.remove("hidden");
   $searchConfirm.classList.add("flex");
 }
@@ -1358,26 +1400,45 @@ $searchConfirmCancel.addEventListener("click", () => {
 
 $searchConfirmAdd.addEventListener("click", () => {
   if (!pendingPlace) return;
-  pointCounter++;
-  features.push({
-    type: "Feature",
-    geometry: { type: "Point", coordinates: [pendingPlace.lng, pendingPlace.lat] },
-    properties: { name: pendingPlace.title, colorId: activeColorId },
-  });
-  // The committed point now renders at the same spot — drop the dashed preview.
-  if (searchMarker) {
-    searchMarker.remove();
-    searchMarker = null;
+  if (pendingPlace.kind === "point") {
+    pointCounter++;
+    features.push({
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [pendingPlace.lng, pendingPlace.lat] },
+      properties: { name: pendingPlace.title, colorId: activeColorId },
+    });
+  } else {
+    lineCounter++;
+    features.push({
+      type: "Feature",
+      geometry: { type: "LineString", coordinates: pendingPlace.lineCoords.slice() },
+      properties: { name: pendingPlace.title, colorId: activeColorId },
+    });
   }
+  // The committed feature now renders at the same spot — drop the dashed preview.
+  clearSearchPreview();
   hideSearchConfirm();
   rerender();
   setListExpanded(true);
 });
 
+// Clears both the dashed point marker and the dashed line layer used as search previews.
+function clearSearchPreview() {
+  if (searchMarker) {
+    searchMarker.remove();
+    searchMarker = null;
+  }
+  if (searchLineActive) {
+    const src = map.getSource(SRC_SEARCH_PREVIEW) as maplibregl.GeoJSONSource | undefined;
+    if (src) src.setData({ type: "FeatureCollection", features: [] } as any);
+    searchLineActive = false;
+  }
+}
+
 // Drops the ephemeral dashed ring at the given coord and flies the camera.
 // Shared between Enter-to-geocode and suggestion selection so both paths look identical.
 function goToPlace(lat: number, lng: number) {
-  if (searchMarker) searchMarker.remove();
+  clearSearchPreview();
   const el = document.createElement("div");
   el.style.cssText =
     "width:1.75rem;height:1.75rem;border:0.156rem dashed #2563eb;background:rgba(37,99,235,0.15);border-radius:50%;box-sizing:border-box;";
@@ -1385,6 +1446,37 @@ function goToPlace(lat: number, lng: number) {
     .setLngLat([lng, lat])
     .addTo(map);
   map.flyTo({ center: [lng, lat], zoom: 14 });
+}
+
+// Flattens MultiLineString → single LineString by concatenating segments end-to-end.
+// MapLibre will draw straight connectors across any disjoint segments — acceptable since
+// Nominatim usually returns a single connected way for a named street; the alternative
+// (drop all but the longest part) loses real street geometry, which is worse.
+function flattenStreetGeometry(g: StreetGeometry): LngLat[] {
+  if (g.type === "LineString") return g.coordinates as LngLat[];
+  const out: LngLat[] = [];
+  for (const seg of g.coordinates) {
+    for (const c of seg) out.push(c as LngLat);
+  }
+  return out;
+}
+
+// Renders the street as a dashed-blue preview line and zooms to its bounds.
+function goToStreet(coords: LngLat[]) {
+  clearSearchPreview();
+  if (coords.length < 2) return;
+  const src = map.getSource(SRC_SEARCH_PREVIEW) as maplibregl.GeoJSONSource | undefined;
+  if (!src) return;
+  src.setData({
+    type: "FeatureCollection",
+    features: [
+      { type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} },
+    ],
+  } as any);
+  searchLineActive = true;
+  const bounds = new maplibregl.LngLatBounds();
+  for (const c of coords) bounds.extend(c);
+  map.fitBounds(bounds, { padding: 80, maxZoom: 17, duration: 600 });
 }
 
 async function runSearch() {
@@ -1397,11 +1489,19 @@ async function runSearch() {
     return;
   }
   setSearchStatus("");
-  goToPlace(result.lat, result.lng);
   // geocode() returns the full Nominatim display_name; the first comma-segment
   // is the short label (e.g. "Boston Common" from "Boston Common, Boston, MA, USA").
   const title = result.display.split(",")[0].trim() || q;
-  showSearchConfirm(title, result.lat, result.lng);
+  if (result.isStreet && result.geometry) {
+    const coords = flattenStreetGeometry(result.geometry);
+    if (coords.length >= 2) {
+      goToStreet(coords);
+      showSearchConfirmLine(title, result.lat, result.lng, coords);
+      return;
+    }
+  }
+  goToPlace(result.lat, result.lng);
+  showSearchConfirmPoint(title, result.lat, result.lng);
 }
 
 // === Search suggestions (autocomplete) ===
@@ -1430,8 +1530,13 @@ function renderSuggestions(items: SuggestedPlace[]) {
     li.setAttribute("role", "option");
     li.className =
       "px-3 py-2 cursor-pointer hover:bg-muted border-b border-border last:border-b-0";
+    // Street results commit as a LineString — the inline diagonal-line icon flags that
+    // ahead of click so users know they're picking a road segment, not a single pin.
+    const streetIcon = it.isStreet && it.geometry
+      ? `<svg viewBox="0 0 16 16" class="inline-block shrink-0 mr-1.5 -mt-0.5 align-middle" width="12" height="12" aria-label="street"><line x1="2" y1="13" x2="14" y2="3" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 2"/></svg>`
+      : "";
     li.innerHTML =
-      `<div class="text-sm text-foreground truncate">${escapeHtml(it.title)}</div>` +
+      `<div class="text-sm text-foreground truncate">${streetIcon}${escapeHtml(it.title)}</div>` +
       (it.subtitle
         ? `<div class="text-xs text-muted-foreground">${escapeHtml(it.subtitle)}</div>`
         : "");
@@ -1459,8 +1564,16 @@ function selectSuggestion(idx: number) {
   setSearchClearVisible(true);
   renderSuggestions([]);
   setSearchStatus("");
+  if (it.isStreet && it.geometry) {
+    const coords = flattenStreetGeometry(it.geometry);
+    if (coords.length >= 2) {
+      goToStreet(coords);
+      showSearchConfirmLine(it.title, it.lat, it.lng, coords);
+      return;
+    }
+  }
   goToPlace(it.lat, it.lng);
-  showSearchConfirm(it.title, it.lat, it.lng);
+  showSearchConfirmPoint(it.title, it.lat, it.lng);
 }
 
 // Swaps the magnifier for a spinning loader while a suggestion request is in flight.
@@ -1480,6 +1593,7 @@ $searchClear.addEventListener("click", () => {
   renderSuggestions([]);
   setSearchClearVisible(false);
   setSearchStatus("");
+  clearSearchPreview();
   hideSearchConfirm();
   $searchInput.focus();
 });
@@ -1488,6 +1602,27 @@ $searchClear.addEventListener("click", () => {
 function currentViewbox(): string {
   const b = map.getBounds();
   return `${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`;
+}
+
+// Origin used to rank search suggestions by distance. Defaults to where the
+// user is *looking* (map center). If "My location" is active, prefer the
+// physical location the user explicitly placed.
+function currentSortOrigin(): { lat: number; lng: number } {
+  if (myLocationMarker) {
+    const { lat, lng } = myLocationMarker.getLngLat();
+    return { lat, lng };
+  }
+  const c = map.getCenter();
+  return { lat: c.lat, lng: c.lng };
+}
+
+// Returns a copy sorted by ascending distance from `currentSortOrigin()`.
+// Copies first so we never mutate arrays held in the geocode cache.
+function sortByDistanceFromOrigin(items: SuggestedPlace[]): SuggestedPlace[] {
+  const origin = currentSortOrigin();
+  return items
+    .slice()
+    .sort((a, b) => haversineMeters(origin, a) - haversineMeters(origin, b));
 }
 
 $searchInput.addEventListener("input", () => {
@@ -1507,7 +1642,7 @@ $searchInput.addEventListener("input", () => {
       const items = await suggestGeocode(q, 5, currentViewbox());
       // The user may have kept typing while we awaited; only render if still the same query.
       if ($searchInput.value.trim() !== q) return;
-      renderSuggestions(items);
+      renderSuggestions(sortByDistanceFromOrigin(items));
     } finally {
       if ($searchInput.value.trim() === q) setSearchLoading(false);
     }

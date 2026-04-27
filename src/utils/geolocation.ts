@@ -1,4 +1,17 @@
-export type GeocodedLocation = { lat: number; lng: number; display: string };
+// Coords are [lng, lat] pairs to match GeoJSON / MapLibre conventions.
+export type StreetGeometry =
+  | { type: "LineString"; coordinates: [number, number][] }
+  | { type: "MultiLineString"; coordinates: [number, number][][] };
+
+export type GeocodedLocation = {
+  lat: number;
+  lng: number;
+  display: string;
+  // True when Nominatim classified the result as a road/street/highway.
+  isStreet: boolean;
+  // Present when Nominatim returned LineString/MultiLineString geometry for a street.
+  geometry?: StreetGeometry;
+};
 
 export type SuggestedPlace = {
   lat: number;
@@ -6,6 +19,8 @@ export type SuggestedPlace = {
   title: string;
   subtitle: string;
   display: string;
+  isStreet: boolean;
+  geometry?: StreetGeometry;
 };
 
 // --- Shared rate-limited queue (Nominatim: 1 req/sec) ---
@@ -106,7 +121,18 @@ function splitDisplayName(raw: any): SuggestedPlace {
     subtitle = segments.slice(1).join(", ");
   }
 
-  return { lat: parseFloat(raw.lat), lng: parseFloat(raw.lon), title, subtitle, display };
+  // Nominatim's `class` is "highway" for any road/street/path. We use that single
+  // signal to decide whether the result should be drawn as a line vs. a point.
+  const isStreet = raw.class === "highway";
+  // polygon_geojson=1 returns a `geojson` field. For ways/relations that represent
+  // a street, that's a LineString or MultiLineString — we only carry those forward.
+  let geometry: StreetGeometry | undefined;
+  const g = raw.geojson;
+  if (g && (g.type === "LineString" || g.type === "MultiLineString") && Array.isArray(g.coordinates)) {
+    geometry = g;
+  }
+
+  return { lat: parseFloat(raw.lat), lng: parseFloat(raw.lon), title, subtitle, display, isStreet, geometry };
 }
 
 // Rounds viewbox coords to 1 decimal (~11 km bins) so small map pans still
@@ -141,6 +167,9 @@ function searchNominatim(
         format: "json",
         limit: String(limit),
         addressdetails: "1",
+        // Returns the matched OSM geometry (LineString for streets) so the UI
+        // can highlight the whole road rather than just the result's centroid.
+        polygon_geojson: "1",
         q: query,
       });
       if (viewbox) params.set("viewbox", viewbox);
@@ -170,7 +199,14 @@ function searchNominatim(
 // always priority so background prefetches don't starve the autocomplete.
 export async function geocode(query: string): Promise<GeocodedLocation | null> {
   const [first] = await searchNominatim(query, 1, undefined, true);
-  return first ? { lat: first.lat, lng: first.lng, display: first.display } : null;
+  if (!first) return null;
+  return {
+    lat: first.lat,
+    lng: first.lng,
+    display: first.display,
+    isStreet: first.isStreet,
+    geometry: first.geometry,
+  };
 }
 
 export async function suggestGeocode(
@@ -216,6 +252,27 @@ export function reverseGeocode(
 
   reverseInFlight.set(key, p);
   return p;
+}
+
+// --- Distance ---
+
+// Great-circle distance between two lat/lng points, in meters.
+// Used for ordering by proximity; exact value is fine for comparisons but also
+// usable directly if a UI ever wants to display the distance.
+export function haversineMeters(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6_371_000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
 }
 
 // --- Geographic midpoint (spherical) ---
