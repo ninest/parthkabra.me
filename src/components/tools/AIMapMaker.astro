@@ -2,16 +2,16 @@
 import ArrowUpIcon from "../icons/arrow-up.astro";
 import { buttonBaseClasses, buttonSizeClasses, buttonVariantClasses } from "../button";
 import { inputBaseClasses } from "../input";
-import { buildMapAgentDocs } from "../../utils/map-agent-docs";
+import { getMapAgentDocUrl } from "../../utils/map-agent-docs";
 
-const mapAgentDocs = buildMapAgentDocs();
+const mapAgentDocsUrl = getMapAgentDocUrl();
 const chatGptUrl = "https://chatgpt.com/";
 ---
 
 <div class="not-typography absolute inset-0 flex items-center justify-center px-4">
   <div
     id="ai-mapmaker"
-    data-docs={mapAgentDocs}
+    data-docs-url={mapAgentDocsUrl}
     data-chatgpt-url={chatGptUrl}
     class="w-full max-w-3xl"
   >
@@ -56,8 +56,8 @@ const chatGptUrl = "https://chatgpt.com/";
   }
 
   function buildPrompt(userRequest: string): string {
-    const docs = $root.dataset.docs || "";
-    return `${docs}\n\n---\n\nUser request:\n${userRequest.trim()}`;
+    const docsUrl = $root.dataset.docsUrl || "https://parthkabra.me/tools/map/agents";
+    return `Read the docs on creating a map: ${docsUrl}\n\nUser request:\n${userRequest.trim()}`;
   }
 
   // Uses ChatGPT's query string as a best-effort prefill, with clipboard as fallback.
