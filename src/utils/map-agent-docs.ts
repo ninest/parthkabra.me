@@ -85,6 +85,18 @@ Read ${docsUrl}. Turn this place list into a map link.
 
 If the user does not ask for extra explanation, default to returning only the final map URL.
 
+## Critical routing defaults
+
+These defaults matter for common natural-language requests:
+
+- If the user asks for a walking tour, walking route, walk, or route to explore an area, create one line feature with \`:mw\`
+- If the user asks for a biking/cycling tour or route, create one line feature with \`:mb\`
+- If the user asks for a driving route, create one line feature with \`:md\`
+- For tours, walks, itineraries, crawls, and explore routes, include stop labels in the same line with \`:n...\`
+- Do not create separate point features for tour stops unless the user explicitly asks for separate pins
+- A walking tour payload should look like \`l:gray:mw:Tour%20Name:lat,lng;lat,lng;lat,lng:nStop%201;Stop%202;Stop%203\`
+- A walking tour payload should not look like \`l:gray:Tour%20Name:lat,lng;lat,lng;lat,lng\`, because that is an unmatched plain line with no stop labels
+
 ## Common plain-language requests
 
 Treat prompts like these as normal valid requests for the map tool:
@@ -174,6 +186,7 @@ Line point labels:
 - Empty slots are allowed when only some points need labels, for example \`:nStart;;End\`
 - Encode each point label with \`encodeURIComponent\`
 - Keep route point labels short, such as \`Start\`, \`Lunch\`, \`Museum\`, or \`End\`
+- For tours, itineraries, crawls, and explore routes, include meaningful stop labels by default
 - Do not add separate point features just to label route waypoints unless the user asks for pins
 
 Plain-language route interpretation:
@@ -270,6 +283,12 @@ Readable payload:
 
 \`\`\`
 l:gray:mw:Back%20Bay%20Walk:42.35232,-71.06975;42.35494,-71.07434;42.34997,-71.07547;42.34940,-71.07837;42.34702,-71.08192;42.34458,-71.08435:nPublic%20Garden;Gibson%20House;Trinity%20Church;Library;Prudential;Christian%20Science%20Plaza
+\`\`\`
+
+Final URL:
+
+\`\`\`
+${mapUrl}?v=2&d=l%3Agray%3Amw%3ABack%2520Bay%2520Walk%3A42.35232%2C-71.06975%3B42.35494%2C-71.07434%3B42.34997%2C-71.07547%3B42.34940%2C-71.07837%3B42.34702%2C-71.08192%3B42.34458%2C-71.08435%3AnPublic%2520Garden%3BGibson%2520House%3BTrinity%2520Church%3BLibrary%3BPrudential%3BChristian%2520Science%2520Plaza
 \`\`\`
 
 Do not also create separate point features for those same stops unless the user asks for separate pins.
