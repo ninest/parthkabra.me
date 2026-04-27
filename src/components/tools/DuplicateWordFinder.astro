@@ -10,7 +10,7 @@
     ></textarea>
   </div>
   <aside class="h-2/5 w-full shrink-0 overflow-auto p-5 md:h-auto md:w-96 md:min-w-36">
-    <div id="duplicate-word-results"></div>
+    <div id="duplicate-word-results" class="space-y-4"></div>
   </aside>
 </div>
 
@@ -20,17 +20,36 @@
   const $input = document.getElementById("duplicate-word-input") as HTMLTextAreaElement | null;
   const $results = document.getElementById("duplicate-word-results");
 
+  function escapeHtml(text: string) {
+    return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  }
+
   function renderDuplicateWords() {
     if (!$input || !$results) return;
 
-    const duplicates = findDuplicateWords($input.value, { ignoreStopWords: true });
-    $results.replaceChildren(
-      ...duplicates.map((duplicate) => {
-        const $line = document.createElement("div");
-        $line.textContent = duplicate.word;
-        return $line;
-      }),
-    );
+    const duplicates = findDuplicateWords($input.value, {
+      ignoreStopWords: true,
+      wordForm: "simple",
+    });
+    $results.innerHTML = duplicates
+      .map((duplicate) => {
+        const variants = duplicate.variants.toSorted((a, b) => {
+          if (a.toLocaleLowerCase() === duplicate.word) return -1;
+          if (b.toLocaleLowerCase() === duplicate.word) return 1;
+          return a.localeCompare(b);
+        });
+
+        return `
+          <div>
+            <div class="flex justify-between gap-2">
+              <span>${escapeHtml(duplicate.word)}</span>
+              <span>${duplicate.count}</span>
+            </div>
+            <div class="text-gray-500">${escapeHtml(variants.join(", "))}</div>
+          </div>
+        `;
+      })
+      .join("");
   }
 
   $input?.addEventListener("input", renderDuplicateWords);

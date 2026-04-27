@@ -37,7 +37,7 @@ export function findDuplicateWords(text: string, options: WordFinderOptions = {}
   const groups = new Map<string, DuplicateWord>();
 
   for (const token of tokenizeWords(text, options)) {
-    const existing = groups.get(token.normalized);
+    const existing = groups.get(token.countKey);
     const occurrence: WordOccurrence = {
       text: token.text,
       start: token.start,
@@ -52,8 +52,8 @@ export function findDuplicateWords(text: string, options: WordFinderOptions = {}
       continue;
     }
 
-    groups.set(token.normalized, {
-      word: token.normalized,
+    groups.set(token.countKey, {
+      word: token.countKey,
       count: 1,
       variants: [token.text],
       occurrences: [occurrence],
