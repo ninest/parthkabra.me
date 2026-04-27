@@ -57,7 +57,12 @@ const chatGptUrl = "https://chatgpt.com/";
 
   function buildPrompt(userRequest: string): string {
     const docsUrl = $root.dataset.docsUrl || "https://parthkabra.me/tools/map/agents";
-    return `Read the docs on creating a map: ${docsUrl}\n\nUser request:\n${userRequest.trim()}`;
+    return `Read the docs on creating a map: ${docsUrl}
+
+Use v=2. For tours, routes, walks, itineraries, crawls, or explore requests, create one route-matched line with intermediate point labels; do not create separate point features unless the user asks for pins too.
+
+User request:
+${userRequest.trim()}`;
   }
 
   // Uses ChatGPT's query string as a best-effort prefill, with clipboard as fallback.
