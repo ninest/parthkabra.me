@@ -6,6 +6,9 @@ import SpinnerIcon from "../icons/spinner.astro";
 import XIcon from "../icons/x.astro";
 import CheckIcon from "../icons/check.astro";
 import ChevronRightIcon from "../icons/chevron-right.astro";
+import WalkIcon from "../icons/walk.astro";
+import BikeIcon from "../icons/bike.astro";
+import CarIcon from "../icons/car.astro";
 ---
 
 <div id="mapdrawer" class="not-typography relative w-full h-full">
@@ -141,6 +144,14 @@ import ChevronRightIcon from "../icons/chevron-right.astro";
           autocapitalize="words"
           spellcheck="false"
         />
+        <span
+          id="md-detail-mode"
+          class="hidden shrink-0 inline-flex items-center justify-center w-8 h-8 text-muted-foreground"
+        >
+          <WalkIcon id="md-detail-mode-walk" class="w-4 h-4 hidden" />
+          <BikeIcon id="md-detail-mode-bike" class="w-4 h-4 hidden" />
+          <CarIcon id="md-detail-mode-drive" class="w-4 h-4 hidden" />
+        </span>
       </div>
       <div class="flex flex-col gap-3 p-3">
         <div class="flex items-center gap-2">

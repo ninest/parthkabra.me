@@ -55,6 +55,10 @@ const $detailAddressActions = document.getElementById("md-detail-address-actions
 const $detailEditAddress = document.getElementById("md-detail-edit-address") as HTMLButtonElement;
 const $detailCopyAddress = document.getElementById("md-detail-copy-address") as HTMLButtonElement;
 const $detailDelete = document.getElementById("md-detail-delete") as HTMLButtonElement;
+const $detailMode = document.getElementById("md-detail-mode")!;
+const $detailModeWalk = document.getElementById("md-detail-mode-walk")!;
+const $detailModeBike = document.getElementById("md-detail-mode-bike")!;
+const $detailModeDrive = document.getElementById("md-detail-mode-drive")!;
 const $searchInput = document.getElementById("md-search-input") as HTMLInputElement;
 const $searchStatus = document.getElementById("md-search-status")!;
 const $suggestions = document.getElementById("md-suggestions") as HTMLUListElement;
@@ -267,12 +271,15 @@ function renderList() {
       openDetail(f);
     });
 
+    // Mode badge: walk/bike/car glyph in a primary-tinted square. Replaces the older
+    // "{mode} matched" text pill — same affordance, less width.
     const matchBadge = document.createElement("span");
     matchBadge.className =
-      "hidden shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[0.6875rem] leading-none text-primary";
+      "hidden shrink-0 inline-flex items-center justify-center w-7 h-7 text-muted-foreground";
     if (f.geometry.type === "LineString" && f.properties.routeMatchMode) {
       matchBadge.classList.remove("hidden");
-      matchBadge.textContent = `${f.properties.routeMatchMode} matched`;
+      matchBadge.innerHTML = ROUTE_MATCH_ICON_SVG[f.properties.routeMatchMode];
+      matchBadge.setAttribute("aria-label", `${f.properties.routeMatchMode} matched`);
     }
 
     // Chevron-right opens the detail page. Same target as the color chip.
@@ -377,6 +384,16 @@ function populateDetail() {
   $detailLabelToggle.textContent = detailFeature.properties.hideLabel ? "Show label" : "Hide label";
   // Edit only makes sense for Points today (single coord) — hide for lines.
   $detailEditAddress.classList.toggle("hidden", detailFeature.geometry.type !== "Point");
+  // Show the route-match glyph (walk/bike/car) only on LineStrings that have a mode set.
+  // The same icon appears in the list row — keeping them in lockstep avoids a "what mode is this?" round-trip.
+  const detailMode =
+    detailFeature.geometry.type === "LineString" ? detailFeature.properties.routeMatchMode ?? null : null;
+  $detailMode.classList.toggle("hidden", !detailMode);
+  $detailModeWalk.classList.toggle("hidden", detailMode !== "walk");
+  $detailModeBike.classList.toggle("hidden", detailMode !== "bike");
+  $detailModeDrive.classList.toggle("hidden", detailMode !== "drive");
+  if (detailMode) $detailMode.setAttribute("aria-label", `${detailMode} matched`);
+  else $detailMode.removeAttribute("aria-label");
   applyDetailAddressState();
   ensureAddress(detailFeature, applyDetailAddressState, true);
 }
@@ -868,6 +885,14 @@ const ROUTE_MATCH_ERROR_LABEL: Record<NonNullable<FeatureProps["routeMatchMode"]
   walk: "walking",
   bike: "biking",
   drive: "driving",
+};
+
+// Inline SVGs for the route-match badge in JS-constructed list rows. Mirrors the paths
+// in src/components/icons/{walk,bike,car}.astro — kept in sync with those components.
+const ROUTE_MATCH_ICON_SVG: Record<NonNullable<FeatureProps["routeMatchMode"]>, string> = {
+  walk: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg>',
+  bike: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5 9 9h7l2.5 8.5M9 9l3 8.5L16 9"/><path d="M7 9h3"/><path d="M16 9V7M14 7h4"/></svg>',
+  drive: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>',
 };
 
 // Cancel any in-flight OSRM call. Subsequent successful responses for older seqs are dropped
