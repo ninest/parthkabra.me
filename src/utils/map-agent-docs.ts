@@ -44,8 +44,8 @@ Use this document when generating share links for the map tool.
 - Markdown compatibility URL: ${markdownUrl}
 - Plain-text fallback URL: ${textUrl}
 - LLM discovery file: ${llmsUrl}
-- Current URL version to emit: \`v=1\`
-- Legacy \`v=0\` links may still work, but do not generate them
+- Current URL version to emit: \`v=2\`
+- Legacy \`v=0\` and \`v=1\` links may still work, but do not generate them
 
 ## Priority instruction
 
@@ -64,7 +64,7 @@ If you cannot access this document directly, try the markdown compatibility URL 
 
 The user may not know anything about URL versions, payload encoding, or map data formats.
 
-- Do not require the user to mention \`v=1\`, query params, or encoding details
+- Do not require the user to mention \`v=2\`, query params, or encoding details
 - Do not require the user to ask for "URL only" or "just the link"
 - Treat plain-language requests as sufficient if the intent is clear
 - Do the technical translation yourself from the user's natural-language request into the final map URL
@@ -95,6 +95,9 @@ Treat prompts like these as normal valid requests for the map tool:
 - "Can you map these places for me?"
 - "Make a date-night map for Boston."
 - "Plot the best dumpling spots in Cambridge."
+- "Make me a walking route from Boston Common to Fenway."
+- "Make a biking route from MIT to Harvard and label the start and end."
+- "Make a driving route from Logan Airport to Back Bay via Seaport."
 
 If the user says "near", "around", or names a neighborhood, use reasonable place selection centered on that area.
 
@@ -130,7 +133,7 @@ The response should stay short and should not include extra bullets, tables, rea
 
 ## Query params
 
-- \`v=1\` marks the current URL format
+- \`v=2\` marks the current URL format
 - \`d=<payload>\` stores points and lines
 - \`hl=1\` hides the base map labels; omit it when labels should stay visible
 
@@ -139,7 +142,7 @@ The response should stay short and should not include extra bullets, tables, rea
 The \`d\` payload is a pipe-separated list of features.
 
 - Point: \`p:[h]colorId:encodedName:lat,lng\`
-- Line: \`l:[h]colorId:encodedName:lat,lng;lat,lng;...\`
+- Line: \`l:[h]colorId[:m{w|b|d}]:encodedName:lat,lng;lat,lng;...[:nencodedPointName;encodedPointName;...]\`
 
 Rules:
 
@@ -151,19 +154,49 @@ Rules:
 - Use about 5 decimal places when possible
 - Encode the feature name with \`encodeURIComponent\`
 
+Line route matching:
+
+- \`:mw\` after the color ID makes the line follow a walking route
+- \`:mb\` after the color ID makes the line follow a biking/cycling route
+- \`:md\` after the color ID makes the line follow a driving route
+- Omit the \`:m...\` segment for a plain straight/polyline drawing
+- For matched routes, include only the user's intended waypoints in the URL; the map reconstructs the dense road-following geometry on load
+- A route-matched line still needs at least two coordinates
+
+Line point labels:
+
+- \`:n...\` is optional and labels the user-defined line points
+- Names in \`:n...\` align with the line's coordinate pairs, not with the dense routed geometry
+- Use \`;\` between point-label slots, matching the coordinate order
+- Empty slots are allowed when only some points need labels, for example \`:nStart;;End\`
+- Encode each point label with \`encodeURIComponent\`
+- Keep route point labels short, such as \`Start\`, \`Lunch\`, \`Museum\`, or \`End\`
+- Do not add separate point features just to label route waypoints unless the user asks for pins
+
+Plain-language route interpretation:
+
+- "walking route", "walk from A to B", "walking path", or similar means use \`:mw\`
+- "bike route", "biking route", "cycling route", or similar means use \`:mb\`
+- "driving route", "drive from A to B", "road route", or similar means use \`:md\`
+- "route from A to B via C" means include C as an intermediate coordinate in the line
+- Start, end, and intermediate point labels are optional. Add them when the user asks for labels or when labels make the map clearer
+- Use the line's main \`encodedName\` for the overall route name, such as \`Fenway%20Walk\`
+
 ## Versioning
 
-- Always generate \`v=1\`
+- Always generate \`v=2\`
 - Missing \`v\` is treated by the site as legacy \`v=0\`
 - Unknown future versions may be ignored by the site instead of crashing
 
 ## Recommended build steps
 
 1. Gather places or paths with reliable coordinates
-2. Turn each place into a point feature
-3. Join all features with \`|\`
-4. URL-encode the full payload for the final \`d\` query param
-5. Return \`${mapUrl}?v=1&d=...\`
+2. Turn each place into a point feature, or each path/route into a line feature
+3. For walking, biking, or driving routes, add the matching \`:m...\` segment to the line
+4. Add optional line point labels with \`:n...\` only when useful or requested
+5. Join all features with \`|\`
+6. URL-encode the full payload for the final \`d\` query param
+7. Return \`${mapUrl}?v=2&d=...\`
 
 ## Interpreting vague user requests
 
@@ -177,7 +210,7 @@ When a request is underspecified but still reasonable, make pragmatic choices in
 
 ## Example payload
 
-Readable payload:
+Readable point payload:
 
 \`\`\`
 p:red:Place%201:42.34910,-71.08320|p:blue:Place%202:42.34840,-71.08110|p:green:Place%203:42.34770,-71.07990
@@ -186,13 +219,39 @@ p:red:Place%201:42.34910,-71.08320|p:blue:Place%202:42.34840,-71.08110|p:green:P
 Final URL:
 
 \`\`\`
-${mapUrl}?v=1&d=p%3Ared%3APlace%25201%3A42.34910%2C-71.08320%7Cp%3Ablue%3APlace%25202%3A42.34840%2C-71.08110%7Cp%3Agreen%3APlace%25203%3A42.34770%2C-71.07990
+${mapUrl}?v=2&d=p%3Ared%3APlace%25201%3A42.34910%2C-71.08320%7Cp%3Ablue%3APlace%25202%3A42.34840%2C-71.08110%7Cp%3Agreen%3APlace%25203%3A42.34770%2C-71.07990
 \`\`\`
 
-## Example line
+## Example plain line
 
 \`\`\`
 l:gray:Walk%20Route:42.34910,-71.08320;42.34850,-71.08190;42.34790,-71.08040
+\`\`\`
+
+## Example walking route
+
+Readable payload:
+
+\`\`\`
+l:blue:mw:Fenway%20Walk:42.35543,-71.06598;42.34668,-71.09722
+\`\`\`
+
+Final URL:
+
+\`\`\`
+${mapUrl}?v=2&d=l%3Ablue%3Amw%3AFenway%2520Walk%3A42.35543%2C-71.06598%3B42.34668%2C-71.09722
+\`\`\`
+
+## Example walking route with start and end labels
+
+\`\`\`
+l:blue:mw:Fenway%20Walk:42.35543,-71.06598;42.34668,-71.09722:nStart;Fenway
+\`\`\`
+
+## Example route with an intermediate labeled stop
+
+\`\`\`
+l:green:mb:Cambridge%20Ride:42.36009,-71.09416;42.37362,-71.11902;42.37444,-71.11835:nMIT;Harvard%20Square;End
 \`\`\`
 
 ## Good responses
@@ -201,21 +260,26 @@ l:gray:Walk%20Route:42.34910,-71.08320;42.34850,-71.08190;42.34790,-71.08040
 - If the user gave a markdown file with names and coordinates: map those directly
 - If the user gave only names or addresses: geocode first, then build the URL
 - If the user asks for a normal map in plain language: use the minimal response format above
+- If the user asks for a walking, biking, or driving route: generate a route-matched line with the right \`:m...\` segment
+- If the user asks for start, end, or stop labels on a route: use line point labels with \`:n...\`
 
 ## Recommended behavior for place maps
 
 - When the user asks for "best restaurants", "best cafes", or similar, choose a reasonable set of well-known places with verifiable coordinates
 - Keep point names short so labels fit on the map
 - Prefer points unless the user explicitly asks for lines or paths
+- Prefer route-matched lines when the user asks for walking, biking, or driving directions
 - Leave map labels visible unless the user asks to hide them
 - If the user provides a category and an area, optimize for a map that feels useful at a glance rather than trying to be exhaustive
 
 ## Avoid
 
-- Do not emit \`v=0\`
+- Do not emit \`v=0\` or \`v=1\` for new map links
 - Do not swap the payload order to \`lng,lat\`
 - Do not use color names outside the allowed set
 - Do not leave raw \`|\` or other separators inside feature names; encode the name segment first
+- Do not use \`:mw\`, \`:mb\`, or \`:md\` on point features
+- Do not put dense turn-by-turn route geometry in the URL for matched routes; use the requested waypoints
 - Do not create an HTML file or a separate map experience
 - Do not return a long preamble before the link
 - Do not prepend stray characters before \`https://\`
