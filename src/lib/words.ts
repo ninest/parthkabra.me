@@ -1,8 +1,10 @@
 import { sentenceIndexForOffset, splitIntoSentences } from "./sentence";
+import { stopWords } from "../utils/language";
 
 export type WordFinderOptions = {
   caseSensitive?: boolean;
   includeNumbers?: boolean;
+  ignoreStopWords?: boolean;
   minWordLength?: number;
 };
 
@@ -20,6 +22,7 @@ const PURE_NUMBER_PATTERN = /^\p{N}+$/u;
 const DEFAULT_OPTIONS: Required<WordFinderOptions> = {
   caseSensitive: false,
   includeNumbers: false,
+  ignoreStopWords: false,
   minWordLength: 1,
 };
 
@@ -30,6 +33,7 @@ function withDefaults(options: WordFinderOptions = {}): Required<WordFinderOptio
 function shouldKeepWord(word: string, options: Required<WordFinderOptions>): boolean {
   if (word.length < options.minWordLength) return false;
   if (!options.includeNumbers && PURE_NUMBER_PATTERN.test(word)) return false;
+  if (options.ignoreStopWords && stopWords.has(word.toLocaleLowerCase())) return false;
   return true;
 }
 

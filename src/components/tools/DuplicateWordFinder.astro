@@ -23,7 +23,7 @@
   function renderDuplicateWords() {
     if (!$input || !$results) return;
 
-    const duplicates = findDuplicateWords($input.value);
+    const duplicates = findDuplicateWords($input.value, { ignoreStopWords: true });
     $results.replaceChildren(
       ...duplicates.map((duplicate) => {
         const $line = document.createElement("div");
