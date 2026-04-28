@@ -30,6 +30,16 @@ const categories = defineCollection({
   }),
 });
 
+const supercats = defineCollection({
+  loader: glob({ base: "./content/supercats", pattern: "**/*.{md,mdx}" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    categories: z.array(z.string()).default([]),
+    order: z.number().default(0),
+  }),
+});
+
 const posts = defineCollection({
   loader: glob({ base: "./content/posts", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
@@ -120,4 +130,4 @@ const status = defineCollection({
   }),
 });
 
-export const collections = { categories, links, microblog, posts, workExperience, projects, pages, postCollections, tools, status };
+export const collections = { categories, supercats, links, microblog, posts, workExperience, projects, pages, postCollections, tools, status };
