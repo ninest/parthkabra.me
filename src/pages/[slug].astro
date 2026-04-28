@@ -4,6 +4,7 @@ export const prerender = true;
 import type { GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import CategoryList from "../components/category-list.astro";
+import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
 import PostList from "../components/post-list.astro";
 import SidebarLayout from "../components/sidebar-layout.astro";
 import DefaultMetaPageLayout from "../components/pages/DefaultMetaPageLayout.astro";
@@ -13,6 +14,9 @@ export const getStaticPaths = (async () => {
   const categories = await getCollection("categories");
   const pages = await getCollection("pages");
   const posts = (await getVisiblePosts()).sort(
+    (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
+  );
+  const microblogs = (await getCollection("microblog")).sort(
     (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
   );
 
@@ -32,6 +36,7 @@ export const getStaticPaths = (async () => {
       type: "category" as const,
       category,
       posts: posts.filter((post) => post.data.categories.includes(category.id)),
+      microblogs: microblogs.filter((mb) => mb.data.categories.includes(category.id)),
     },
   }));
 
@@ -75,11 +80,17 @@ function resolvePageSkin(name: string | undefined) {
       { label: props.category.data.title },
     ]}
   >
-    <h1 class="text-3xl font-black">{props.category.data.title} ({props.posts.length})</h1>
+    <h1 class="text-3xl font-black">{props.category.data.title}</h1>
 
     <section class="mt-8">
       <PostList posts={props.posts} />
     </section>
+
+    {props.microblogs.length > 0 && (
+      <div class="mt-8">
+        <MicroblogSidebar microblogs={props.microblogs} title="Microposts" showViewAll={false} />
+      </div>
+    )}
 
     <CategoryList slot="sidebar" />
   </SidebarLayout>
