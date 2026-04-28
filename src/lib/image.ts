@@ -1,6 +1,10 @@
 // Formats kept as-is: SVG (vector), GIF (may be animated), AVIF (already compact).
 const PASSTHROUGH_MIME = new Set(["image/svg+xml", "image/gif", "image/avif"]);
 
+export const IMAGE_ACTION_BODY_SIZE_LIMIT = 10 * 1024 * 1024;
+export const IMAGE_ACTION_MULTIPART_OVERHEAD = 4 * 1024;
+export const MAX_IMAGE_UPLOAD_BYTES = IMAGE_ACTION_BODY_SIZE_LIMIT - IMAGE_ACTION_MULTIPART_OVERHEAD;
+
 // Re-encode raster images to WebP @ q=0.92 in the browser. Returns the
 // original file for passthrough mimes, decode failures, or when the
 // re-encoded blob isn't smaller than the source.
@@ -53,6 +57,16 @@ export async function compressImageToWebp(file: File): Promise<File> {
 
   const base = file.name.replace(/\.[^.]+$/, "");
   return new File([blob], `${base}.webp`, { type: "image/webp", lastModified: Date.now() });
+}
+
+// Estimate multipart request payload size before the action rejects the request.
+export function estimateActionBodySize(file: File): number {
+  return file.size + IMAGE_ACTION_MULTIPART_OVERHEAD;
+}
+
+// Returns true for formats intentionally uploaded without browser re-encoding.
+export function isPassthroughImageType(file: File): boolean {
+  return PASSTHROUGH_MIME.has(file.type);
 }
 
 // Format bytes for status text: "512 B" / "1.5 KB" / "2.40 MB".

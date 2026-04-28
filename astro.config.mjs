@@ -20,6 +20,11 @@ export default defineConfig({
 
   prefetch: { prefetchAll: true },
 
+  security: {
+    // Keep in sync with IMAGE_ACTION_BODY_SIZE_LIMIT in src/lib/image.ts.
+    actionBodySizeLimit: 10 * 1024 * 1024,
+  },
+
   integrations: [
     AutoImport({
       imports: ["./src/components/content/Alert.astro", "./src/components/content/Mermaid.astro"],
