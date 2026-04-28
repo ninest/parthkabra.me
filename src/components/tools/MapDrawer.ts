@@ -6,9 +6,15 @@ import {
   geocode,
   suggestGeocode,
   haversineMeters,
-  type StreetGeometry,
   type SuggestedPlace,
 } from "../../utils/geolocation";
+import {
+  dedupeStreetSuggestions,
+  expandStreetToFullGeometry,
+  flattenStreetGeometry,
+} from "../../utils/streets";
+import type { StreetGeometry } from "../../utils/geolocation";
+import type { AreaScope } from "../../utils/overpass";
 import {
   DEFAULT_COLOR_ID,
   PALETTE,
@@ -78,6 +84,7 @@ const $detailModeDrive = document.getElementById("md-detail-mode-drive")!;
 const $searchInput = document.getElementById("md-search-input") as HTMLInputElement;
 const $searchStatus = document.getElementById("md-search-status")!;
 const $suggestions = document.getElementById("md-suggestions") as HTMLUListElement;
+const $roadIconTemplate = document.getElementById("md-road-icon-template") as HTMLTemplateElement;
 const $searchIcon = document.getElementById("md-search-icon")!;
 const $searchSpinner = document.getElementById("md-search-spinner")!;
 const $searchClear = document.getElementById("md-search-clear") as HTMLButtonElement;
@@ -88,6 +95,8 @@ const $searchConfirm = document.getElementById("md-search-confirm")!;
 const $searchConfirmText = document.getElementById("md-search-confirm-text")!;
 const $searchConfirmCancel = document.getElementById("md-search-confirm-cancel") as HTMLButtonElement;
 const $searchConfirmAdd = document.getElementById("md-search-confirm-add") as HTMLButtonElement;
+const $searchConfirmAddIcon = document.getElementById("md-search-confirm-add-icon")!;
+const $searchConfirmAddSpinner = document.getElementById("md-search-confirm-add-spinner")!;
 
 // === State ===
 // mode is null until the user explicitly picks Point or Line — map clicks are ignored otherwise.
@@ -116,12 +125,31 @@ let searchMarker: maplibregl.Marker | null = null;
 let searchLineActive = false;
 // Populated while an "Add point/line: {title}" confirm panel is open under the search bar.
 // `kind` decides whether commit creates a Point feature or a LineString feature.
-// `lineCoords` is only set when kind === "line"; it's the flattened LineString to commit.
+// For lines, we keep both the structured `geometry` (for the Overpass-expand step on commit)
+// and the flattened `lineCoords` (used as the immediate fallback if Overpass fails).
+// `scope` is the city/state used to scope the Overpass query; absent when Nominatim didn't
+// give us a usable locality, in which case we just commit `lineCoords` as today.
 // Cleared on commit, cancel, clear-search, or Clear all.
 let pendingPlace:
   | { kind: "point"; title: string; lat: number; lng: number }
-  | { kind: "line"; title: string; lat: number; lng: number; lineCoords: LngLat[] }
+  | {
+      kind: "line";
+      title: string;
+      lat: number;
+      lng: number;
+      lineCoords: LngLat[];
+      geometry: StreetGeometry;
+      scope?: AreaScope;
+    }
   | null = null;
+// AbortController for the in-flight Overpass expand. Aborted when the user clicks ✗ or
+// clears search before the request completes — prevents a late commit from a request
+// the user already cancelled.
+let pendingExpandAbort: AbortController | null = null;
+// Resolves when the in-flight preview-expand has finished mutating pendingPlace.
+// Commit awaits this so a ✓ click before the expand completes still uses the expanded
+// geometry, not the raw Nominatim segment.
+let pendingExpandPromise: Promise<void> | null = null;
 let activeColorId = DEFAULT_COLOR_ID;
 // Counters are monotonic so two features never share an auto-name, even after edits.
 let pointCounter = 0;
@@ -635,7 +663,7 @@ function beginDetailEditAddress() {
       try {
         const items = await suggestGeocode(q, 5, currentViewbox());
         if (editArea.value.trim() !== q) return;
-        renderEditSuggestions(sortByDistanceFromOrigin(items));
+        renderEditSuggestions(sortByDistanceFromOrigin(dedupeStreetSuggestions(items)));
       } finally {
         if (editArea.value.trim() === q) setEditLoading(false);
       }
@@ -1262,6 +1290,7 @@ $clear.addEventListener("click", (e) => {
     myLocationMarker.remove();
     myLocationMarker = null;
   }
+  abortPendingExpand();
   clearSearchPreview();
   hideSearchConfirm();
   setListExtrasOpen(false);
@@ -1380,25 +1409,59 @@ function showSearchConfirmPoint(title: string, lat: number, lng: number) {
   $searchConfirm.classList.add("flex");
 }
 
-function showSearchConfirmLine(title: string, lat: number, lng: number, lineCoords: LngLat[]) {
-  pendingPlace = { kind: "line", title, lat, lng, lineCoords };
+function showSearchConfirmLine(
+  title: string,
+  lat: number,
+  lng: number,
+  lineCoords: LngLat[],
+  geometry: StreetGeometry,
+  scope: AreaScope | undefined,
+) {
+  pendingPlace = { kind: "line", title, lat, lng, lineCoords, geometry, scope };
   $searchConfirmText.textContent = `Add line: ${title}`;
   $searchConfirm.classList.remove("hidden");
   $searchConfirm.classList.add("flex");
+}
+
+// Builds an AreaScope from a SuggestedPlace's locality/region fields, or null if the
+// suggestion is missing a city-level address. Without a city we can't query Overpass —
+// the caller falls back to committing the Nominatim segment.
+function scopeFromSuggestion(s: { addressLocality?: string; addressRegion?: string }): AreaScope | undefined {
+  if (!s.addressLocality) return undefined;
+  return { cityName: s.addressLocality, regionName: s.addressRegion };
 }
 
 function hideSearchConfirm() {
   pendingPlace = null;
   $searchConfirm.classList.add("hidden");
   $searchConfirm.classList.remove("flex");
+  setConfirmAddLoading(false);
+}
+
+// Swaps the ✓ icon for a spinner while an Overpass expand is in flight, and disables the
+// button so it can't be re-clicked. The ✗ button stays enabled — clicking it aborts.
+function setConfirmAddLoading(loading: boolean) {
+  $searchConfirmAddIcon.classList.toggle("hidden", loading);
+  $searchConfirmAddSpinner.classList.toggle("hidden", !loading);
+  $searchConfirmAdd.disabled = loading;
+}
+
+// Cancels any in-flight Overpass expand. Safe to call whether or not one is running.
+function abortPendingExpand() {
+  if (pendingExpandAbort) {
+    pendingExpandAbort.abort();
+    pendingExpandAbort = null;
+  }
+  pendingExpandPromise = null;
 }
 
 $searchConfirmCancel.addEventListener("click", () => {
   // Preview pin stays so the user can keep exploring the same place.
+  abortPendingExpand();
   hideSearchConfirm();
 });
 
-$searchConfirmAdd.addEventListener("click", () => {
+$searchConfirmAdd.addEventListener("click", async () => {
   if (!pendingPlace) return;
   if (pendingPlace.kind === "point") {
     pointCounter++;
@@ -1408,6 +1471,20 @@ $searchConfirmAdd.addEventListener("click", () => {
       properties: { name: pendingPlace.title, colorId: activeColorId },
     });
   } else {
+    // The preview-expand fires when the suggestion is picked, so by the time the user
+    // clicks ✓ the expanded geometry is usually already in pendingPlace. If it's still
+    // in flight, await it here with the spinner — same Promise, no duplicate request.
+    // Failures already fell back to the Nominatim segment inside pendingExpandPromise.
+    if (pendingExpandPromise) {
+      setConfirmAddLoading(true);
+      try {
+        await pendingExpandPromise;
+      } finally {
+        setConfirmAddLoading(false);
+      }
+      // User could have cancelled (✗ / clear / Clear all) during the await.
+      if (!pendingPlace) return;
+    }
     lineCounter++;
     features.push({
       type: "Feature",
@@ -1416,6 +1493,8 @@ $searchConfirmAdd.addEventListener("click", () => {
     });
   }
   // The committed feature now renders at the same spot — drop the dashed preview.
+  // Note: deliberately no fitBounds here — the user already framed the map by clicking ✓,
+  // and auto-zooming to the expanded road would yank them away from their chosen view.
   clearSearchPreview();
   hideSearchConfirm();
   rerender();
@@ -1448,35 +1527,69 @@ function goToPlace(lat: number, lng: number) {
   map.flyTo({ center: [lng, lat], zoom: 14 });
 }
 
-// Flattens MultiLineString → single LineString by concatenating segments end-to-end.
-// MapLibre will draw straight connectors across any disjoint segments — acceptable since
-// Nominatim usually returns a single connected way for a named street; the alternative
-// (drop all but the longest part) loses real street geometry, which is worse.
-function flattenStreetGeometry(g: StreetGeometry): LngLat[] {
-  if (g.type === "LineString") return g.coordinates as LngLat[];
-  const out: LngLat[] = [];
-  for (const seg of g.coordinates) {
-    for (const c of seg) out.push(c as LngLat);
-  }
-  return out;
-}
-
-// Renders the street as a dashed-blue preview line and zooms to its bounds.
-function goToStreet(coords: LngLat[]) {
-  clearSearchPreview();
-  if (coords.length < 2) return;
+// Pushes the supplied street geometry into the preview source as-is. Rendering
+// MultiLineString natively (instead of flattening to a single LineString) is what
+// keeps disjoint Nominatim slices from being connected by straight-line bridges
+// that "veer off" the actual road — gaps in the data show as gaps in the preview.
+function renderSearchPreviewGeometry(geometry: StreetGeometry) {
   const src = map.getSource(SRC_SEARCH_PREVIEW) as maplibregl.GeoJSONSource | undefined;
   if (!src) return;
   src.setData({
     type: "FeatureCollection",
-    features: [
-      { type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} },
-    ],
+    features: [{ type: "Feature", geometry: geometry as any, properties: {} }],
   } as any);
   searchLineActive = true;
+}
+
+// Renders the street as a dashed-blue preview line (MultiLineString-aware) and
+// zooms to its full bounds.
+function goToStreet(geometry: StreetGeometry) {
+  clearSearchPreview();
+  renderSearchPreviewGeometry(geometry);
   const bounds = new maplibregl.LngLatBounds();
-  for (const c of coords) bounds.extend(c);
-  map.fitBounds(bounds, { padding: 80, maxZoom: 17, duration: 600 });
+  if (geometry.type === "LineString") {
+    for (const c of geometry.coordinates) bounds.extend(c);
+  } else {
+    for (const seg of geometry.coordinates) for (const c of seg) bounds.extend(c);
+  }
+  if (bounds.isEmpty()) return;
+  // maxZoom 16 is the right ceiling for "frame a road": short single-block streets
+  // hit the cap and read as one road; multi-block stitched avenues fit naturally below it.
+  map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 600 });
+}
+
+// Kicks off the Overpass expand for the currently pending street and swaps the
+// dashed preview to the full city-scoped road when it returns. Fire-and-forget;
+// commit awaits `pendingExpandPromise` if the user clicks ✓ before this resolves.
+//
+// Bails out silently if the pending place changed identity mid-flight (user picked
+// a different suggestion) or if Overpass returns the fallback unchanged. The
+// dashed preview can only ever upgrade — it never downgrades to the Nominatim
+// segment after the user has already seen the expanded version.
+function startPreviewStreetExpand() {
+  if (!pendingPlace || pendingPlace.kind !== "line" || !pendingPlace.scope) return;
+  abortPendingExpand();
+  const ctrl = new AbortController();
+  const captured = pendingPlace;
+  pendingExpandAbort = ctrl;
+  pendingExpandPromise = (async () => {
+    try {
+      const expanded = await expandStreetToFullGeometry(
+        captured.title,
+        captured.scope!,
+        captured.geometry,
+        ctrl.signal,
+      );
+      // Identity check: aborts and re-picks both replace `pendingPlace` (or null it),
+      // so a stale resolution shouldn't mutate state belonging to a different search.
+      if (pendingPlace !== captured) return;
+      captured.geometry = expanded;
+      captured.lineCoords = flattenStreetGeometry(expanded);
+      if (searchLineActive) renderSearchPreviewGeometry(expanded);
+    } finally {
+      if (pendingExpandAbort === ctrl) pendingExpandAbort = null;
+    }
+  })();
 }
 
 async function runSearch() {
@@ -1495,8 +1608,16 @@ async function runSearch() {
   if (result.isStreet && result.geometry) {
     const coords = flattenStreetGeometry(result.geometry);
     if (coords.length >= 2) {
-      goToStreet(coords);
-      showSearchConfirmLine(title, result.lat, result.lng, coords);
+      goToStreet(result.geometry);
+      showSearchConfirmLine(
+        title,
+        result.lat,
+        result.lng,
+        coords,
+        result.geometry,
+        scopeFromSuggestion(result),
+      );
+      startPreviewStreetExpand();
       return;
     }
   }
@@ -1530,16 +1651,32 @@ function renderSuggestions(items: SuggestedPlace[]) {
     li.setAttribute("role", "option");
     li.className =
       "px-3 py-2 cursor-pointer hover:bg-muted border-b border-border last:border-b-0";
-    // Street results commit as a LineString — the inline diagonal-line icon flags that
-    // ahead of click so users know they're picking a road segment, not a single pin.
-    const streetIcon = it.isStreet && it.geometry
-      ? `<svg viewBox="0 0 16 16" class="inline-block shrink-0 mr-1.5 -mt-0.5 align-middle" width="12" height="12" aria-label="street"><line x1="2" y1="13" x2="14" y2="3" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 2"/></svg>`
-      : "";
-    li.innerHTML =
-      `<div class="text-sm text-foreground truncate">${streetIcon}${escapeHtml(it.title)}</div>` +
-      (it.subtitle
-        ? `<div class="text-xs text-muted-foreground">${escapeHtml(it.subtitle)}</div>`
-        : "");
+    // Street results commit as a LineString, so the road glyph sits at the title row's
+    // right edge to distinguish them from point suggestions without crowding the name.
+    const $titleRow = document.createElement("div");
+    $titleRow.className = "flex items-center justify-between gap-2 text-sm text-foreground";
+
+    const $title = document.createElement("span");
+    $title.className = "min-w-0 truncate";
+    $title.textContent = it.title;
+    $titleRow.appendChild($title);
+
+    if (it.isStreet && it.geometry) {
+      const $streetIcon = $roadIconTemplate.content.firstElementChild?.cloneNode(true);
+      if ($streetIcon instanceof SVGElement) {
+        $streetIcon.setAttribute("aria-label", "street");
+        $streetIcon.setAttribute("role", "img");
+        $titleRow.appendChild($streetIcon);
+      }
+    }
+
+    li.appendChild($titleRow);
+    if (it.subtitle) {
+      const $subtitle = document.createElement("div");
+      $subtitle.className = "text-xs text-muted-foreground";
+      $subtitle.textContent = it.subtitle;
+      li.appendChild($subtitle);
+    }
     // mousedown fires before the input's blur, so the dropdown doesn't close before the click lands.
     li.addEventListener("mousedown", (e) => {
       e.preventDefault();
@@ -1567,8 +1704,16 @@ function selectSuggestion(idx: number) {
   if (it.isStreet && it.geometry) {
     const coords = flattenStreetGeometry(it.geometry);
     if (coords.length >= 2) {
-      goToStreet(coords);
-      showSearchConfirmLine(it.title, it.lat, it.lng, coords);
+      goToStreet(it.geometry);
+      showSearchConfirmLine(
+        it.title,
+        it.lat,
+        it.lng,
+        coords,
+        it.geometry,
+        scopeFromSuggestion(it),
+      );
+      startPreviewStreetExpand();
       return;
     }
   }
@@ -1593,6 +1738,7 @@ $searchClear.addEventListener("click", () => {
   renderSuggestions([]);
   setSearchClearVisible(false);
   setSearchStatus("");
+  abortPendingExpand();
   clearSearchPreview();
   hideSearchConfirm();
   $searchInput.focus();
@@ -1642,7 +1788,9 @@ $searchInput.addEventListener("input", () => {
       const items = await suggestGeocode(q, 5, currentViewbox());
       // The user may have kept typing while we awaited; only render if still the same query.
       if ($searchInput.value.trim() !== q) return;
-      renderSuggestions(sortByDistanceFromOrigin(items));
+      // Collapse same-street slices (e.g. multiple "Massachusetts Avenue" rows in Boston
+      // → one row) before distance-sorting so duplicates don't clutter the dropdown.
+      renderSuggestions(sortByDistanceFromOrigin(dedupeStreetSuggestions(items)));
     } finally {
       if ($searchInput.value.trim() === q) setSearchLoading(false);
     }

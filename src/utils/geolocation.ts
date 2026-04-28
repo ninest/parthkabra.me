@@ -11,6 +11,10 @@ export type GeocodedLocation = {
   isStreet: boolean;
   // Present when Nominatim returned LineString/MultiLineString geometry for a street.
   geometry?: StreetGeometry;
+  // City/town/village/county/state — used to scope follow-up Overpass queries to a city.
+  addressLocality?: string;
+  // State or top-level region — disambiguates same-named cities for Overpass.
+  addressRegion?: string;
 };
 
 export type SuggestedPlace = {
@@ -21,6 +25,12 @@ export type SuggestedPlace = {
   display: string;
   isStreet: boolean;
   geometry?: StreetGeometry;
+  // Smallest admin area Nominatim attached to the result (city/town/village → county → state).
+  // Used by callers to group multiple slices of the same named street into one suggestion row.
+  addressLocality?: string;
+  // The broader admin region (state in the US, similar elsewhere). Pairs with `addressLocality`
+  // to disambiguate same-named cities ("Boston, MA" vs. "Boston, GA") when querying Overpass.
+  addressRegion?: string;
 };
 
 // --- Shared rate-limited queue (Nominatim: 1 req/sec) ---
@@ -132,7 +142,25 @@ function splitDisplayName(raw: any): SuggestedPlace {
     geometry = g;
   }
 
-  return { lat: parseFloat(raw.lat), lng: parseFloat(raw.lon), title, subtitle, display, isStreet, geometry };
+  // Walk from finest-grained admin (city) outward so a merged street suggestion gets
+  // the smallest meaningful grouping unit. Nominatim's `address` schema isn't fully
+  // standardized — these four fields cover the common urban / suburban / rural cases.
+  const addressLocality: string | undefined =
+    a.city || a.town || a.village || a.county || a.state || undefined;
+  // State-level region for disambiguation only; not used for grouping.
+  const addressRegion: string | undefined = a.state || a.region || undefined;
+
+  return {
+    lat: parseFloat(raw.lat),
+    lng: parseFloat(raw.lon),
+    title,
+    subtitle,
+    display,
+    isStreet,
+    geometry,
+    addressLocality,
+    addressRegion,
+  };
 }
 
 // Rounds viewbox coords to 1 decimal (~11 km bins) so small map pans still
@@ -206,6 +234,8 @@ export async function geocode(query: string): Promise<GeocodedLocation | null> {
     display: first.display,
     isStreet: first.isStreet,
     geometry: first.geometry,
+    addressLocality: first.addressLocality,
+    addressRegion: first.addressRegion,
   };
 }
 

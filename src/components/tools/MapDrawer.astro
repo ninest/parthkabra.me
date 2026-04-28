@@ -9,9 +9,14 @@ import ChevronRightIcon from "../icons/chevron-right.astro";
 import WalkIcon from "../icons/walk.astro";
 import BikeIcon from "../icons/bike.astro";
 import CarIcon from "../icons/car.astro";
+import RoadIcon from "../icons/road.astro";
 ---
 
 <div id="mapdrawer" class="not-typography relative w-full h-full">
+  <template id="md-road-icon-template">
+    <RoadIcon class="ml-3 h-4 w-4 shrink-0 text-white" />
+  </template>
+
   <div id="mapdrawer-map" class="w-full h-full"></div>
 
   <div
@@ -246,7 +251,8 @@ import CarIcon from "../icons/car.astro";
       class="text-primary shrink-0"
       aria-label="Add point"
     >
-      <CheckIcon class="w-3.5 h-3.5" />
+      <CheckIcon id="md-search-confirm-add-icon" class="w-3.5 h-3.5" />
+      <SpinnerIcon id="md-search-confirm-add-spinner" class="hidden w-3.5 h-3.5" />
     </Button>
   </div>
   </div>
