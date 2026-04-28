@@ -8,6 +8,7 @@ import { getCollection } from "astro:content";
 import { getVisiblePosts } from "../utils/posts";
 import { validateRelatedLinks } from "../utils/validate-related";
 import { routes, getCategoryUrl, getPostUrl, getProjectUrl, getWorkUrl } from "../utils/links";
+import { getVisibleCategories } from "../utils/visible-categories";
 await validateRelatedLinks();
 
 const links = (await getCollection("links")).sort((a, b) => a.data.order - b.data.order);
@@ -20,7 +21,7 @@ const work = (await getCollection("workExperience", (we) => we.data.featured)).s
 const projects = (await getCollection("projects", (p) => p.data.featured)).sort(
   (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
 );
-const categories = await getCollection("categories");
+const categories = await getVisibleCategories();
 const posts = (await getVisiblePosts())
   .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
   .slice(0, 10);

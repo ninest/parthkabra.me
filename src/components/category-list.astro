@@ -1,8 +1,8 @@
 ---
-import { getCollection } from "astro:content";
 import { routes, getCategoryUrl } from "../utils/links";
+import { getVisibleCategories } from "../utils/visible-categories";
 
-const categories = await getCollection("categories");
+const categories = await getVisibleCategories();
 ---
 
 <nav class="mt-8">
