@@ -1,70 +1,134 @@
 ---
-import ArrowUpIcon from "../icons/arrow-up.astro";
+import CheckIcon from "../icons/check.astro";
+import ChevronDownIcon from "../icons/chevron-down.astro";
 import { buttonBaseClasses, buttonSizeClasses, buttonVariantClasses } from "../button";
 import { inputBaseClasses } from "../input";
 import { getMapAgentDocUrl } from "../../utils/map-agent-docs";
 
 const mapAgentDocsUrl = getMapAgentDocUrl();
 const chatGptUrl = "https://chatgpt.com/";
+const claudeUrl = "https://claude.ai/new";
 ---
 
-<div class="not-typography absolute inset-0 flex items-center justify-center px-4">
+<div class="not-typography w-full px-4 pt-[18vh]">
   <div
     id="ai-mapmaker"
     data-docs-url={mapAgentDocsUrl}
     data-chatgpt-url={chatGptUrl}
-    class="w-full max-w-3xl"
+    data-claude-url={claudeUrl}
+    class="mx-auto w-full max-w-2xl"
   >
-    <div class="mx-auto max-w-2xl">
-      <div class="relative h-50 w-full">
-        <textarea
-          id="aimm-prompt"
-          rows="5"
-          placeholder="Describe what you want on your map..."
-          class:list={[
-            inputBaseClasses,
-            "absolute inset-0 h-full w-full resize-none rounded-sm bg-background px-2 py-2 pb-12 pr-12 text-left text-lg leading-relaxed",
-          ]}
-        ></textarea>
+    <h1 class="text-center text-3xl md:text-4xl font-black mb-12 tracking-tight">AI map maker</h1>
+
+    <div class="relative h-50 w-full">
+      <textarea
+        id="aimm-prompt"
+        rows="5"
+        placeholder="Describe what you want on your map..."
+        class:list={[
+          inputBaseClasses,
+          "absolute inset-0 h-full w-full resize-none rounded-xl bg-background px-3 py-3 pb-12 pr-44 text-left text-lg leading-relaxed",
+        ]}
+      ></textarea>
+      <div class="absolute bottom-2 right-2 z-10 flex items-stretch">
         <a
           id="aimm-send"
           href={chatGptUrl}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Open in ChatGPT"
           class:list={[
             buttonBaseClasses,
             buttonSizeClasses.sm,
             buttonVariantClasses.primary,
-            "absolute bottom-2 right-2 z-10 h-8 w-8 rounded-sm p-0 leading-none",
+            "h-8 rounded-md rounded-r-none px-2 text-sm leading-none",
           ]}
         >
-          <ArrowUpIcon class="block w-3.5 h-3.5" />
+          <span id="aimm-send-label">Open in ChatGPT</span>
         </a>
+        <button
+          id="aimm-chevron"
+          type="button"
+          aria-expanded="false"
+          aria-controls="aimm-providers"
+          aria-label="Switch provider"
+          class:list={[
+            buttonBaseClasses,
+            buttonSizeClasses.sm,
+            buttonVariantClasses.primary,
+            "h-8 rounded-md rounded-l-none border-l border-background/20 px-1.5",
+          ]}
+        >
+          <ChevronDownIcon class="block w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
+
+    <ul id="aimm-providers" class="mt-2 ml-auto w-1/2 md:w-1/3 space-y-0.5 rounded overflow-hidden hidden">
+      <li>
+        <button
+          type="button"
+          data-provider="chatgpt"
+          class="w-full flex items-center justify-between bg-muted/50 py-1 px-2 text-left cursor-pointer"
+        >
+          <div>Open in ChatGPT</div>
+          <div data-check><CheckIcon class="w-4 h-4" /></div>
+        </button>
+      </li>
+      <li>
+        <button
+          type="button"
+          data-provider="claude"
+          class="w-full flex items-center justify-between bg-muted/50 py-1 px-2 text-left cursor-pointer"
+        >
+          <div>Open in Claude</div>
+          <div data-check class="hidden"><CheckIcon class="w-4 h-4" /></div>
+        </button>
+      </li>
+    </ul>
   </div>
 </div>
 
 <script>
+  type Provider = "chatgpt" | "claude";
+
   const $root = document.getElementById("ai-mapmaker") as HTMLDivElement | null;
   const $prompt = document.getElementById("aimm-prompt") as HTMLTextAreaElement | null;
   const $send = document.getElementById("aimm-send") as HTMLAnchorElement | null;
+  const $sendLabel = document.getElementById("aimm-send-label") as HTMLSpanElement | null;
+  const $chevron = document.getElementById("aimm-chevron") as HTMLButtonElement | null;
+  const $providers = document.getElementById("aimm-providers") as HTMLUListElement | null;
 
-  if (!$root || !$prompt || !$send) {
+  if (!$root || !$prompt || !$send || !$sendLabel || !$chevron || !$providers) {
     throw new Error("[AIMapMaker] Missing required DOM nodes");
   }
+
+  let provider: Provider = "chatgpt";
+
+  const PROVIDER_LABELS: Record<Provider, string> = {
+    chatgpt: "Open in ChatGPT",
+    claude: "Open in Claude",
+  };
 
   function buildPrompt(userRequest: string): string {
     const docsUrl = $root.dataset.docsUrl || "https://parthkabra.me/tools/map/agents";
     return `Read the docs on creating a map: ${docsUrl}\n\nUser request:\n${userRequest.trim()}`;
   }
 
-  // Uses ChatGPT's query string as a best-effort prefill, with clipboard as fallback.
-  function buildChatGptLink(prompt: string): string {
-    const url = new URL($root.dataset.chatgptUrl || "https://chatgpt.com/");
+  // Builds the provider URL with the prompt as a `?q=` query param. Both ChatGPT and Claude support this prefill pattern.
+  function buildProviderLink(prompt: string): string {
+    const base =
+      provider === "chatgpt"
+        ? $root.dataset.chatgptUrl || "https://chatgpt.com/"
+        : $root.dataset.claudeUrl || "https://claude.ai/new";
+    const url = new URL(base);
     url.searchParams.set("q", prompt);
     return url.toString();
+  }
+
+  function providerBaseUrl(): string {
+    return provider === "chatgpt"
+      ? $root.dataset.chatgptUrl || "https://chatgpt.com/"
+      : $root.dataset.claudeUrl || "https://claude.ai/new";
   }
 
   async function copyPrompt(prompt: string): Promise<void> {
@@ -75,27 +139,37 @@ const chatGptUrl = "https://chatgpt.com/";
     }
   }
 
-  function updateChatGptLink(): string {
+  // Refreshes the send link href, button label, and the checkmark on the provider list to reflect the active provider.
+  function updateSendLink(): string {
     const request = $prompt.value.trim();
-    $send.href = request
-      ? buildChatGptLink(buildPrompt(request))
-      : ($root.dataset.chatgptUrl || "https://chatgpt.com/");
+    $send.href = request ? buildProviderLink(buildPrompt(request)) : providerBaseUrl();
+    $sendLabel.textContent = PROVIDER_LABELS[provider];
+    $send.setAttribute("aria-label", PROVIDER_LABELS[provider]);
+    $providers.querySelectorAll<HTMLButtonElement>("button[data-provider]").forEach(($btn) => {
+      const $check = $btn.querySelector<HTMLElement>("[data-check]");
+      if ($check) $check.classList.toggle("hidden", $btn.dataset.provider !== provider);
+    });
     return request;
   }
 
+  function setProvidersOpen(open: boolean): void {
+    $providers.classList.toggle("hidden", !open);
+    $chevron.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
   $send.addEventListener("click", (event) => {
-    const request = updateChatGptLink();
+    const request = updateSendLink();
     if (!request) {
       event.preventDefault();
       $prompt.focus();
       return;
     }
-    window.posthog?.capture("tool_used", { tool: "ai_mapmaker", query: request });
+    window.posthog?.capture("tool_used", { tool: "ai_mapmaker", provider, query: request });
     void copyPrompt(buildPrompt(request));
   });
 
   $prompt.addEventListener("input", () => {
-    updateChatGptLink();
+    updateSendLink();
   });
 
   $prompt.addEventListener("keydown", (event) => {
@@ -105,5 +179,19 @@ const chatGptUrl = "https://chatgpt.com/";
     }
   });
 
-  updateChatGptLink();
+  $chevron.addEventListener("click", () => {
+    const isOpen = !$providers.classList.contains("hidden");
+    setProvidersOpen(!isOpen);
+  });
+
+  $providers.querySelectorAll<HTMLButtonElement>("button[data-provider]").forEach(($btn) => {
+    $btn.addEventListener("click", () => {
+      provider = ($btn.dataset.provider as Provider) || "chatgpt";
+      updateSendLink();
+      setProvidersOpen(false);
+      window.posthog?.capture("ai_mapmaker_provider_selected", { provider });
+    });
+  });
+
+  updateSendLink();
 </script>
