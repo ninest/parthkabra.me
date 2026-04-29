@@ -22,7 +22,7 @@ export default defineConfig({
 
   security: {
     // Keep in sync with IMAGE_ACTION_BODY_SIZE_LIMIT in src/lib/image.ts.
-    actionBodySizeLimit: 10 * 1024 * 1024,
+    actionBodySizeLimit: 25 * 1024 * 1024,
   },
 
   integrations: [
