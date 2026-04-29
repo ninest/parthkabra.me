@@ -182,12 +182,20 @@ function microblogIdFromPath(ghPath: string): string | null {
             id="new-filename"
             type="text"
             placeholder="filename.mdx"
-            class="border border-border rounded px-2 py-1 font-mono w-64 mb-3 block shrink-0"
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck={false}
+            class="border border-border rounded px-2 py-1 font-mono w-full mb-3 block shrink-0"
           />
         )}
 
         <textarea
           id="editor"
+          autocapitalize="off"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck={false}
           class="w-full flex-1 min-h-[75vh] lg:min-h-0 font-mono p-3 border border-border rounded bg-background text-foreground resize-none"
           style="tab-size: 2; -moz-tab-size: 2;"
         >{fileContent}</textarea>
@@ -306,6 +314,19 @@ function microblogIdFromPath(ghPath: string): string | null {
       $editor.value = $editor.value.replaceAll("{{datetime}}", datetime).replaceAll("{{date}}", date);
     }
 
+    // Force the new-filename input to always be lowercase, preserving caret position.
+    if ($newFilename) {
+      $newFilename.addEventListener("input", () => {
+        const start = $newFilename.selectionStart;
+        const end = $newFilename.selectionEnd;
+        const lower = $newFilename.value.toLowerCase();
+        if (lower !== $newFilename.value) {
+          $newFilename.value = lower;
+          if (start !== null && end !== null) $newFilename.setSelectionRange(start, end);
+        }
+      });
+    }
+
     $saveBtn.addEventListener("click", save);
 
     document.addEventListener("keydown", (e) => {
@@ -330,7 +351,7 @@ function microblogIdFromPath(ghPath: string): string | null {
       // For new files, build path from directory + filename
       let savePath = currentPath;
       if ($newFilename) {
-        const filename = $newFilename.value.trim();
+        const filename = $newFilename.value.trim().toLowerCase();
         if (!filename) {
           $saveStatus.textContent = "Enter a filename";
           $saveStatus.className = "text-sm text-red-600";
