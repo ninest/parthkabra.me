@@ -1,13 +1,13 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
+import { getRedirect } from "./utils/redirects";
 
 export const onRequest = defineMiddleware((context, next) => {
   const { url, request } = context;
+  const redirect = getRedirect(url);
 
-  if (url.pathname === "/project" || url.pathname.startsWith("/project/")) {
-    const redirectUrl = new URL(url);
-    redirectUrl.pathname = redirectUrl.pathname.replace(/^\/project(?=\/|$)/, "/projects");
-    return Response.redirect(redirectUrl, 301);
+  if (redirect) {
+    return Response.redirect(redirect.url, redirect.status);
   }
 
   if (!url.pathname.startsWith("/admin")) {
