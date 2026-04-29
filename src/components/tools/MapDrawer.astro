@@ -45,7 +45,7 @@ import RoadIcon from "../icons/road.astro";
         type="button"
         aria-label="Hide controls"
         aria-expanded="true"
-        class="text-sm w-7 h-7 rounded hover:bg-muted flex items-center justify-center shrink-0 ml-auto"
+        class="text-sm w-7 h-7 rounded hover:bg-muted flex items-center justify-center shrink-0 ml-auto select-none touch-manipulation cursor-pointer"
       >
         <span id="md-collapse-icon" aria-hidden="true">▾</span>
       </button>
@@ -80,6 +80,17 @@ import RoadIcon from "../icons/road.astro";
     #md-swatches::-webkit-scrollbar,
     #md-controls::-webkit-scrollbar,
     .md-palette-scroll::-webkit-scrollbar { display: none; }
+    /* Drag-to-reorder visuals. Transitions are scoped to data-reordering so non-drag
+       rerenders don't animate row construction. The dragged row floats above siblings
+       while neighbors slide into place via translateY. */
+    #md-list-body[data-reordering="true"] > div { transition: transform 140ms ease; will-change: transform; }
+    #md-list-body > div[data-dragging="true"] {
+      transition: none;
+      opacity: 0.9;
+      position: relative;
+      z-index: 10;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+    }
   </style>
 
   <div
@@ -96,7 +107,7 @@ import RoadIcon from "../icons/road.astro";
         aria-expanded="false"
         aria-controls="md-list-body"
         data-collapsed="true"
-        class="flex-1 px-3 py-2 flex items-center justify-between gap-2 text-sm bg-muted/60 hover:bg-muted"
+        class="flex-1 px-3 py-2 flex items-center justify-between gap-2 text-sm bg-muted/60 hover:bg-muted select-none touch-manipulation cursor-pointer"
       >
         <span class="flex items-center gap-2 min-w-0">
           <span id="md-list-caret" aria-hidden="true" class="shrink-0">▾</span>
@@ -109,7 +120,7 @@ import RoadIcon from "../icons/road.astro";
         type="button"
         aria-label="More actions"
         aria-expanded="false"
-        class="px-3 bg-muted/60 hover:bg-muted text-muted-foreground shrink-0 border-l border-border flex items-center"
+        class="px-3 bg-muted/60 hover:bg-muted text-muted-foreground shrink-0 border-l border-border flex items-center select-none touch-manipulation cursor-pointer"
       >
         <span aria-hidden="true">⋯</span>
       </button>
@@ -136,7 +147,7 @@ import RoadIcon from "../icons/road.astro";
           id="md-detail-back"
           type="button"
           aria-label="Back to list"
-          class="shrink-0 w-8 h-8 rounded flex items-center justify-center text-muted-foreground hover:bg-muted"
+          class="shrink-0 w-8 h-8 rounded flex items-center justify-center text-muted-foreground hover:bg-muted select-none touch-manipulation cursor-pointer"
         >
           <ChevronRightIcon class="w-4 h-4 rotate-180" />
         </button>
@@ -169,8 +180,8 @@ import RoadIcon from "../icons/road.astro";
         <div id="md-detail-address-block" class="flex flex-col gap-1 min-h-12">
           <p id="md-detail-address" class="text-xs text-muted-foreground break-words"></p>
           <div id="md-detail-address-actions" class="hidden items-center gap-3">
-            <button id="md-detail-edit-address" type="button" class="text-xs underline cursor-pointer">Edit</button>
-            <button id="md-detail-copy-address" type="button" class="text-xs underline cursor-pointer">Copy address</button>
+            <button id="md-detail-edit-address" type="button" class="text-xs underline cursor-pointer select-none touch-manipulation">Edit</button>
+            <button id="md-detail-copy-address" type="button" class="text-xs underline cursor-pointer select-none touch-manipulation">Copy address</button>
           </div>
         </div>
         <div id="md-detail-points-list" class="hidden flex-col gap-2 min-h-12"></div>
@@ -205,7 +216,7 @@ import RoadIcon from "../icons/road.astro";
         id="md-search-clear"
         type="button"
         aria-label="Clear search"
-        class="hidden absolute right-1.5 inset-y-0 my-auto z-10 w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+        class="hidden absolute right-1.5 inset-y-0 my-auto z-10 w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted select-none touch-manipulation cursor-pointer"
       >
         <XIcon class="w-3.5 h-3.5" />
       </button>
@@ -220,7 +231,7 @@ import RoadIcon from "../icons/road.astro";
       type="button"
       aria-label="Use my location"
       aria-pressed="false"
-      class="shrink-0 px-2.5 bg-background/90 border border-border rounded-lg shadow backdrop-blur flex items-center justify-center hover:bg-muted aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:border-primary aria-pressed:hover:bg-primary"
+      class="shrink-0 px-2.5 bg-background/90 border border-border rounded-lg shadow backdrop-blur flex items-center justify-center hover:bg-muted aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:border-primary aria-pressed:hover:bg-primary select-none touch-manipulation cursor-pointer"
     >
       <CrosshairIcon class="w-4 h-4" />
     </button>

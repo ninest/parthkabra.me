@@ -225,7 +225,7 @@ function makeSwatchButton(hex: string, label: string, active: boolean): HTMLButt
   btn.type = "button";
   btn.setAttribute("aria-label", label);
   btn.className =
-    "w-5 h-5 rounded-md shrink-0 border border-border ring-2 ring-offset-1 ring-offset-background " +
+    "w-5 h-5 rounded-md shrink-0 border border-border ring-2 ring-offset-1 ring-offset-background select-none " +
     (active ? "ring-primary" : "ring-transparent hover:brightness-110");
   btn.style.backgroundColor = hex;
   return btn;
@@ -239,6 +239,7 @@ function renderSwatches() {
   PALETTE.forEach((entry) => {
     const showActive = mode !== null && entry.id === activeColorId;
     const btn = makeSwatchButton(entry.hex, `Use ${entry.label}`, showActive);
+    btn.classList.add("touch-manipulation", "cursor-pointer");
     btn.addEventListener("click", () => setActiveColor(entry.id));
     $swatches.appendChild(btn);
   });
@@ -302,31 +303,138 @@ function prefetchAllAddresses() {
 
 // === Feature list rendering ===
 
+// Pointer-driven drag handler attached to each row's color chip. A short tap (under
+// the 6px threshold) opens the detail page — preserving the original click affordance.
+// A drag past the threshold lifts the row, slides neighbors out of the way via
+// translateY, and on release splices `features` to the new index and rerenders.
+// Pointer Events unify mouse and touch; touch-action:none on the chip keeps the
+// browser from hijacking the gesture for scroll/zoom on mobile.
+function attachReorderDrag(chip: HTMLButtonElement, feature: DrawingFeature) {
+  chip.addEventListener("pointerdown", (downEvent: PointerEvent) => {
+    if (downEvent.pointerType === "mouse" && downEvent.button !== 0) return;
+    const startIndex = features.indexOf(feature);
+    if (startIndex < 0) return;
+    const canReorder = features.length >= 2;
+
+    const startX = downEvent.clientX;
+    const startY = downEvent.clientY;
+    let dragging = false;
+    let dropIndex = startIndex;
+    let rowHeight = 0;
+    let rows: HTMLElement[] = [];
+    let row: HTMLElement | null = null;
+
+    const cleanupListeners = () => {
+      chip.removeEventListener("pointermove", onMove);
+      chip.removeEventListener("pointerup", onUp);
+      chip.removeEventListener("pointercancel", onCancel);
+    };
+
+    const resetTransforms = () => {
+      $listBody.removeAttribute("data-reordering");
+      for (const r of rows) r.style.transform = "";
+      row?.removeAttribute("data-dragging");
+    };
+
+    const onMove = (ev: PointerEvent) => {
+      const dy = ev.clientY - startY;
+      if (!dragging) {
+        if (!canReorder) return;
+        if (Math.abs(dy) < 6 && Math.abs(ev.clientX - startX) < 6) return;
+        dragging = true;
+        rows = Array.from($listBody.children) as HTMLElement[];
+        row = rows[startIndex] ?? null;
+        if (!row) {
+          cleanupListeners();
+          return;
+        }
+        rowHeight = row.getBoundingClientRect().height;
+        $listBody.setAttribute("data-reordering", "true");
+        row.setAttribute("data-dragging", "true");
+      }
+      row!.style.transform = `translateY(${dy}px)`;
+      const newDropIndex = Math.max(
+        0,
+        Math.min(rows.length - 1, startIndex + Math.round(dy / rowHeight)),
+      );
+      if (newDropIndex !== dropIndex) dropIndex = newDropIndex;
+      for (let i = 0; i < rows.length; i++) {
+        if (i === startIndex) continue;
+        let t = "";
+        if (startIndex < dropIndex && i > startIndex && i <= dropIndex) {
+          t = `translateY(-${rowHeight}px)`;
+        } else if (startIndex > dropIndex && i < startIndex && i >= dropIndex) {
+          t = `translateY(${rowHeight}px)`;
+        }
+        rows[i].style.transform = t;
+      }
+    };
+
+    const onUp = (ev: PointerEvent) => {
+      cleanupListeners();
+      if (chip.hasPointerCapture(ev.pointerId)) chip.releasePointerCapture(ev.pointerId);
+      if (!dragging) {
+        openDetail(feature);
+        return;
+      }
+      if (dropIndex !== startIndex) {
+        // Splice first, then rerender — rerender rebuilds rows from scratch so
+        // leftover transforms vanish with the old DOM. No manual cleanup needed.
+        const [moved] = features.splice(startIndex, 1);
+        features.splice(dropIndex, 0, moved);
+        captureMapEvent("map_feature_reordered", {
+          fromIndex: startIndex,
+          toIndex: dropIndex,
+          kind: feature.geometry.type === "Point" ? "point" : "line",
+          count: features.length,
+        });
+        rerender();
+      } else {
+        resetTransforms();
+      }
+    };
+
+    const onCancel = (ev: PointerEvent) => {
+      cleanupListeners();
+      if (chip.hasPointerCapture(ev.pointerId)) chip.releasePointerCapture(ev.pointerId);
+      if (dragging) resetTransforms();
+    };
+
+    chip.setPointerCapture(downEvent.pointerId);
+    chip.addEventListener("pointermove", onMove);
+    chip.addEventListener("pointerup", onUp);
+    chip.addEventListener("pointercancel", onCancel);
+  });
+}
+
 // Render the right-side list of features. One row per feature: color chip, name input,
-// chevron-right that opens the detail page. The chip is also a shortcut into the same
-// detail page (matches the original "tap chip to edit color" affordance).
+// chevron-right that opens the detail page. The chip is also a drag handle for
+// reordering (see attachReorderDrag) — taps still open detail.
 function renderList() {
   $listPanel.classList.toggle("hidden", features.length === 0);
   $listCount.textContent = String(features.length);
   $listBody.innerHTML = "";
   features.forEach((f) => {
     const row = document.createElement("div");
-    // Single hover surface for the whole row — name + chevron both open detail,
-    // so two separate hover rectangles read as two distinct affordances. The chip
-    // keeps its own ring styling but doesn't fight the row hover.
-    row.className = "flex items-center gap-1.5 px-1 py-0.5 rounded hover:bg-muted";
+    // Whole row is the click target — gaps, padding, and the inert mode badge
+    // all open detail, matching what the hover background suggests.
+    row.className = "flex items-center gap-1.5 px-1 py-0.5 rounded hover:bg-muted cursor-pointer";
+    row.addEventListener("click", () => openDetail(f));
 
     const chip = makeSwatchButton(getPaletteEntryById(f.properties.colorId).hex, "Edit feature", false);
-    chip.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openDetail(f);
-    });
+    // touch-none stops the browser from claiming the gesture for scroll on mobile;
+    // cursor-grab tells desktop users the chip is draggable.
+    chip.classList.add("touch-none", "cursor-grab", "active:cursor-grabbing");
+    // Chip drives openDetail itself via its pointerup tap path — stop the synthetic
+    // click from bubbling up to the row handler, otherwise we'd open detail twice.
+    chip.addEventListener("click", (e) => e.stopPropagation());
+    attachReorderDrag(chip, f);
 
     // Name is a click target, not an input — editing happens on the detail page.
     // truncate prevents long names from pushing the chevron off-row.
     const name = document.createElement("button");
     name.type = "button";
-    name.className = "flex-1 min-w-0 text-left text-sm px-1 py-0.5 truncate cursor-pointer";
+    name.className = "flex-1 min-w-0 text-left text-sm px-1 py-0.5 truncate cursor-pointer select-none touch-manipulation";
     name.textContent = f.properties.name;
     name.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -351,7 +459,7 @@ function renderList() {
     chevron.type = "button";
     chevron.setAttribute("aria-label", "Open feature details");
     chevron.className =
-      "w-7 h-7 rounded flex items-center justify-center shrink-0 text-muted-foreground";
+      "w-7 h-7 rounded flex items-center justify-center shrink-0 text-muted-foreground select-none touch-manipulation cursor-pointer";
     chevron.innerHTML =
       '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="m9 6 6 6-6 6"></path></svg>';
     chevron.addEventListener("click", (e) => {
@@ -407,6 +515,7 @@ function renderDetailSwatches() {
       entry.label,
       entry.id === detailFeature!.properties.colorId,
     );
+    btn.classList.add("touch-manipulation", "cursor-pointer");
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       if (!detailFeature) return;
@@ -1388,13 +1497,68 @@ $copyLink.addEventListener("click", async () => {
 // === My location ===
 // Non-persistent blue marker + flyTo. Second click clears the marker.
 // Button visual state mirrors the marker's presence via data-active.
+// While active we also subscribe to deviceorientation so the marker shows a
+// directional cone — rotated by heading minus the map bearing so it stays
+// correct when the user rotates the map.
 function setMyLocationActive(active: boolean) {
   $myLocation.setAttribute("aria-pressed", active ? "true" : "false");
 }
-$myLocation.addEventListener("click", () => {
+
+// Cleanup hook for the orientation listener + map rotate handler. Set when
+// startMyLocationOrientation runs; called on marker dismissal.
+let myLocationOrientationCleanup: (() => void) | null = null;
+
+// iOS Safari gates DeviceOrientationEvent behind an explicit permission prompt
+// that must be triggered from a user gesture. Other browsers resolve true.
+async function requestOrientationPermission(): Promise<boolean> {
+  const cls = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+  if (cls && typeof cls.requestPermission === "function") {
+    try {
+      return (await cls.requestPermission()) === "granted";
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Wire compass heading to a cone element. iOS exposes webkitCompassHeading
+// (already 0°=N clockwise); other browsers expose alpha (0°=N counter-clockwise
+// when absolute). We render nothing until the first valid sample arrives.
+function startMyLocationOrientation(cone: HTMLElement) {
+  let lastHeading: number | null = null;
+  const apply = () => {
+    if (lastHeading == null) {
+      cone.style.display = "none";
+      return;
+    }
+    cone.style.display = "";
+    cone.style.transform = `rotate(${lastHeading - map.getBearing()}deg)`;
+  };
+  const handler = (ev: DeviceOrientationEvent) => {
+    const wk = (ev as unknown as { webkitCompassHeading?: number }).webkitCompassHeading;
+    let heading: number | null = null;
+    if (typeof wk === "number" && !Number.isNaN(wk)) heading = wk;
+    else if (ev.absolute && typeof ev.alpha === "number") heading = (360 - ev.alpha) % 360;
+    if (heading == null || Number.isNaN(heading)) return;
+    lastHeading = heading;
+    apply();
+  };
+  const eventName = "ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation";
+  window.addEventListener(eventName, handler as EventListener);
+  map.on("rotate", apply);
+  myLocationOrientationCleanup = () => {
+    window.removeEventListener(eventName, handler as EventListener);
+    map.off("rotate", apply);
+    myLocationOrientationCleanup = null;
+  };
+}
+
+$myLocation.addEventListener("click", async () => {
   if (myLocationMarker) {
     myLocationMarker.remove();
     myLocationMarker = null;
+    myLocationOrientationCleanup?.();
     setMyLocationActive(false);
     return;
   }
@@ -1402,19 +1566,41 @@ $myLocation.addEventListener("click", () => {
     setSearchStatus("Geolocation unavailable");
     return;
   }
+  // Ask for orientation permission inside the user gesture (required by iOS).
+  // Resolves true on browsers that don't gate it.
+  const orientationAllowed = await requestOrientationPermission();
   setSearchStatus("Locating...");
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const { latitude, longitude } = pos.coords;
+      // Marker DOM: zero-size root anchored at the lngLat, with an absolutely
+      // positioned cone (centered on origin, transform-origin at its tip) and
+      // the existing blue dot also centered on origin.
       const el = document.createElement("div");
-      el.style.cssText =
-        "width:1.125rem;height:1.125rem;background:rgba(37,99,235,.55);border:0.156rem solid rgba(255,255,255,.85);border-radius:50%;box-shadow:0 0.125rem 0.375rem rgba(0,0,0,.25);";
+      el.style.cssText = "position:relative;width:0;height:0;pointer-events:none;";
+      const cone = document.createElement("div");
+      cone.style.cssText =
+        "position:absolute;left:-1.875rem;top:-1.875rem;width:3.75rem;height:3.75rem;transform-origin:50% 50%;display:none;";
+      cone.innerHTML =
+        '<svg viewBox="-30 -30 60 60" width="100%" height="100%" aria-hidden="true">' +
+        '<defs><radialGradient id="md-myloc-cone" cx="0" cy="0" r="30" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0" stop-color="rgba(37,99,235,0.6)"/>' +
+        '<stop offset="1" stop-color="rgba(37,99,235,0)"/>' +
+        '</radialGradient></defs>' +
+        '<path d="M0,0 L-22,-28 A30,30 0 0,1 22,-28 Z" fill="url(#md-myloc-cone)"/>' +
+        '</svg>';
+      const dot = document.createElement("div");
+      dot.style.cssText =
+        "position:absolute;left:-0.5625rem;top:-0.5625rem;width:1.125rem;height:1.125rem;background:rgba(37,99,235,.85);border:0.156rem solid rgba(255,255,255,.95);border-radius:50%;box-shadow:0 0.125rem 0.375rem rgba(0,0,0,.25);";
+      el.appendChild(cone);
+      el.appendChild(dot);
       myLocationMarker = new maplibregl.Marker({ element: el })
         .setLngLat([longitude, latitude])
         .addTo(map);
-      map.flyTo({ center: [longitude, latitude], zoom: 14 });
+      map.flyTo({ center: [longitude, latitude], zoom: 14, speed: 2.8, curve: 1.6, maxDuration: 1200 });
       setMyLocationActive(true);
       setSearchStatus("");
+      if (orientationAllowed) startMyLocationOrientation(cone);
     },
     () => {
       setSearchStatus("Location denied");
@@ -1558,7 +1744,7 @@ function goToPlace(lat: number, lng: number) {
   searchMarker = new maplibregl.Marker({ element: el })
     .setLngLat([lng, lat])
     .addTo(map);
-  map.flyTo({ center: [lng, lat], zoom: 14 });
+  map.flyTo({ center: [lng, lat], zoom: 14, speed: 2.8, curve: 1.6, maxDuration: 1200 });
 }
 
 // Pushes the supplied street geometry into the preview source as-is. Rendering
