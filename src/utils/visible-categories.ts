@@ -18,6 +18,7 @@ export const visibleCategoryIds = [
   "typescript",
   "ui",
   "vscode",
+  "restaurant",
 ];
 
 export async function getVisibleCategories() {
