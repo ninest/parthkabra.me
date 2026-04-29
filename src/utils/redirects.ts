@@ -1,9 +1,24 @@
-import { getToolUrl, routes } from "./links";
+import { getProjectUrl, getToolUrl, getWorkUrl, routes } from "./links";
 
 const redirects = [
   {
+    from: /^\/project\/nsr(?=\/|$)/,
+    to: getProjectUrl("national-service-resources"),
+    status: 301,
+  },
+  {
     from: /^\/project(?=\/|$)/,
     to: routes.projects,
+    status: 301,
+  },
+  {
+    from: /^\/projects\/nsr(?=\/|$)/,
+    to: getProjectUrl("national-service-resources"),
+    status: 301,
+  },
+  {
+    from: /^\/work\/saf(?=\/|$)/,
+    to: getWorkUrl("singapore-armed-forces"),
     status: 301,
   },
   {
