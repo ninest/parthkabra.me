@@ -1,7 +1,8 @@
 export type ButtonVariant = "primary" | "secondary" | "outline";
 export type ButtonSize = "sm" | "md";
 
-export const buttonBaseClasses = "rounded flex items-center justify-center";
+export const buttonBaseClasses =
+  "rounded flex items-center justify-center select-none touch-none cursor-pointer";
 
 export const buttonSizeClasses: Record<ButtonSize, string> = {
   sm: "h-5 px-2 py-0.5 text-xs",
@@ -21,7 +22,12 @@ export function buttonClasses(
   size: ButtonSize = "md",
   extra = "",
 ): string {
-  return [buttonBaseClasses, buttonSizeClasses[size], buttonVariantClasses[variant], extra]
+  return [
+    buttonBaseClasses,
+    buttonSizeClasses[size],
+    buttonVariantClasses[variant],
+    extra,
+  ]
     .filter(Boolean)
     .join(" ");
 }
