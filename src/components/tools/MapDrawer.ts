@@ -43,6 +43,7 @@ import { getRouteMatchedPath, type RouteProfile } from "../../utils/route-matchi
 // MapLibre source ID for the dashed search-preview line. Local to this file —
 // the shared map-drawing helpers don't know about it.
 const SRC_SEARCH_PREVIEW = "search-preview";
+const DRAWING_CLICK_LAYER_IDS = ["drawings-points", "drawings-lines"] as const;
 
 // === DOM refs ===
 const $mapEl = document.getElementById("mapdrawer-map")!;
@@ -175,6 +176,15 @@ const HINTS = {
   lineEmpty: "Tap the map to start a line",
   lineDrawing: "Tap to add more points; click Finish when done",
 } as const;
+
+// Adds the shared map tool property so every map analytics event is easy to segment.
+function captureMapEvent(event: string, properties: Record<string, unknown> = {}) {
+  window.posthog?.capture(event, { tool: "map", ...properties });
+}
+
+function mapSearchResultKind(result: { isStreet?: boolean; geometry?: unknown }): "point" | "line" {
+  return result.isStreet && result.geometry ? "line" : "point";
+}
 
 function currentHintKey(): keyof typeof HINTS | null {
   if (mode === null) return "idle";
@@ -919,6 +929,24 @@ map.on("load", () => {
     },
     layout: { "line-cap": "round", "line-join": "round" },
   });
+  for (const layerId of DRAWING_CLICK_LAYER_IDS) {
+    map.on("click", layerId, (e) => {
+      const [feature] = e.features ?? [];
+      if (!feature) return;
+      const featureType = feature.geometry.type === "Point" ? "point" : "line";
+      captureMapEvent("map_feature_clicked", {
+        feature_type: featureType,
+        feature_name: feature.properties?.name,
+        source: "canvas",
+      });
+    });
+    map.on("mouseenter", layerId, () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+    map.on("mouseleave", layerId, () => {
+      map.getCanvas().style.cursor = "";
+    });
+  }
   renderSwatches();
   renderList();
   applyLabelsVisible();
@@ -1112,8 +1140,14 @@ function setMode(next: "point" | "line" | null) {
   rerender();
 }
 
-$modePoint.addEventListener("click", () => setMode("point"));
-$modeLine.addEventListener("click", () => setMode("line"));
+$modePoint.addEventListener("click", () => {
+  captureMapEvent("map_draw_mode_selected", { draw_mode: "point" });
+  setMode("point");
+});
+$modeLine.addEventListener("click", () => {
+  captureMapEvent("map_draw_mode_selected", { draw_mode: "line" });
+  setMode("line");
+});
 for (const { mode: matchMode, button } of ROUTE_MATCH_BUTTONS) {
   button.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -1598,6 +1632,11 @@ async function runSearch() {
   setSearchStatus("Searching...");
   const result = await geocode(q);
   if (!result) {
+    captureMapEvent("map_search_result_selected", {
+      query: q,
+      result_found: false,
+      source: "enter",
+    });
     setSearchStatus("No results");
     return;
   }
@@ -1608,6 +1647,13 @@ async function runSearch() {
   if (result.isStreet && result.geometry) {
     const coords = flattenStreetGeometry(result.geometry);
     if (coords.length >= 2) {
+      captureMapEvent("map_search_result_selected", {
+        query: q,
+        result_found: true,
+        result_kind: "line",
+        result_title: title,
+        source: "enter",
+      });
       goToStreet(result.geometry);
       showSearchConfirmLine(
         title,
@@ -1621,6 +1667,13 @@ async function runSearch() {
       return;
     }
   }
+  captureMapEvent("map_search_result_selected", {
+    query: q,
+    result_found: true,
+    result_kind: "point",
+    result_title: title,
+    source: "enter",
+  });
   goToPlace(result.lat, result.lng);
   showSearchConfirmPoint(title, result.lat, result.lng);
 }
@@ -1697,6 +1750,7 @@ function highlightActive() {
 function selectSuggestion(idx: number) {
   const it = suggestItems[idx];
   if (!it) return;
+  const query = $searchInput.value.trim();
   $searchInput.value = it.title;
   setSearchClearVisible(true);
   renderSuggestions([]);
@@ -1704,6 +1758,13 @@ function selectSuggestion(idx: number) {
   if (it.isStreet && it.geometry) {
     const coords = flattenStreetGeometry(it.geometry);
     if (coords.length >= 2) {
+      captureMapEvent("map_search_result_selected", {
+        query,
+        result_found: true,
+        result_kind: "line",
+        result_title: it.title,
+        source: "suggestion",
+      });
       goToStreet(it.geometry);
       showSearchConfirmLine(
         it.title,
@@ -1717,6 +1778,13 @@ function selectSuggestion(idx: number) {
       return;
     }
   }
+  captureMapEvent("map_search_result_selected", {
+    query,
+    result_found: true,
+    result_kind: "point",
+    result_title: it.title,
+    source: "suggestion",
+  });
   goToPlace(it.lat, it.lng);
   showSearchConfirmPoint(it.title, it.lat, it.lng);
 }
@@ -1790,7 +1858,18 @@ $searchInput.addEventListener("input", () => {
       if ($searchInput.value.trim() !== q) return;
       // Collapse same-street slices (e.g. multiple "Massachusetts Avenue" rows in Boston
       // → one row) before distance-sorting so duplicates don't clutter the dropdown.
-      renderSuggestions(sortByDistanceFromOrigin(dedupeStreetSuggestions(items)));
+      const results = sortByDistanceFromOrigin(dedupeStreetSuggestions(items));
+      renderSuggestions(results);
+      captureMapEvent("map_search_performed", {
+        query: q,
+        result_count: results.length,
+        results: results.map((result) => ({
+          title: result.title,
+          subtitle: result.subtitle,
+          result_kind: mapSearchResultKind(result),
+        })),
+        source: "autocomplete",
+      });
     } finally {
       if ($searchInput.value.trim() === q) setSearchLoading(false);
     }
