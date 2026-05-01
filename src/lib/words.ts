@@ -6,7 +6,7 @@ export type WordFinderOptions = {
   includeNumbers?: boolean;
   ignoreStopWords?: boolean;
   minWordLength?: number;
-  wordForm?: "exact" | "simple";
+  lemmatize?: (normalizedWord: string) => string;
 };
 
 export type WordToken = {
@@ -18,67 +18,28 @@ export type WordToken = {
   sentenceIndex: number | null;
 };
 
-const WORD_PATTERN = /[\p{L}\p{N}]+(?:['\u2019-][\p{L}\p{N}]+)*/gu;
+const WORD_PATTERN = /[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu;
 const PURE_NUMBER_PATTERN = /^\p{N}+$/u;
 
-const DEFAULT_OPTIONS: Required<WordFinderOptions> = {
+const DEFAULT_OPTIONS: Required<Omit<WordFinderOptions, "lemmatize">> & Pick<WordFinderOptions, "lemmatize"> = {
   caseSensitive: false,
   includeNumbers: false,
   ignoreStopWords: false,
   minWordLength: 1,
-  wordForm: "exact",
+  lemmatize: undefined,
 };
 
-function withDefaults(options: WordFinderOptions = {}): Required<WordFinderOptions> {
+type ResolvedOptions = typeof DEFAULT_OPTIONS;
+
+function withDefaults(options: WordFinderOptions = {}): ResolvedOptions {
   return { ...DEFAULT_OPTIONS, ...options };
 }
 
-function shouldKeepWord(word: string, options: Required<WordFinderOptions>): boolean {
+function shouldKeepWord(word: string, options: ResolvedOptions): boolean {
   if (word.length < options.minWordLength) return false;
   if (!options.includeNumbers && PURE_NUMBER_PATTERN.test(word)) return false;
   if (options.ignoreStopWords && stopWords.has(word.toLocaleLowerCase())) return false;
   return true;
-}
-
-function trimSuffix(word: string, suffix: string): string {
-  return word.slice(0, -suffix.length);
-}
-
-function toSimpleNounForm(word: string): string {
-  if (word.length <= 3) return word;
-  if (word.endsWith("ies") && word.length > 4) return trimSuffix(word, "ies") + "y";
-  if (/(ches|shes|xes|zes|sses)$/u.test(word)) return trimSuffix(word, "es");
-  if (word.endsWith("s") && !word.endsWith("ss")) return trimSuffix(word, "s");
-  return word;
-}
-
-function toSimpleVerbForm(word: string): string {
-  if (word.length <= 4) return word;
-
-  if (word.endsWith("ying") && word.length > 5) return trimSuffix(word, "ing") + "ie";
-  if (word.endsWith("ing") && word.length > 5) {
-    const base = trimSuffix(word, "ing");
-    if (base.endsWith("iz")) return base + "e";
-    if (/([bcdfghjklmnpqrstvwxyz])\1$/u.test(base)) return base.slice(0, -1);
-    return base;
-  }
-
-  if (word.endsWith("ied") && word.length > 4) return trimSuffix(word, "ied") + "y";
-  if (word.endsWith("ed")) {
-    const base = trimSuffix(word, "ed");
-    if (base.endsWith("iz")) return base + "e";
-    if (/([bcdfghjklmnpqrstvwxyz])\1$/u.test(base)) return base.slice(0, -1);
-    return base;
-  }
-
-  return word;
-}
-
-/**
- * Convert a word to a conservative count key for grouping simple inflections.
- */
-export function toSimpleWordForm(word: string): string {
-  return toSimpleNounForm(toSimpleVerbForm(word));
 }
 
 /**
@@ -86,17 +47,18 @@ export function toSimpleWordForm(word: string): string {
  */
 export function normalizeWord(word: string, options: WordFinderOptions = {}): string {
   const resolvedOptions = withDefaults(options);
-  const normalized = word.normalize("NFKC").replace(/\u2019/g, "'");
+  const normalized = word.normalize("NFKC").replace(/’/g, "'");
   return resolvedOptions.caseSensitive ? normalized : normalized.toLocaleLowerCase();
 }
 
 /**
- * Return the key used for duplicate counting.
+ * Return the key used for duplicate counting. Uses the supplied lemmatizer if any,
+ * otherwise falls back to the normalized surface form.
  */
 export function getWordCountKey(word: string, options: WordFinderOptions = {}): string {
   const resolvedOptions = withDefaults(options);
   const normalized = normalizeWord(word, resolvedOptions);
-  return resolvedOptions.wordForm === "simple" ? toSimpleWordForm(normalized) : normalized;
+  return resolvedOptions.lemmatize ? resolvedOptions.lemmatize(normalized) : normalized;
 }
 
 /**

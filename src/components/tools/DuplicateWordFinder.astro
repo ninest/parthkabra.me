@@ -17,11 +17,32 @@
 <script>
   import { findDuplicateWords } from "../../lib/duplicate-word";
 
+  type CompromiseFactory = typeof import("compromise").default;
+
   const $input = document.getElementById("duplicate-word-input") as HTMLTextAreaElement | null;
   const $results = document.getElementById("duplicate-word-results");
 
+  let nlp: CompromiseFactory | null = null;
+  const lemmaCache = new Map<string, string>();
+
   function escapeHtml(text: string) {
     return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  }
+
+  // Reduce a single normalized word to its lemma using compromise: normalize
+  // strips possessives, verbs go to infinitive, nouns to singular. Falls back
+  // to the surface word until the compromise chunk has finished loading.
+  function lemmatize(word: string): string {
+    if (!nlp) return word;
+    const cached = lemmaCache.get(word);
+    if (cached !== undefined) return cached;
+    const doc = nlp(word);
+    doc.normalize({ possessives: true });
+    doc.verbs().toInfinitive();
+    doc.nouns().toSingular();
+    const lemma = doc.text("normal") || word;
+    lemmaCache.set(word, lemma);
+    return lemma;
   }
 
   function renderDuplicateWords() {
@@ -29,7 +50,7 @@
 
     const duplicates = findDuplicateWords($input.value, {
       ignoreStopWords: true,
-      wordForm: "simple",
+      lemmatize,
     });
     $results.innerHTML = duplicates
       .map((duplicate) => {
@@ -52,6 +73,34 @@
       .join("");
   }
 
-  $input?.addEventListener("input", renderDuplicateWords);
+  // Debounce so paste-of-essay doesn't re-tag on every keystroke.
+  let renderTimer: ReturnType<typeof setTimeout> | null = null;
+  function scheduleRender() {
+    if (renderTimer !== null) clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => {
+      renderTimer = null;
+      renderDuplicateWords();
+    }, 150);
+  }
+
+  // Lazy-load compromise off the critical path so first paint stays cheap.
+  // The dynamic import becomes its own chunk that ships only on this page.
+  async function loadNlp() {
+    if (nlp) return;
+    const mod = await import("compromise");
+    nlp = mod.default;
+    renderDuplicateWords();
+  }
+
+  function kickoffNlpLoad() {
+    const idle = (window as Window & {
+      requestIdleCallback?: (cb: () => void) => number;
+    }).requestIdleCallback;
+    if (typeof idle === "function") idle(() => void loadNlp());
+    else setTimeout(() => void loadNlp(), 0);
+  }
+
+  $input?.addEventListener("input", scheduleRender);
   renderDuplicateWords();
+  kickoffNlpLoad();
 </script>
