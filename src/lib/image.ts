@@ -5,11 +5,23 @@ export const IMAGE_ACTION_BODY_SIZE_LIMIT = 25 * 1024 * 1024;
 export const IMAGE_ACTION_MULTIPART_OVERHEAD = 4 * 1024;
 export const MAX_IMAGE_UPLOAD_BYTES = IMAGE_ACTION_BODY_SIZE_LIMIT - IMAGE_ACTION_MULTIPART_OVERHEAD;
 
-const WEBP_QUALITIES = [0.92, 0.82, 0.72, 0.62, 0.52, 0.42, 0.34, 0.28];
+const WEBP_QUALITIES = [0.82, 0.72, 0.62, 0.52, 0.42, 0.34, 0.28];
 const MIN_DIMENSION = 480;
+const MAX_LONG_EDGE = 2400;
+const DEFAULT_QUALITY = 0.82;
 
-// Re-encode raster images to WebP in the browser, reducing quality and
-// dimensions until it fits the upload action limit when possible.
+// Cap the long edge to MAX_LONG_EDGE while preserving aspect ratio.
+// Never upscales; returns source dimensions if already within the cap.
+function fitToMaxEdge(w: number, h: number): { width: number; height: number } {
+  const longEdge = Math.max(w, h);
+  if (longEdge <= MAX_LONG_EDGE) return { width: w, height: h };
+  const scale = MAX_LONG_EDGE / longEdge;
+  return { width: Math.round(w * scale), height: Math.round(h * scale) };
+}
+
+// Re-encode raster images to WebP in the browser, capping dimensions to
+// MAX_LONG_EDGE and encoding at DEFAULT_QUALITY so uploads are aggressively
+// compressed while staying visually indistinguishable at typical display sizes.
 export async function compressImageToWebp(file: File): Promise<File> {
   if (PASSTHROUGH_MIME.has(file.type) || !file.type.startsWith("image/")) return file;
 
@@ -40,16 +52,20 @@ export async function compressImageToWebp(file: File): Promise<File> {
   const h = "naturalHeight" in bitmap ? bitmap.naturalHeight : bitmap.height;
   if (!w || !h) return file;
 
-  if (file.size <= MAX_IMAGE_UPLOAD_BYTES) {
-    const blob = await encodeWebp(bitmap, w, h, WEBP_QUALITIES[0]);
+  const { width: capW, height: capH } = fitToMaxEdge(w, h);
+
+  const primary = await encodeWebp(bitmap, capW, capH, DEFAULT_QUALITY);
+  if (primary && primary.size <= MAX_IMAGE_UPLOAD_BYTES) {
     if ("close" in bitmap) bitmap.close();
-    return blob && blob.size < file.size ? webpFile(file, blob) : file;
+    return primary.size < file.size ? webpFile(file, primary) : file;
   }
 
-  let bestBlob: Blob | null = null;
+  // Safety net: still oversized after the cap + default quality. Progressively
+  // reduce quality and dimensions until it fits the action body limit.
+  let bestBlob: Blob | null = primary;
   let uploadableBlob: Blob | null = null;
-  let width = w;
-  let height = h;
+  let width = capW;
+  let height = capH;
 
   for (let attempt = 0; attempt < 10; attempt++) {
     for (const quality of WEBP_QUALITIES) {
