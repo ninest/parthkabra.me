@@ -7,15 +7,16 @@ import ThemeInit from "../components/theme-init.astro";
 interface Props {
   head?: {
     title?: string;
+    fullTitle?: string;
     description?: string;
     themeColor?: string;
   };
 }
 
 const siteName = "Parth Kabra";
-const { title, description, themeColor } = Astro.props.head ?? {};
+const { title, fullTitle, description, themeColor } = Astro.props.head ?? {};
 
-const pageTitle = title ? `${title} - ${siteName}` : siteName;
+const pageTitle = fullTitle ?? (title ? `${title} - ${siteName}` : siteName);
 const pageDescription = description ?? "Parth Kabra's personal website";
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 ---

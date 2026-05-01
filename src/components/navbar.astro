@@ -5,9 +5,10 @@ import Wordmark from "./wordmark.astro";
 interface Props {
     breadcrumbs?: { label: string; href?: string }[];
     class?: string;
+    headingText?: string;
 }
 
-const { breadcrumbs } = Astro.props;
+const { breadcrumbs, headingText } = Astro.props;
 ---
 
 <div class:list={["flex items-baseline justify-between", Astro.props.class]}>
@@ -29,7 +30,10 @@ const { breadcrumbs } = Astro.props;
             </div>
         ) : (
             <h1>
-                <Wordmark class="h-5 w-auto" />
+                <a href="/" aria-label="Parth Kabra — home">
+                    <Wordmark class="h-5 w-auto" />
+                    <span class="sr-only">{headingText ?? "Parth Kabra"}</span>
+                </a>
             </h1>
         )
     }

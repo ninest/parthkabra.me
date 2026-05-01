@@ -27,7 +27,12 @@ const posts = (await getVisiblePosts())
   .slice(0, 10);
 ---
 
-<SidebarLayout>
+<SidebarLayout
+  head={{
+    fullTitle: "Parth Kabra — Software Engineer",
+    description: "Parth Kabra is a full-stack software engineer building at the intersection of AI, product, and UX.",
+  }}
+>
   <section>
     <h2 class="font-bold">Currently</h2>
     <p class="ml-5 mt-1">Software engineer @ Wayfair</p>
