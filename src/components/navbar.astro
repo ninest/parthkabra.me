@@ -1,54 +1,57 @@
 ---
 import ThemeToggle from "./theme-toggle.astro";
+import Wordmark from "./wordmark.astro";
 
 interface Props {
-  breadcrumbs?: { label: string; href?: string }[];
-  class?: string;
+    breadcrumbs?: { label: string; href?: string }[];
+    class?: string;
 }
 
 const { breadcrumbs } = Astro.props;
 ---
 
-<div class:list={["flex items-center justify-between", Astro.props.class]}>
-  {
-    breadcrumbs ? (
-      <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap min-w-0">
-        {breadcrumbs.map((crumb, i) => (
-          <>
-            {i > 0 && <span>{">"}</span>}
-            {crumb.href ? (
-              <a href={crumb.href} class="underline">
-                {crumb.label}
-              </a>
-            ) : (
-              <span>{crumb.label}</span>
-            )}
-          </>
-        ))}
-      </div>
-    ) : (
-      <h1 class="font-black text-foreground">Parth Kabra</h1>
-    )
-  }
-  <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
-    <ThemeToggle />
-    <p id="et-time"></p>
-    <slot />
-  </div>
+<div class:list={["flex items-baseline justify-between", Astro.props.class]}>
+    {
+        breadcrumbs ? (
+            <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap min-w-0">
+                {breadcrumbs.map((crumb, i) => (
+                    <>
+                        {i > 0 && <span>{">"}</span>}
+                        {crumb.href ? (
+                            <a href={crumb.href} class="underline">
+                                {crumb.label}
+                            </a>
+                        ) : (
+                            <span>{crumb.label}</span>
+                        )}
+                    </>
+                ))}
+            </div>
+        ) : (
+            <h1>
+                <Wordmark class="h-5 w-auto" />
+            </h1>
+        )
+    }
+    <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
+        <ThemeToggle />
+        <p id="et-time"></p>
+        <slot />
+    </div>
 </div>
 
 <script>
-  const $etTime = document.getElementById("et-time")!;
-  function updateTime() {
-    const now = new Date();
-    const time = now.toLocaleTimeString("en-US", {
-      timeZone: "America/New_York",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    $etTime.textContent = `${time} ET`;
-  }
-  updateTime();
-  setInterval(updateTime, 60000);
+    const $etTime = document.getElementById("et-time")!;
+    function updateTime() {
+        const now = new Date();
+        const time = now.toLocaleTimeString("en-US", {
+            timeZone: "America/New_York",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+        $etTime.textContent = `${time} ET`;
+    }
+    updateTime();
+    setInterval(updateTime, 60000);
 </script>
