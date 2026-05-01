@@ -15,7 +15,7 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
 </div>
 
 <script>
-  import { findDuplicateWords } from "../../lib/duplicate-word";
+  import { findDuplicateWords, type DuplicateWord } from "../../lib/duplicate-word";
   import {
     readDuplicateWordShareText,
     writeDuplicateWordShareText,
@@ -31,6 +31,7 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
   let nlp: CompromiseFactory | null = null;
   const lemmaCache = new Map<string, string>();
   let lastWrittenShareText = $input?.value ?? "";
+  let lastCapturedAnalysis = "";
 
   function escapeHtml(text: string) {
     return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -52,6 +53,28 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
     return lemma;
   }
 
+  let analyticsTimer: ReturnType<typeof setTimeout> | null = null;
+  function scheduleAnalysisCapture(duplicates: DuplicateWord[]) {
+    if (!$input || !nlp || $input.value.trim().length === 0) return;
+
+    const passageLength = $input.value.length;
+    const duplicateCount = duplicates.length;
+    const signature = `${passageLength}:${duplicateCount}`;
+    if (signature === lastCapturedAnalysis) return;
+
+    if (analyticsTimer !== null) clearTimeout(analyticsTimer);
+    analyticsTimer = setTimeout(() => {
+      analyticsTimer = null;
+      if (signature === lastCapturedAnalysis) return;
+      lastCapturedAnalysis = signature;
+      window.posthog?.capture("duplicate_word_analysis", {
+        tool: "duplicate_word_finder",
+        passage_length: passageLength,
+        duplicate_count: duplicateCount,
+      });
+    }, 3000);
+  }
+
   function renderDuplicateWords() {
     if (!$input || !$results) return;
 
@@ -64,6 +87,7 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
       $highlights,
       duplicates.flatMap((duplicate) => duplicate.occurrences),
     );
+    scheduleAnalysisCapture(duplicates);
     $results.innerHTML = duplicates
       .map((duplicate) => {
         const variants = duplicate.variants.toSorted((a, b) => {
