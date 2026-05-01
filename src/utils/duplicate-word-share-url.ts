@@ -27,10 +27,10 @@ function encodeShareText(text: string): string {
 function decodeShareText(raw: string): string | null {
   if (!raw.startsWith(HASH_FORMAT_VERSION)) return null;
 
-  const json = decompressFromEncodedURIComponent(raw.slice(HASH_FORMAT_VERSION.length));
-  if (!json) return null;
-
   try {
+    const json = decompressFromEncodedURIComponent(raw.slice(HASH_FORMAT_VERSION.length));
+    if (!json) return null;
+
     const state = JSON.parse(json) as Partial<DuplicateWordShareState>;
     if (state.v !== 1 || typeof state.text !== "string") return null;
     return state.text;
