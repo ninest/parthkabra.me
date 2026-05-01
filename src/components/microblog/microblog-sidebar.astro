@@ -9,6 +9,7 @@ interface Props {
   title?: string;
   showViewAll?: boolean;
   size?: "sm" | "md";
+  inlineImages?: boolean;
 }
 
 const {
@@ -16,6 +17,7 @@ const {
   title = "Microblog",
   showViewAll = true,
   size = "sm",
+  inlineImages = false,
 } = Astro.props;
 
 const microblogs = providedMicroblogs ?? (await getCollection("microblog"))
@@ -32,7 +34,7 @@ const microblogs = providedMicroblogs ?? (await getCollection("microblog"))
     {
       microblogs.map((mb) => (
         <li>
-          <MicroblogPost mb={mb} size={size} truncate />
+          <MicroblogPost mb={mb} size={size} truncate inlineImages={inlineImages} />
         </li>
       ))
     }

@@ -21,6 +21,11 @@ interface Props {
   size?: "sm" | "md";
   /** When true, clamp the body and append a "Read more" link to the full post. */
   truncate?: boolean;
+  /**
+   * When true, render images small and inline with the surrounding text
+   * (e.g. for compact sidebars) instead of as block-level media.
+   */
+  inlineImages?: boolean;
 }
 
 const {
@@ -29,6 +34,7 @@ const {
   showThread = false,
   size = "md",
   truncate = false,
+  inlineImages = false,
 } = Astro.props;
 const { Content } = await render(mb);
 
@@ -92,16 +98,18 @@ const relatedItems = !isSm ? await resolveRelated(mb.data.related) : [];
   <div
     class:list={[
       "typography",
-      isSm ? "mt-1 text-sm [&_li]:leading-[1.45] [&_p]:leading-[1.45] [&_p:not(:first-child)]:mt-2" : "mt-4 mb-4",
-      "[&_img]:max-h-[60vh] [&_img]:w-auto [&_img]:max-w-full",
-      truncate && "line-clamp-4 [&_p]:inline [&_p+p]:before:content-['_']",
+      isSm ? "mt-1 text-sm [&_li]:leading-[1.45] [&_p]:!leading-[1.45] [&_p:not(:first-child)]:!mt-2" : "mt-4 mb-4",
+      inlineImages
+        ? "[&_img]:inline-block [&_img]:h-[1em] [&_img]:w-auto [&_img]:max-w-none [&_img]:align-[-0.15em] [&_img]:mx-0.5 [&_img]:my-0 [&_img]:rounded-[2px] [&_img]:ring-1 [&_img]:ring-black/10 dark:[&_img]:ring-white/10 [&_p:has(>img:only-child)]:!inline [&_p:has(>img:only-child)]:!m-0"
+        : "[&_img]:max-h-[60vh] [&_img]:w-auto [&_img]:max-w-full",
+      truncate && "line-clamp-4 [&_p]:!inline [&_p+p]:before:content-['_']",
     ]}
   >
     <Content />
   </div>
 
   {truncate && (
-    <a href={url} class="relative z-10 mt-1 inline-block text-xs underline">
+    <a href={url} class:list={["relative z-10 mt-1 inline-block underline", isSm ? "text-sm" : "text-base"]}>
       Read more
     </a>
   )}
