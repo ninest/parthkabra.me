@@ -15,10 +15,10 @@ export const visibleCategoryIds = [
   "meta",
   "origami",
   "python",
+  "restaurants",
   "typescript",
   "ui",
   "vscode",
-  "restaurant",
 ];
 
 export async function getVisibleCategories() {

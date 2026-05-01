@@ -1,4 +1,4 @@
-import { getProjectUrl, getToolUrl, getWorkUrl, routes } from "./links";
+import { getCategoryUrl, getProjectUrl, getToolUrl, getWorkUrl, routes } from "./links";
 
 const redirects = [
   {
@@ -24,6 +24,16 @@ const redirects = [
   {
     from: /^\/tools\/ai-mapmaker(?=\/|$)/,
     to: getToolUrl("ai-map"),
+    status: 301,
+  },
+  {
+    from: /^\/tool\/repeated-word-finder(?=\/|$)/,
+    to: getToolUrl("duplicate-word-finder"),
+    status: 301,
+  },
+  {
+    from: /^\/restaurant(?=\/|$)/,
+    to: getCategoryUrl("restaurants"),
     status: 301,
   },
 ] as const;

@@ -8,9 +8,15 @@ interface Props {
   microblogs?: CollectionEntry<"microblog">[];
   title?: string;
   showViewAll?: boolean;
+  size?: "sm" | "md";
 }
 
-const { microblogs: providedMicroblogs, title = "Microblog", showViewAll = true } = Astro.props;
+const {
+  microblogs: providedMicroblogs,
+  title = "Microblog",
+  showViewAll = true,
+  size = "sm",
+} = Astro.props;
 
 const microblogs = providedMicroblogs ?? (await getCollection("microblog"))
   .sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime())
@@ -22,11 +28,11 @@ const microblogs = providedMicroblogs ?? (await getCollection("microblog"))
     <h2 class="font-bold">{title}</h2>
     {showViewAll && <a href={routes.microblog} class="underline text-sm text-primary">View all</a>}
   </div>
-  <ul class="ml-5 mt-1 mb-10 space-y-2">
+  <ul class:list={["ml-5 mt-1 mb-10", size === "md" ? "space-y-4" : "space-y-2"]}>
     {
       microblogs.map((mb) => (
         <li>
-          <MicroblogPost mb={mb} size="sm" truncate />
+          <MicroblogPost mb={mb} size={size} truncate />
         </li>
       ))
     }

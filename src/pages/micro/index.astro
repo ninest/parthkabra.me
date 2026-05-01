@@ -13,7 +13,7 @@ const microblogs = (await getCollection("microblog")).sort((a, b) => b.data.crea
   <h1 class="text-3xl font-black">Microblog ({microblogs.length})</h1>
 
   <section class="mt-8">
-    <ul class="space-y-2">
+    <ul class="space-y-4">
       {
         microblogs.map((mb) => (
           <li>

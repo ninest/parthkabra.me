@@ -92,7 +92,7 @@ const relatedItems = !isSm ? await resolveRelated(mb.data.related) : [];
   <div
     class:list={[
       "typography",
-      isSm ? "mt-1 text-sm" : "mt-4 mb-4",
+      isSm ? "mt-1 text-sm [&_li]:leading-[1.45] [&_p]:leading-[1.45] [&_p:not(:first-child)]:mt-2" : "mt-4 mb-4",
       "[&_img]:max-h-[60vh] [&_img]:w-auto [&_img]:max-w-full",
       truncate && "line-clamp-4 [&_p]:inline [&_p+p]:before:content-['_']",
     ]}

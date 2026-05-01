@@ -1,13 +1,13 @@
 ---
+import TextareaWithHighlights from "../TextareaWithHighlights.astro";
 ---
 
 <div class="not-typography relative flex h-full w-full flex-col overflow-hidden md:flex-row">
   <div class="min-w-0 flex-1 resize overflow-auto bg-gray-50 dark:bg-neutral-900">
-    <textarea
+    <TextareaWithHighlights
       id="duplicate-word-input"
-      class="block h-full w-full resize-none p-5"
       placeholder="Paste your essay here ..."
-    ></textarea>
+    />
   </div>
   <aside class="h-2/5 w-full shrink-0 overflow-auto p-5 md:h-auto md:w-96 md:min-w-36">
     <div id="duplicate-word-results" class="space-y-4"></div>
@@ -16,10 +16,12 @@
 
 <script>
   import { findDuplicateWords } from "../../lib/duplicate-word";
+  import { setTextareaHighlights, syncTextareaHighlights } from "../TextareaWithHighlights";
 
   type CompromiseFactory = typeof import("compromise").default;
 
   const $input = document.getElementById("duplicate-word-input") as HTMLTextAreaElement | null;
+  const $highlights = document.getElementById("duplicate-word-input-highlights");
   const $results = document.getElementById("duplicate-word-results");
 
   let nlp: CompromiseFactory | null = null;
@@ -52,6 +54,11 @@
       ignoreStopWords: true,
       lemmatize,
     });
+    setTextareaHighlights(
+      $input,
+      $highlights,
+      duplicates.flatMap((duplicate) => duplicate.occurrences),
+    );
     $results.innerHTML = duplicates
       .map((duplicate) => {
         const variants = duplicate.variants.toSorted((a, b) => {
@@ -94,13 +101,14 @@
 
   function kickoffNlpLoad() {
     const idle = (window as Window & {
-      requestIdleCallback?: (cb: () => void) => number;
+      requestIdleCallback?: (cb: () => void, options?: { timeout?: number }) => number;
     }).requestIdleCallback;
-    if (typeof idle === "function") idle(() => void loadNlp());
+    if (typeof idle === "function") idle(() => void loadNlp(), { timeout: 500 });
     else setTimeout(() => void loadNlp(), 0);
   }
 
   $input?.addEventListener("input", scheduleRender);
+  $input?.addEventListener("scroll", () => syncTextareaHighlights($input, $highlights));
   renderDuplicateWords();
   kickoffNlpLoad();
 </script>
