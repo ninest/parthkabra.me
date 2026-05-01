@@ -14,10 +14,26 @@ interface Props {
   highlighted?: boolean;
   /** When true, show a "Thread: ..." link to the thread root. */
   showThread?: boolean;
+  /**
+   * Visual density. `md` is the full card; `sm` is a compact card for sidebars
+   * (tighter padding, smaller text, dateline inline with title at top, no chrome).
+   */
+  size?: "sm" | "md";
+  /** When true, clamp the body and append a "Read more" link to the full post. */
+  truncate?: boolean;
 }
 
-const { mb, highlighted = false, showThread = false } = Astro.props;
+const {
+  mb,
+  highlighted = false,
+  showThread = false,
+  size = "md",
+  truncate = false,
+} = Astro.props;
 const { Content } = await render(mb);
+
+const isSm = size === "sm";
+const url = getMicroblogUrl(mb.id);
 
 const dateline = mb.data.createdAt.toLocaleDateString("en-US", {
   month: "long",
@@ -25,20 +41,23 @@ const dateline = mb.data.createdAt.toLocaleDateString("en-US", {
   year: "numeric",
 });
 
-const replyTarget = mb.data.inReplyTo
+const replyTarget = !isSm && mb.data.inReplyTo
   ? (await resolveRelated([mb.data.inReplyTo]))[0]
   : undefined;
 
-const threadRoot = showThread && mb.data.thread
+const threadRoot = !isSm && showThread && mb.data.thread
   ? (await resolveRelated([mb.data.thread]))[0]
   : undefined;
 
-const relatedItems = await resolveRelated(mb.data.related);
+const relatedItems = !isSm ? await resolveRelated(mb.data.related) : [];
 ---
 
 <article
   id={`microblog-${mb.id}`}
-  class="bg-muted p-3 rounded-lg data-highlighted:ring-2 data-highlighted:ring-primary/40"
+  class:list={[
+    "microblog-card relative bg-muted rounded-lg data-highlighted:ring-2 data-highlighted:ring-primary/40",
+    isSm ? "px-2 pt-2 pb-4 rounded" : "p-3",
+  ]}
   data-highlighted={highlighted ? "" : undefined}
 >
   {threadRoot && (
@@ -53,31 +72,59 @@ const relatedItems = await resolveRelated(mb.data.related);
     </p>
   )}
 
-  {mb.data.title && (
-    <a href={getMicroblogUrl(mb.id)} class="text-muted-foreground hover:underline">
-      {mb.data.title}
-    </a>
+  {isSm ? (
+    mb.data.title && (
+      <a
+        href={url}
+        class="microblog-card-link block text-muted-foreground text-xs leading-snug"
+      >
+        {mb.data.title}
+      </a>
+    )
+  ) : (
+    mb.data.title && (
+      <a href={url} class="text-muted-foreground hover:underline">
+        {mb.data.title}
+      </a>
+    )
   )}
 
-  <div class="mt-4 mb-4 typography microblog-body">
+  <div
+    class:list={[
+      "typography",
+      isSm ? "mt-1 text-sm" : "mt-4 mb-4",
+      "[&_img]:max-h-[60vh] [&_img]:w-auto [&_img]:max-w-full",
+      truncate && "line-clamp-4 [&_p]:inline [&_p+p]:before:content-['_']",
+    ]}
+  >
     <Content />
   </div>
 
-  <ArticleLinks title="Links" external items={mb.data.links} />
-  <ArticleLinks title="Related" items={relatedItems} />
+  {truncate && (
+    <a href={url} class="relative z-10 mt-1 inline-block text-xs underline">
+      Read more
+    </a>
+  )}
 
-  <div class="mt-4 text-muted-foreground text-sm">
-    {dateline}
-  </div>
+  {!isSm && (
+    <>
+      <ArticleLinks title="Links" external items={mb.data.links} />
+      <ArticleLinks title="Related" items={relatedItems} />
+
+      <div class="mt-4 text-muted-foreground text-sm">
+        {dateline}
+      </div>
+    </>
+  )}
 </article>
 
 <style>
-  /* Cap image height so tall screenshots (e.g. mobile captures) don't
-     dominate the viewport. Width is auto so aspect ratio is preserved;
-     a portrait image hits max-height first and narrows accordingly. */
-  .microblog-body :global(img) {
-    max-height: 60vh;
-    width: auto;
-    max-width: 100%;
+  /* Make the whole compact card clickable via the title anchor. Tailwind has no
+     pseudo-element generator for positional inset, so this stays as scoped CSS. */
+  .microblog-card-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
   }
 </style>
