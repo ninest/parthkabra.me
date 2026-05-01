@@ -16,6 +16,10 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
 
 <script>
   import { findDuplicateWords } from "../../lib/duplicate-word";
+  import {
+    readDuplicateWordShareText,
+    writeDuplicateWordShareText,
+  } from "../../utils/duplicate-word-share-url";
   import { setTextareaHighlights, syncTextareaHighlights } from "../TextareaWithHighlights";
 
   type CompromiseFactory = typeof import("compromise").default;
@@ -26,6 +30,7 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
 
   let nlp: CompromiseFactory | null = null;
   const lemmaCache = new Map<string, string>();
+  let lastWrittenShareText = $input?.value ?? "";
 
   function escapeHtml(text: string) {
     return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -90,6 +95,26 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
     }, 150);
   }
 
+  let shareUrlTimer: ReturnType<typeof setTimeout> | null = null;
+  function writeShareUrl() {
+    if (!$input || $input.value === lastWrittenShareText) return;
+    lastWrittenShareText = $input.value;
+    writeDuplicateWordShareText($input.value);
+  }
+
+  function scheduleShareUrlWrite() {
+    if (shareUrlTimer !== null) clearTimeout(shareUrlTimer);
+    shareUrlTimer = setTimeout(() => {
+      shareUrlTimer = null;
+      writeShareUrl();
+    }, 300);
+  }
+
+  function handleInput() {
+    scheduleRender();
+    scheduleShareUrlWrite();
+  }
+
   // Lazy-load compromise off the critical path so first paint stays cheap.
   // The dynamic import becomes its own chunk that ships only on this page.
   async function loadNlp() {
@@ -107,8 +132,21 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
     else setTimeout(() => void loadNlp(), 0);
   }
 
-  $input?.addEventListener("input", scheduleRender);
+  function applyShareUrlText() {
+    if (!$input) return;
+    const text = readDuplicateWordShareText();
+    if (text === null || text === $input.value) return;
+
+    $input.value = text;
+    lastWrittenShareText = text;
+    renderDuplicateWords();
+    syncTextareaHighlights($input, $highlights);
+  }
+
+  applyShareUrlText();
+  $input?.addEventListener("input", handleInput);
   $input?.addEventListener("scroll", () => syncTextareaHighlights($input, $highlights));
+  window.addEventListener("hashchange", applyShareUrlText);
   renderDuplicateWords();
   kickoffNlpLoad();
 </script>
