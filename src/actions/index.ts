@@ -3,6 +3,21 @@ import { z } from "astro:schema";
 import { saveFile as ghSaveFile, uploadImage as ghUploadImage } from "../lib/github";
 import { fileToBase64 } from "../lib/base64";
 import { env } from "cloudflare:workers";
+import { sendNtfyNotification } from "../lib/ntfy";
+
+const SUBSCRIBER_NTFY_TOPIC = "parthkabra-new-subscriber";
+
+// Sends a best-effort phone notification when someone submits the subscribe form.
+async function notifySubscriber(email: string, reason: string | null, alreadySubscribed: boolean) {
+  const reasonText = reason || "(not provided)";
+  const title = alreadySubscribed ? "Subscriber resubscribed" : "New subscriber";
+
+  await sendNtfyNotification({
+    topic: SUBSCRIBER_NTFY_TOPIC,
+    title,
+    message: `Email: ${email}\nReason: ${reasonText}`,
+  });
+}
 
 export const server = {
   saveFile: defineAction({
@@ -57,6 +72,7 @@ export const server = {
           .prepare("INSERT INTO subscribers (email, reason) VALUES (?, ?)")
           .bind(email, reason)
           .run();
+        await notifySubscriber(email, reason, false);
         return { alreadySubscribed: false };
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -65,6 +81,7 @@ export const server = {
             await db.prepare("UPDATE subscribers SET reason = ? WHERE email = ?").bind(reason, email).run();
           }
 
+          await notifySubscriber(email, reason, true);
           return { alreadySubscribed: true };
         }
         throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to save subscriber" });

@@ -1,0 +1,28 @@
+type NtfyNotification = {
+  topic: string;
+  title: string;
+  message: string;
+  tags?: string;
+};
+
+const NTFY_BASE_URL = "https://ntfy.sh";
+
+// Sends a best-effort ntfy notification without failing the caller on delivery errors.
+export async function sendNtfyNotification({ topic, title, message, tags }: NtfyNotification) {
+  try {
+    const res = await fetch(`${NTFY_BASE_URL}/${topic}`, {
+      method: "POST",
+      body: message,
+      headers: {
+        Title: title,
+        ...(tags ? { Tags: tags } : {}),
+      },
+    });
+
+    if (!res.ok) {
+      console.warn(`Failed to send ntfy notification: ${res.status} ${res.statusText}`);
+    }
+  } catch (e) {
+    console.warn("Failed to send ntfy notification", e);
+  }
+}
