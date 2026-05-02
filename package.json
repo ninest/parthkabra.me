@@ -10,7 +10,9 @@
     "build": "wrangler types && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "generate-types": "wrangler types"
+    "generate-types": "wrangler types",
+    "migrate": "wrangler d1 migrations apply me-production --local",
+    "migrate:prod": "wrangler d1 migrations apply me-production --remote"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.1.8",

@@ -10,6 +10,7 @@ export const routes = {
   llms: "/llms.txt",
   admin: "/admin",
   optOutAnalytics: "/opt-out-analytics",
+  subscribe: "/subscribe",
 } as const;
 
 // Per-collection URL builders

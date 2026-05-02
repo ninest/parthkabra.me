@@ -1,0 +1,73 @@
+---
+import Input from "./input.astro";
+import Button from "./button.astro";
+import { inputBaseClasses } from "./input";
+---
+
+<form id="subscribe-form" class="mt-6 flex max-w-md flex-col gap-5">
+    <label class="flex flex-col gap-1">
+        <span class="text-sm">Email</span>
+        <Input
+            type="email"
+            name="email"
+            required
+            placeholder="you@example.com"
+            class="px-2 py-1 rounded"
+        />
+    </label>
+
+    <label class="flex flex-col gap-1">
+        <span class="text-sm"
+            >Why are you subscribing? What interested you? <span
+                class="text-muted-foreground">(optional)</span
+            ></span
+        >
+        <textarea
+            name="reason"
+            rows="3"
+            maxlength="2000"
+            class:list={[inputBaseClasses, "px-2 py-1 rounded"]}></textarea>
+    </label>
+
+    <div class="flex items-center gap-3">
+        <Button type="submit" variant="primary">Subscribe</Button>
+        <span
+            id="subscribe-status"
+            class="text-sm text-muted-foreground"
+            aria-live="polite"></span>
+    </div>
+</form>
+
+<script>
+    import { actions } from "astro:actions";
+
+    const $form = document.getElementById(
+        "subscribe-form",
+    ) as HTMLFormElement | null;
+    const $status = document.getElementById("subscribe-status");
+    const $submit = $form?.querySelector<HTMLButtonElement>(
+        'button[type="submit"]',
+    );
+
+    $form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!$form || !$status || !$submit) return;
+
+        $status.textContent = "Submitting…";
+        $submit.disabled = true;
+
+        const { data, error } = await actions.subscribe(new FormData($form));
+
+        $submit.disabled = false;
+
+        if (error) {
+            $status.textContent = error.message || "Something went wrong";
+            return;
+        }
+
+        $status.textContent = data?.alreadySubscribed
+            ? "You're already subscribed — thanks!"
+            : "Thanks for subscribing!";
+        $form.reset();
+    });
+</script>

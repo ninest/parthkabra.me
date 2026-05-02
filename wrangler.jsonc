@@ -11,4 +11,12 @@
   "observability": {
     "enabled": true,
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "me-production",
+      "database_id": "a982122a-a012-4f5e-9270-d576ece2bcad",
+      "migrations_dir": "migrations",
+    },
+  ],
 }
