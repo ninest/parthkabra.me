@@ -18,11 +18,15 @@ export async function sendNtfyNotification({ topic, title, message, tags }: Ntfy
         ...(tags ? { Tags: tags } : {}),
       },
     });
+    const responseText = await res.text();
 
     if (!res.ok) {
-      console.warn(`Failed to send ntfy notification: ${res.status} ${res.statusText}`);
+      console.warn(`Failed to send ntfy notification to ${topic}: ${res.status} ${res.statusText} ${responseText}`);
+      return;
     }
+
+    console.info(`Sent ntfy notification to ${topic}: ${responseText}`);
   } catch (e) {
-    console.warn("Failed to send ntfy notification", e);
+    console.warn(`Failed to send ntfy notification to ${topic}`, e);
   }
 }
