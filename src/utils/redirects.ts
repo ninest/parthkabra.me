@@ -32,6 +32,11 @@ const redirects = [
     status: 301,
   },
   {
+    from: /^\/tools\/doc(?=\/|$)/,
+    to: getToolUrl("absolutely-write"),
+    status: 301,
+  },
+  {
     from: /^\/restaurant(?=\/|$)/,
     to: getCategoryUrl("restaurants"),
     status: 301,
