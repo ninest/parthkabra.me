@@ -7,7 +7,7 @@ import CopyableContact from "../components/copyable-contact.astro";
 import { getCollection } from "astro:content";
 import { getVisiblePosts } from "../utils/posts";
 import { validateRelatedLinks } from "../utils/validate-related";
-import { routes, getCategoryUrl, getPostUrl, getProjectUrl, getWorkUrl } from "../utils/links";
+import { routes, getCategoryUrl, getPageUrl, getPostUrl, getProjectUrl, getWorkUrl } from "../utils/links";
 import { getVisibleCategories } from "../utils/visible-categories";
 await validateRelatedLinks();
 
@@ -64,7 +64,7 @@ const posts = (await getVisiblePosts())
   <section class="mt-8">
     <h2 class="font-bold">About</h2>
     <p class="ml-5 mt-1">
-      Full-stack engineer building at the intersection of AI, product, and UX. From tools used at scale to AI-powered consumer products, I like turning ideas into software people actually use. <a class="text-primary underline" href="/about">Read more</a>
+      Full-stack engineer building at the intersection of AI, product, and UX. From tools used at scale to AI-powered consumer products, I like turning ideas into software people actually use. <a class="text-primary underline" href={getPageUrl("about")}>Read more</a>
     </p>
   </section>
 
