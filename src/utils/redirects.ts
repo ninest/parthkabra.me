@@ -46,6 +46,22 @@ const redirects = [
     to: getCategoryUrl("restaurants"),
     status: 301,
   },
+  // Restaurant mini-blog moved to friedrice.fun; send old micropost URLs there.
+  {
+    from: /^\/micro\/2026\/fire-ice-back-bay\/?$/,
+    to: "https://friedrice.fun/fire-ice/",
+    status: 301,
+  },
+  {
+    from: /^\/micro\/2026\/pinocchios-pizza-harvard\/?$/,
+    to: "https://friedrice.fun/pinocchios-pizza-subs/",
+    status: 301,
+  },
+  {
+    from: /^\/micro\/2026\/pressed-cafe-back-bay-boston\/?$/,
+    to: "https://friedrice.fun/pesto-goat-cheese-blt-at-pressed-cafe/",
+    status: 301,
+  },
 ] as const;
 
 type Redirect = {
@@ -56,6 +72,11 @@ type Redirect = {
 export function getRedirect(url: URL): Redirect | null {
   for (const redirect of redirects) {
     if (!redirect.from.test(url.pathname)) continue;
+
+    // Absolute targets (e.g. another domain) redirect as-is.
+    if (redirect.to.startsWith("http")) {
+      return { url: new URL(redirect.to), status: redirect.status };
+    }
 
     const redirectUrl = new URL(url);
     redirectUrl.pathname = redirectUrl.pathname.replace(redirect.from, redirect.to);
