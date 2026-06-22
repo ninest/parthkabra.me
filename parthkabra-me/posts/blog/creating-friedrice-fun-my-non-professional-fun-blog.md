@@ -27,7 +27,7 @@ It is very simple, but there is a bit going on behind the scenes:
 - **Image loading**. By default, image loading creates layout shift, especially if you scroll down and an image loads above you. I added lazy loading and conversion from PNG/JPG to WebP to make them slightly faster. I also added a blurred image as a placeholder so it looks slighly nicer as it's loading. And there's a script to add width/height explicitly
 - **Image thumbnails**. Most pages, especially the food ones, have a tiny image thumbnail. This is a 64x64 pre-generated image. I was originally using the same image on the page and for the thumbnail, just that the thumbnail has the background removed. But this made loading extremely slow.
 - **Obsidian vault support**. Obsidian is the CMS, so I couldn't rely on Astro content. I had to build a Remark plugin to support "``[[``" wiki-links and Obsidian tags
-- **Obsidian bases**. Support a subset of Obsidian bases. This makes it easy to make new directory pages without any custom code.
+- **Obsidian bases**. Support a subset of Obsidian bases, which are kind of like Notion databases. This makes it easy to make new directory pages without any custom code.
 - **Image grid support**. I love how the Obsidian Minimal theme can support [image grids](https://minimal.guide/image-grids), so I added that to the markdown parser too. See it in action [on this page](https://friedrice.fun/lazy-mexican-chicken-bowl-2026/), with the images on the same row rather than one under the other.
 
 *Note that when I say "I made", I mean "My agent and I made".*
@@ -52,7 +52,7 @@ I have the Obsidian vault on iCloud, so it syncs between my Mac and iPhone.
 
 There definitely are a lot of moving parts. I wish it were easier to do all the image stuff, parse the markdown properly, and just have a more out-of-the-box good experience where I can write content on my phone or laptop and still own all my data.
 
-But, **yes**, to me it's 100% worth it. If there are issues, I'm sure I can fix them. Not that there have been any major issues. Since I control every part of the process, I can customize it how ever I want. 
+But, **yes**, to me it's 100% worth it. If there are issues, I'm sure I can fix them. Not that there have been any major issues. Since I control every part of the process, I can customize it however I want. 
 
 I created a custom page at https://friedrice.fun/invite-someone-for-fried-rice. Write your name there, then copy and share the link with your friend. Try it out!
 
