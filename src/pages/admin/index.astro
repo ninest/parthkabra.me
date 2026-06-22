@@ -11,7 +11,7 @@ if (!token) {
   error = "GITHUB_TOKEN not configured";
 } else {
   try {
-    items = await listDirectory(token, "content");
+    items = await listDirectory(token, "parthkabra-me");
   } catch (e: any) {
     error = e.message;
   }

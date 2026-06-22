@@ -24,14 +24,14 @@ const contentFields = {
 };
 
 const categories = defineCollection({
-  loader: glob({ base: "./content/categories", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/categories", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
   }),
 });
 
 const supercats = defineCollection({
-  loader: glob({ base: "./content/supercats", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/supercats", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
@@ -41,7 +41,7 @@ const supercats = defineCollection({
 });
 
 const posts = defineCollection({
-  loader: glob({ base: "./content/posts", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/posts", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -50,7 +50,7 @@ const posts = defineCollection({
 });
 
 const workExperience = defineCollection({
-  loader: glob({ base: "./content/work-experience", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/work-experience", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -64,7 +64,7 @@ const workExperience = defineCollection({
 });
 
 const projects = defineCollection({
-  loader: glob({ base: "./content/projects", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/projects", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -72,7 +72,7 @@ const projects = defineCollection({
 });
 
 const links = defineCollection({
-  loader: file("./content/links.json"),
+  loader: file("./parthkabra-me/links.json"),
   schema: z.object({
     id: z.string(),
     title: z.string(),
@@ -82,7 +82,7 @@ const links = defineCollection({
 });
 
 const microblog = defineCollection({
-  loader: glob({ base: "./content/microblog", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/microblog", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string().optional(),
     ...baseFields,
@@ -96,7 +96,7 @@ const microblog = defineCollection({
 });
 
 const pages = defineCollection({
-  loader: glob({ base: "./content/pages", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/pages", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -105,7 +105,7 @@ const pages = defineCollection({
 });
 
 const postCollections = defineCollection({
-  loader: glob({ base: "./content/collections", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/collections", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
@@ -115,7 +115,7 @@ const postCollections = defineCollection({
 });
 
 const tools = defineCollection({
-  loader: glob({ base: "./content/tools", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/tools", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -123,7 +123,7 @@ const tools = defineCollection({
 });
 
 const status = defineCollection({
-  loader: file("./content/status.json"),
+  loader: file("./parthkabra-me/status.json"),
   schema: z.object({
     id: z.string(),
     status: z.string(),

@@ -19,13 +19,13 @@ const isNew = Astro.url.searchParams.has("new");
 
 // Build breadcrumbs
 const segments = path.split("/");
-const filteredSegments = segments.filter((seg) => seg !== "content");
+const filteredSegments = segments.filter((seg) => seg !== "parthkabra-me");
 const breadcrumbs = [
   { label: "Admin", href: "/admin" },
   ...filteredSegments.map((seg, i) => ({
     label: seg,
     href: i < filteredSegments.length - 1
-      ? `/admin/content/${filteredSegments.slice(0, i + 1).join("/")}`
+      ? `/admin/parthkabra-me/${filteredSegments.slice(0, i + 1).join("/")}`
       : undefined,
   })),
 ];
@@ -89,7 +89,7 @@ try {
 
       // For microblog directories, mark which files are thread roots so the
       // list can render a label. Reflects last-built collection data.
-      if (path.startsWith("content/microblog/")) {
+      if (path.startsWith("parthkabra-me/microblog/")) {
         threadRootSizes = await getMicroblogThreadRootSizes();
       }
     } catch {
@@ -106,7 +106,7 @@ try {
 
       // Resolve thread members for microblog files (content reflects last build, so
       // newly-created replies won't appear until the site is rebuilt).
-      const microblogMatch = path.match(/^content\/microblog\/(.+)\.mdx$/);
+      const microblogMatch = path.match(/^parthkabra-me\/microblog\/(.+)\.mdx$/);
       if (microblogMatch) {
         const entryId = microblogMatch[1];
         const members = await getMicroblogThreadMembers(entryId);
@@ -114,7 +114,7 @@ try {
           threadMembers = members.map((m) => ({
             id: m.id,
             title: m.data.title || m.id,
-            adminUrl: `/admin/content/microblog/${m.id}.mdx`,
+            adminUrl: `/admin/parthkabra-me/microblog/${m.id}.mdx`,
             isCurrent: m.id === entryId,
           }));
         }
@@ -143,9 +143,9 @@ function imageAltFromName(name: string): string {
   return name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
 }
 
-// Extract the microblog entry id from a file path (e.g. "content/microblog/2026/foo.mdx" → "2026/foo").
+// Extract the microblog entry id from a file path (e.g. "parthkabra-me/microblog/2026/foo.mdx" → "2026/foo").
 function microblogIdFromPath(ghPath: string): string | null {
-  const m = ghPath.match(/^content\/microblog\/(.+)\.mdx$/);
+  const m = ghPath.match(/^parthkabra-me\/microblog\/(.+)\.mdx$/);
   return m ? m[1] : null;
 }
 ---

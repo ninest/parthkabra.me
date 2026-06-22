@@ -3,12 +3,12 @@ import path from "node:path";
 
 /**
  * Returns draft post URL pathnames (e.g. "/foo/bar/") by scanning
- * content/posts/** for markdown/mdx files with `draft: true` in frontmatter.
+ * parthkabra-me/posts/** for markdown/mdx files with `draft: true` in frontmatter.
  * Used by the sitemap integration to exclude draft URLs; reads from disk
  * because astro:content isn't available at config load time.
  */
 export function getDraftPostPathnames(): Set<string> {
-  const dir = "content/posts";
+  const dir = "parthkabra-me/posts";
   const out = new Set<string>();
   if (!fs.existsSync(dir)) return out;
 

@@ -25,3 +25,9 @@ pnpm-debug.log*
 .idea/
 
 .wrangler/
+
+# Obsidian: symlink so /images/... paths preview in the content vault
+# (real files live in public/images). Do not commit the symlink.
+parthkabra-me/images
+# Obsidian workspace/cache (keep if you want to share vault config)
+parthkabra-me/.obsidian/workspace*.json
