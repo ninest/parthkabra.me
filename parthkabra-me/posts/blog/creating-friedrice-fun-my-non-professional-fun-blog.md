@@ -13,7 +13,9 @@ links:
 ---
 On Jun 3, 2026, I registered a new domain, [friedrice.fun](https://friedrice.fun). 
 
-By Jun 5, I had a fully optimized blogging set up that mean I could write posts from my phone or laptop, and have them auto-published. Zero extra coding for things like adding a new "directory" pages, or customizing sidebars. And all of this was done in under 2 hours of passive "agentic" (vibe) coding while I was eating [Bettergoods Ultra Thin Pepperoni and Ricotta Pizza](https://friedrice.fun/bettergoods-ultra-thin-pepperoni-and-ricotta-pizza/).
+friedrice.fun is basically my own site, but for everything that isn't professional or coding/technical related. So my food reviews, my airport lounge reviews, any random experience I feel like writing about, and probably just images of random things I come across.
+
+By Jun 5, I had a fully optimized blogging setup that meant I could write posts from my phone or laptop, and have them auto-published. Zero extra coding for things like adding a new "directory" pages, or customizing sidebars. And all of this was done in under 2 hours of passive "agentic" (vibe) coding while I was eating [Bettergoods Ultra Thin Pepperoni and Ricotta Pizza](https://friedrice.fun/bettergoods-ultra-thin-pepperoni-and-ricotta-pizza/).
 
 ![screenshot of the website https://friedrice.fun](/images/posts/blog/creating-friedrice-fun/friedrice-fun.png)
 
