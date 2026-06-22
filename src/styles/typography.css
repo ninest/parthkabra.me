@@ -2,6 +2,9 @@
     .typography {
         /* max-width: 65ch; */
         color: var(--color-foreground);
+        /* Break long, unbreakable strings (e.g. bare URLs, inline code) so
+           they wrap instead of forcing horizontal page scroll */
+        overflow-wrap: break-word;
 
         & h1:not(.not-typography h1) {
             scroll-margin: calc(var(--spacing) * 20);
