@@ -15,7 +15,7 @@ On Jun 3, 2026, I registered a new domain, [friedrice.fun](https://friedrice.fun
 
 friedrice.fun is basically my own site, but for everything that isn't professional or coding/technical related. So my food reviews, my airport lounge reviews, any random experience I feel like writing about, and probably just images of random things I come across.
 
-By Jun 5, I had a fully optimized blogging setup that meant I could write posts from my phone or laptop, and have them auto-published. Zero extra coding for things like adding a new "directory" pages, or customizing sidebars. And all of this was done in under 2 hours of passive "agentic" (vibe) coding while I was eating [Bettergoods Ultra Thin Pepperoni and Ricotta Pizza](https://friedrice.fun/bettergoods-ultra-thin-pepperoni-and-ricotta-pizza/).
+By Jun 5, I had a fully optimized blogging setup that meant I could write posts from my phone or laptop, and have them auto-published. Zero extra coding for things like adding a new listing page, or customizing sidebars. And all of this was done in under 2 hours of passive "agentic" (vibe) coding while I was eating [Bettergoods Ultra Thin Pepperoni and Ricotta Pizza](https://friedrice.fun/bettergoods-ultra-thin-pepperoni-and-ricotta-pizza/).
 
 ![screenshot of the website https://friedrice.fun](/images/posts/blog/creating-friedrice-fun/friedrice-fun.png)
 
@@ -27,7 +27,7 @@ It is very simple, but there is a bit going on behind the scenes:
 - **Image loading**. By default, image loading creates layout shift, especially if you scroll down and an image loads above you. I added lazy loading and conversion from PNG/JPG to WebP to make them slightly faster. I also added a blurred image as a placeholder so it looks slighly nicer as it's loading. And there's a script to add width/height explicitly
 - **Image thumbnails**. Most pages, especially the food ones, have a tiny image thumbnail. This is a 64x64 pre-generated image. I was originally using the same image on the page and for the thumbnail, just that the thumbnail has the background removed. But this made loading extremely slow.
 - **Obsidian vault support**. Obsidian is the CMS, so I couldn't rely on Astro content. I had to build a Remark plugin to support "``[[``" wiki-links and Obsidian tags
-- **Obsidian bases**. Support a subset of Obsidian bases, which are kind of like Notion databases. This makes it easy to make new directory pages without any custom code.
+- **Obsidian bases**. These are kind of like Notion databases. Normally, to make a new listing page, say a page that gathers all my airport lounge reviews in one place, I'd have to write code to go find and collect those posts. With bases, I just describe the list once in Obsidian and the page builds itself, no custom code needed.
 - **Image grid support**. I love how the Obsidian Minimal theme can support [image grids](https://minimal.guide/image-grids), so I added that to the markdown parser too. See it in action [on this page](https://friedrice.fun/lazy-mexican-chicken-bowl-2026/), with the images on the same row rather than one under the other.
 
 *Note that when I say "I made", I mean "My agent and I made".*
