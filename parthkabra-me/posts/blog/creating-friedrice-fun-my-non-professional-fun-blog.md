@@ -54,6 +54,6 @@ There definitely are a lot of moving parts. I wish it were easier to do all the 
 
 But, **yes**, to me it's 100% worth it. If there are issues, I'm sure I can fix them. Not that there have been any major issues. Since I control every part of the process, I can customize it however I want. 
 
-I created a custom page at https://friedrice.fun/invite-someone-for-fried-rice. Write your name there, then copy and share the link with your friend. Try it out!
-
 If I used something like Wordpress, I'm not sure if making this would have been that easy.
+
+And just because I could, I made a custom page at https://friedrice.fun/invite-someone-for-fried-rice. Write your name there, then copy the link and share it with a friend. Try it out!
