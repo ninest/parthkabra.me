@@ -1,6 +1,6 @@
 ---
 title: Creating an AI map maker
-description: A map maker application that stores state in the URL, and is agent-native
+description: Build a map with points and routes, then share it as a link with no account. Or just describe what you want and let ChatGPT or Claude make it for you.
 createdAt: 2026-06-22
 categories:
   - blog
