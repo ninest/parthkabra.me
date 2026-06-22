@@ -70,9 +70,9 @@ This was a lot easier, just have AI make documentation on how to build a URL, an
 
 ## More tools like this?
 
-This worked surprisingly well, and it makes me wonder why we don't see more AI tools that are just instructions + a nice way to render data. It's a single file that draws points and lines, and a page of docs telling an agent how to build the URL.
+This worked really well, and it makes me wonder why we don't see more AI tools that are just instructions + a nice way to render data. It's a single file that draws points and lines, and a page of docs telling an agent how to build the URL.
 
-I didn't even really build this with AI in mind. I wanted a tool that worked for me, and I soon realized that agents could be great and making maps too with some docs. What's good for humans turns out to be good for agents. And a map that lives entirely in a link is something anyone can share, no account needed. Human-native, agent-native, and shareable all turned out to be the same thing.
+I didn't even really build this with AI in mind. I wanted a tool that worked for me, and I soon realized that agents could be great at making maps too with some docs. What's good for humans turns out to be good for agents. And a map that lives entirely in a link is something anyone can share, no account needed. Human-native, agent-native, and shareable all turned out to be the same thing.
 
 ### What about Google Docs for maps?
 
