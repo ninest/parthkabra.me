@@ -57,3 +57,13 @@ But, **yes**, to me it's 100% worth it. If there are issues, I'm sure I can fix 
 If I used something like Wordpress, I'm not sure if making this would have been that easy.
 
 And just because I could, I made a custom page at https://friedrice.fun/invite-someone-for-fried-rice. Write your name there, then copy the link and share it with a friend. Try it out!
+
+## But I still think it should be easier
+
+I still wish it were easier to make content sites like this. I've built a few similar-ish ones before:
+
+- [National Service Resources](https://national-service.vercel.app/): resources for guys going through National Service in Singapore
+- [Husker](https://husker.vercel.app/): links, resources, and a wiki for Northeastern students
+- My own website, which you are currently on
+
+That's why I'm building [seed.town](https://seed.town), an easy way for anyone to make a website with whatever they want on it. You're not locked into a structure, and if you hate it, you can export your data and switch to another platform. If that sounds interesting, [join the waitlist](https://app.seed.town/waitlist)!
