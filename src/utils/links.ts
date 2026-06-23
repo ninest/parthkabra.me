@@ -8,6 +8,7 @@ export const routes = {
   microblog: "/micro",
   tools: "/tools",
   llms: "/llms.txt",
+  rss: "/rss.xml",
   admin: "/admin",
   optOutAnalytics: "/opt-out-analytics",
   subscribe: "/subscribe",
