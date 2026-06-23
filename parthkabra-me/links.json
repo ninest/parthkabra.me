@@ -1,6 +1,16 @@
 [
-  { "id": "github", "title": "GitHub", "url": "https://github.com/ninest", "order": 0 },
-  { "id": "linkedin", "title": "LinkedIn", "url": "https://www.linkedin.com/in/parth-kabra/", "order": 1 },
+  {
+    "id": "github",
+    "title": "GitHub",
+    "url": "https://github.com/ninest",
+    "order": 0
+  },
+  {
+    "id": "linkedin",
+    "title": "LinkedIn",
+    "url": "https://www.linkedin.com/in/parth-kabra/",
+    "order": 1
+  },
   {
     "id": "resume",
     "title": "Resume",
@@ -12,5 +22,11 @@
     "title": "Contact",
     "url": "/contact",
     "order": 3
+  },
+  {
+    "id": "rss",
+    "title": "RSS",
+    "url": "/rss.xml",
+    "order": 4
   }
 ]
