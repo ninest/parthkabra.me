@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getPostUrl } from "../../utils/links";
+import { getPostLink } from "../../utils/links";
 import { getVisiblePosts } from "../../utils/posts";
 
 interface Props {
@@ -20,14 +20,22 @@ const categoryPosts = posts
 {
   categoryPosts.length > 0 && (
     <nav class="mt-8 rounded-md overflow-hidden flex flex-col gap-1">
-      {categoryPosts.map((post) => (
-        <a href={getPostUrl(post.id)} class="block bg-muted py-1 px-2">
-          <div class="text-sm text-muted-foreground">
-            {post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}
-          </div>
-          <div class="mt-1 font-semibold">{post.data.title}</div>
-        </a>
-      ))}
+      {categoryPosts.map((post) => {
+        const link = getPostLink(post.id, post.data.externalUrl);
+        return (
+          <a
+            href={link.href}
+            target={link.external ? "_blank" : undefined}
+            rel={link.external ? "noopener" : undefined}
+            class="block bg-muted py-1 px-2"
+          >
+            <div class="text-sm text-muted-foreground">
+              {post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}
+            </div>
+            <div class="mt-1 font-semibold">{post.data.title}</div>
+          </a>
+        );
+      })}
     </nav>
   )
 }

@@ -31,12 +31,13 @@ It's a simple tool that lets you do a few things:
 
 The last feature is important. No accounts needed to share a map, just share the link. The link is pretty long and looks like this for the above map:
 
-
 https://parthkabra.me/tools/map/?d=p%3Agreen%3APublic%2520Garden%3A42.35394%2C-71.0706%7Cp%3Agreen%3ABoston%2520Common%3A42.35513%2C-71.06566%7Cp%3Ared%3AAMC%3A42.35323%2C-71.06409%7Cp%3Ayellow%3AEsplanade%2520entrance%3A42.35206%2C-71.08996%7Cl%3Agreen%3ACommonwealth%2520Ave%2520Mall%3A42.34954%2C-71.08699%3B42.35131%2C-71.08041%3B42.35365%2C-71.07168&v=2&hl=1
 
 Ugly, but the good thing is that **your AI agents can create it for you**.
 
 I created another tool called [AI Map](/tools/ai-map) that lets AI create the map for you. Just describe what you want to see, and the tool will make a ChatGPT or Claude prompt for you.
+
+For example, in Boston, a portion Orange Line used to be an elevated railroad, but it's since been moved. I want to visualize that in a map, so I used this prompt:
 
 ![AI demo with the prompt "the boston orange line when it was an elevated line above washington st and now" to make a map](/images/posts/blog/ai-map-maker/ai-demo.png)
 
@@ -56,7 +57,7 @@ The output map looks pretty good though:
 
 ### The map tool
 
-Honestly, this was surprisingly easy. I made a decision to raw dog javascript rather than use React, ShadCN, and [MapCN](https://mapcn.vercel.app), and that was a great decision. The entire tool is in one file, and 95% of it was written by Claude and Codex. [Agent browser](https://agent-browser.dev) is great for testing web apps.
+Honestly, this was surprisingly easy. I made a decision to raw dog TypeScript rather than use React, ShadCN, and [MapCN](https://mapcn.vercel.app), and that was a great decision. The entire tool is in <5 files, and 95% of it was written by Claude and Codex. [Agent browser](https://agent-browser.dev) is great for testing web apps.
 
 I've always said this: what's good for humans is also good for agents. The fact that the entire map is stored in the URL meant that my agent could do some testing and return the exact problematic map. Or I could paste in a few map links to give my agent more context.
 
@@ -66,7 +67,7 @@ I've always said this: what's good for humans is also good for agents. The fact 
 
 ### The AI map maker
 
-This was a lot easier, just have AI make documentation on how to build a URL, and make it accessible: https://parthkabra.me/tools/map/agents. I wanted to use https://parthkabra.me/tools/map/agents.md, but weirdly, ChatGPT was unable to fetch the URL ending in `.md`.  I wonder if it's not supposed to follow "untrusted" prompts.
+This was a lot easier, just have AI make documentation on how to build a URL, and make it accessible: https://parthkabra.me/tools/map/agents (I wanted to use https://parthkabra.me/tools/map/agents.md, but weirdly, ChatGPT was unable to fetch the URL ending in `.md`.  I wonder if it's not supposed to follow "untrusted" prompts).
 
 ## More tools like this?
 

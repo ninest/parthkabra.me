@@ -30,3 +30,10 @@ When adding a new collection or detail page:
 1. Add its prefix to `COLLECTION_MAP` and `COLLECTION_LABELS` in `src/utils/related.ts`
 2. Add its URL pattern to `getContentUrl()` (and a per-collection helper) in `src/utils/links.ts`
 3. Add its entries to the valid ID set in `src/utils/validate-related.ts`
+
+## Agents and harness
+- Be as concise as possible, and sacrifice grammar for  the sake of concision
+- While planning:
+  - Interview me relentlessly about every aspect of this plan until we reach a shared understanding; walk down each branch of the design tree, resolving dependencies between decisions one-by-one
+  - For each question, provide your recommended answer; ask the questions one at a time
+  - If a question can be answered by exploring the codebase, explore the codebase instead

@@ -7,7 +7,7 @@ import CopyableContact from "../components/copyable-contact.astro";
 import { getCollection } from "astro:content";
 import { getVisiblePosts } from "../utils/posts";
 import { validateRelatedLinks } from "../utils/validate-related";
-import { routes, getCategoryUrl, getPageUrl, getPostUrl, getProjectUrl, getWorkUrl } from "../utils/links";
+import { routes, getCategoryUrl, getPageUrl, getPostLink, getProjectUrl, getWorkUrl } from "../utils/links";
 import { getVisibleCategories } from "../utils/visible-categories";
 await validateRelatedLinks();
 
@@ -141,13 +141,21 @@ const posts = (await getVisiblePosts())
 
     <ul class="ml-5 mt-1 space-y-1.5">
       {
-        posts.map((post) => (
-          <li id={`post-${post.id}`}>
-            <a href={getPostUrl(post.id)} class="underline text-primary">
-              {post.data.title}
-            </a>
-          </li>
-        ))
+        posts.map((post) => {
+          const link = getPostLink(post.id, post.data.externalUrl);
+          return (
+            <li id={`post-${post.id}`}>
+              <a
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener" : undefined}
+                class="underline text-primary"
+              >
+                {post.data.title}
+              </a>
+            </li>
+          );
+        })
       }
     </ul>
   </section>

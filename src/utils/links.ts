@@ -15,6 +15,10 @@ export const routes = {
 
 // Per-collection URL builders
 export const getPostUrl = (id: string) => `/${id}`; // id is `{category}/{slug}`
+export const getPostLink = (id: string, externalUrl?: string) => ({
+  href: externalUrl ?? getPostUrl(id),
+  external: Boolean(externalUrl),
+});
 export const getProjectUrl = (id: string) => `/projects/${id}`;
 export const getWorkUrl = (id: string) => `/work/${id}`;
 export const getCategoryUrl = (id: string) => `/${id}`;
@@ -27,10 +31,14 @@ export const getToolAgentMarkdownDocUrl = (id: string) => `${getToolUrl(id)}/age
 export const getToolAgentTextDocUrl = (id: string) => `${getToolUrl(id)}/agents.txt`;
 
 // Collection-agnostic dispatcher (used by resolveRelated)
-export function getContentUrl(collection: string, id: string): string | null {
+export function getContentUrl(
+  collection: string,
+  id: string,
+  data?: Record<string, unknown>,
+): string | null {
   switch (collection) {
     case "posts":
-      return getPostUrl(id);
+      return getPostLink(id, data?.externalUrl as string | undefined).href;
     case "projects":
       return getProjectUrl(id);
     case "workExperience":

@@ -29,6 +29,7 @@ interface Props {
   let debounceTimer: ReturnType<typeof setTimeout>;
 
   function getResultUrl(hit: SearchHit): string {
+    if (hit.url) return hit.url;
     const rawId = hit.id.startsWith(`${hit.type}-`) ? hit.id.slice(hit.type.length + 1) : hit.id;
     switch (hit.type) {
       case "post":
@@ -59,7 +60,7 @@ interface Props {
       .map(
         (r) =>
           `<li>
-                <a href="${getResultUrl(r)}" data-result-title="${r.title}" data-result-type="${r.type}" class="flex items-center justify-between bg-muted/50 py-1 px-2">
+                <a href="${getResultUrl(r)}" ${r.external ? 'target="_blank" rel="noopener"' : ""} data-result-title="${r.title}" data-result-type="${r.type}" class="flex items-center justify-between bg-muted/50 py-1 px-2">
                     <div class="">${r.title}</div>
                     <div class="text-sm">${r.type}</div>
                 </a>

@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getPostUrl } from "../utils/links";
+import { getPostLink } from "../utils/links";
 
 interface Props {
   posts: CollectionEntry<"posts">[];
@@ -11,15 +11,22 @@ const { posts } = Astro.props;
 
 <ul class="space-y-2">
   {
-    posts.map((post) => (
-      <li>
-        <a href={getPostUrl(post.id)}>
-          <span class="tabular-nums mr-2">
-            {post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}
-          </span>
-          <span class="underline text-primary">{post.data.title}</span>
-        </a>
-      </li>
-    ))
+    posts.map((post) => {
+      const link = getPostLink(post.id, post.data.externalUrl);
+      return (
+        <li>
+          <a
+            href={link.href}
+            target={link.external ? "_blank" : undefined}
+            rel={link.external ? "noopener" : undefined}
+          >
+            <span class="tabular-nums mr-2">
+              {post.data.createdAt.getFullYear()}/{String(post.data.createdAt.getMonth() + 1).padStart(2, "0")}
+            </span>
+            <span class="underline text-primary">{post.data.title}</span>
+          </a>
+        </li>
+      );
+    })
   }
 </ul>

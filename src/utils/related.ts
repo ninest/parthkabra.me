@@ -39,6 +39,7 @@ export type ResolvedRelated = {
   collection: string;
   id: string;
   createdAt?: Date;
+  external: boolean;
 };
 
 export async function resolveRelated(
@@ -51,14 +52,16 @@ export async function resolveRelated(
     const entry = await getEntry(parsed.collection as any, parsed.id);
     if (!entry) continue;
     const data = entry.data as Record<string, unknown>;
+    const external = parsed.collection === "posts" && Boolean(data.externalUrl);
     results.push({
       title: (data.title as string) ?? parsed.id,
       description: data.description as string | undefined,
-      url: getContentUrl(parsed.collection, parsed.id),
+      url: getContentUrl(parsed.collection, parsed.id, data),
       type: COLLECTION_LABELS[parsed.collection] ?? parsed.collection,
       collection: parsed.collection,
       id: parsed.id,
       createdAt: data.createdAt as Date | undefined,
+      external,
     });
   }
   return results;

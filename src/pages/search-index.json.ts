@@ -4,6 +4,7 @@ import { getCollection } from "astro:content";
 import { stripMarkdown } from "../utils/markdown";
 import { firstSentence, truncate } from "../utils/string";
 import { getVisiblePosts } from "../utils/posts";
+import { getPostLink } from "../utils/links";
 
 export async function GET() {
   const [categories, posts, projects, workExperience, microblog, tools] = await Promise.all([
@@ -24,14 +25,19 @@ export async function GET() {
       body: c.body ? stripMarkdown(c.body) : "",
       createdAt: "",
     })),
-    ...posts.map((p) => ({
-      id: `post-${p.id}`,
-      type: "post",
-      title: p.data.title,
-      description: p.data.description,
-      body: p.body ? stripMarkdown(p.body) : "",
-      createdAt: p.data.createdAt.toISOString(),
-    })),
+    ...posts.map((p) => {
+      const link = getPostLink(p.id, p.data.externalUrl);
+      return {
+        id: `post-${p.id}`,
+        type: "post",
+        title: p.data.title,
+        description: p.data.description,
+        body: p.body ? stripMarkdown(p.body) : "",
+        createdAt: p.data.createdAt.toISOString(),
+        url: link.href,
+        external: link.external,
+      };
+    }),
     ...projects.map((p) => ({
       id: `project-${p.id}`,
       type: "project",

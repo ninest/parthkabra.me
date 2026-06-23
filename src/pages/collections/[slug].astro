@@ -36,7 +36,11 @@ const items = await resolveRelated(collection.data.items);
       {
         items.map((item) => (
           <li>
-            <a href={item.url ?? "#"}>
+            <a
+              href={item.url ?? "#"}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener" : undefined}
+            >
               {item.collection === "posts" && item.createdAt ? (
                 <>
                   <span class="tabular-nums">{item.createdAt.getFullYear()}/{String(item.createdAt.getMonth() + 1).padStart(2, "0")}</span>

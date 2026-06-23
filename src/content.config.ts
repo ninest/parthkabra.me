@@ -46,6 +46,7 @@ const posts = defineCollection({
     title: z.string(),
     ...contentFields,
     categories: z.array(z.string()).default([]),
+    externalUrl: z.string().url().optional(),
   }),
 });
 
