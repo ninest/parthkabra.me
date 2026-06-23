@@ -11,7 +11,7 @@ updatedAt: '2023-12-18'
 links:
 - title: H3ZoomAI Website
   url: https://www.h3zoom.ai/
-featured: true
+featured: false
 ---
 For my second internship, I had the opportunity to work at H3Zoom, an award-winning AI-based startup in Singapore that specializes in building facade inspection using drones. This internship provided me with my first exposure to machine learning.
 
