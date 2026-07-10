@@ -8,7 +8,7 @@ categories:
 links:
 - title: AppShelf.org
   url: https://appshelf.org
-related: [microblog:20262026/window-global-storage/]
+related: [microblog:2026/window-global-storage/]
 ---
 Creating apps has never been easier. Open Claude/ChatGPT, tell it what you want, and it spits out a fully functioning mini app that you can start using.
 
