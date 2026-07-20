@@ -6,14 +6,11 @@ categories:
 - blog
 - ui
 updatedAt: '2023-12-18'
-links:
-- title: GitHub
-  url: https://github.com/ninest/husker-gym
-- title: Website
-  url: https://gym.husker.nu
-related:
-- project:husker-gym
 ---
+
+Links: [GitHub](https://github.com/ninest/husker-gym), [Website](https://gym.husker.nu) \
+Related: [Husker Gym](/projects/husker-gym)
+
 The UI is currently very simple and displays data without being too fancy. On the index page, there's a list of gyms and how busy they are.
 
 ![Husker Gym weekly heatmap](/images/posts/blog/husker-gym-2/husker-gym.png)

@@ -5,10 +5,10 @@ createdAt: '2022-05-08'
 categories:
 - firefox
 updatedAt: '2023-12-18'
-links:
-- title: Simple Tab Groups Extension
-  url: https://addons.mozilla.org/en-US/firefox/addon/simple-tab-groups/
 ---
+
+Links: [Simple Tab Groups Extension](https://addons.mozilla.org/en-US/firefox/addon/simple-tab-groups/)
+
 Managing tabs is difficult. I used to use a separate Desktop (Space) for entertainment and different courses. Each of these desktops had a Firefox window with their own tabs. While this worked, it was difficult to manage so many desktops. Additionally, keeping so many windows and tabs open really slowed down my computer.
 
 Simple Tab Groups (STG for short) can help solve this problem.

@@ -7,10 +7,10 @@ categories:
   - ai
   - astro
   - obsidian
-links:
-  - title: friedrice.fun
-    url: https://friedrice.fun
 ---
+
+Links: [friedrice.fun](https://friedrice.fun)
+
 On Jun 3, 2026, I registered a new domain, [friedrice.fun](https://friedrice.fun). 
 
 friedrice.fun is basically my own site, but for everything that isn't professional or coding/technical related. So my food reviews, my airport lounge reviews, any random experience I feel like writing about, and probably just images of random things I come across.

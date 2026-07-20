@@ -6,12 +6,10 @@ categories:
 - blog
 - ui
 updatedAt: '2025-01-15'
-links:
-- title: Slides
-  url: https://docs.google.com/presentation/d/1fd9O6VhCYPtyR_2zoAbdQhcHTtw96S2snGMTiId_uqc/edit#slide=id.p
-related:
-- project:husker
 ---
+
+Links: [Slides](https://docs.google.com/presentation/d/1fd9O6VhCYPtyR_2zoAbdQhcHTtw96S2snGMTiId_uqc/edit#slide=id.p) \
+Related: [Husker](/projects/husker)
 
 On February 7, 2025, I delivered a quick presentation on Husker's technology stack, design principles, and overall architecture at [James's](https://www.linkedin.com/in/jcd/) office, as part of Northeastern University's Industry-Aligned Student Programs. Here's a bit about the topics I discussed!
 

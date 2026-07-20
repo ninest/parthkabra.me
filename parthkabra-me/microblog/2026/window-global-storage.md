@@ -2,8 +2,6 @@
 title: window.globalStorage
 createdAt: 2026-04-28T17:55:32
 categories: [javascript, typescript, html]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

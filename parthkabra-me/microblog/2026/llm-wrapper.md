@@ -2,8 +2,6 @@
 title: LLM wrappers to the next level
 createdAt: 2026-04-26T19:21:14
 categories: [ai]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

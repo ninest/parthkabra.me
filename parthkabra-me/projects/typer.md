@@ -3,12 +3,10 @@ title: Typer
 description: 10-second typing game
 createdAt: '2020-05-18'
 updatedAt: '2023-12-18'
-links:
-- title: GitHub
-  url: https://github.com/ninest/typer
-- title: Website
-  url: https://typer.now.sh
 ---
+
+Links: [GitHub](https://github.com/ninest/typer), [Website](https://typer.now.sh)
+
 Typer is a simple typing game to test out your typing speed and compete with friends.
 
 ![Typer typing practice interface](/images/projects/typer/typer.png)

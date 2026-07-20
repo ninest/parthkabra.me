@@ -2,8 +2,6 @@
 title: CMS media editor
 createdAt: 2026-04-15
 categories: [meta]
-links: []
-related: []
 thread: microblog:2026/cms-just-for-me
 ---
 

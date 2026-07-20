@@ -5,10 +5,10 @@ createdAt: '2023-07-12'
 categories:
 - leetcode
 updatedAt: '2023-12-18'
-links:
-- title: 'LeetCode #121'
-  url: https://leetcode.com/problems/best-time-to-buy-and-sell-stock
 ---
+
+Links: [LeetCode #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock)
+
 You are given an array `prices` where `prices[i]` is the price of a given stock on the ith day.
 
 You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.

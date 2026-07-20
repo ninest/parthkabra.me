@@ -2,8 +2,8 @@
 title: What happened to Hyperlocal?
 createdAt: 2026-04-20T10:00:00
 categories: [maps]
-links: []
-related: [project:hyperlocal]
 ---
 
-I've always wanted a map app that's like Google Docs but for maps. I started [Hyperlocal](/projects/hyperlocal) but didn't go that far because most people didn't understand what it was trying to solve. To be honest, I think it's trying to solve a laundry list of slightly related problems too. 
+I've always wanted a map app that's like Google Docs but for maps. I started [Hyperlocal](/projects/hyperlocal) but didn't go that far because most people didn't understand what it was trying to solve. To be honest, I think it's trying to solve a laundry list of slightly related problems too.
+
+Related: [Hyperlocal](/projects/hyperlocal)

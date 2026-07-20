@@ -3,8 +3,6 @@ title: "Finding a rental in Boston"
 description: "Practical guide to finding a rental in Boston, from searching listings and weighing tradeoffs to researching neighborhoods and touring apartments."
 createdAt: 2026-04-26
 categories: [boston, blog]
-links: []
-related: []
 ---
 
 These are some things I learned while finding houses to rent in Boston. I was looking for a studio/1 bedroom close to Northeastern University. Keep in mind that a lot of my experiences may be specific to Boston/USA.

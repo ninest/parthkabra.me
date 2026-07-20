@@ -2,8 +2,6 @@
 title: Boston.gov's no BS census form
 createdAt: 2026-04-27T17:22:10
 categories: [ui, boston]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

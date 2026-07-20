@@ -2,8 +2,6 @@
 title: Agent-driven development
 createdAt: 2026-04-23T19:48:37
 categories: [ai]
-links: []
-related: []
 thread: microblog:2026/map-maker
 # inReplyTo: microblog:2026/specific-post
 ---

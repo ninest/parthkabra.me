@@ -6,10 +6,10 @@ createdAt: '2022-05-27'
 categories:
 - vscode
 updatedAt: '2023-12-18'
-links:
-- title: JetBrains Mono
-  url: https://www.jetbrains.com/lp/mono/
 ---
+
+Links: [JetBrains Mono](https://www.jetbrains.com/lp/mono/)
+
 JetBrains Mono is a relatively newer font optimized for code. To use it with VS Code, download it from [JetBrains' website](https://www.jetbrains.com/lp/mono/). To install it on Mac, open the downloaded the folder and double click the both files in `fonts > variable`. This should open font book and install the fonts. Once complete, the fonts can be used in any application like Pages or Word.
 
 To use the font in VS Code, add the following to `settings.json`:

@@ -5,10 +5,10 @@ createdAt: '2021-04-03'
 categories:
 - blog
 updatedAt: '2023-12-18'
-links:
-- title: NextBus SG
-  url: /projects/nextbussg
 ---
+
+Links: [NextBus SG](/projects/nextbussg)
+
 Below are some of the reasons why I would like to pursue computer science with focus on data science, machine learning, design, and architecture.
 
 ## DitchIT

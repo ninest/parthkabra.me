@@ -5,12 +5,10 @@ createdAt: '2021-05-29'
 categories:
 - git
 updatedAt: '2023-12-18'
-links:
-- title: Git reset docs
-  url: https://git-scm.com/docs/git-reset
-- title: Squash last N commits together
-  url: https://stackoverflow.com/a/5201642/8677167
 ---
+
+Links: [Git reset docs](https://git-scm.com/docs/git-reset), [Squash last N commits together](https://stackoverflow.com/a/5201642/8677167)
+
 To undo your last commit, use
 
 ```

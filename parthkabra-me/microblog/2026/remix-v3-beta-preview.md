@@ -2,8 +2,6 @@
 title: Remix v3 Beta Preview
 createdAt: 2026-05-02T12:07:14
 categories: [nextjs, javascript, typescript]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

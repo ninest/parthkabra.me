@@ -6,14 +6,10 @@ categories:
 - meta
 - ui
 updatedAt: '2025-06-18'
-links:
-- title: My 2020 website
-  url: https://2020.parthkabra.me
-- title: My 2021 website
-  url: https://2021.parthkabra.me
-- title: My 2022 website
-  url: https://2022.parthkabra.me
 ---
+
+Links: [My 2020 website](https://2020.parthkabra.me), [My 2021 website](https://2021.parthkabra.me), [My 2022 website](https://2022.parthkabra.me)
+
 Despite not using my website for all that much other than listing projects, work experience, and handful of blog posts, I'm always redesigning and rewriting it. In fact, I have rewritten it **thrice** since I first made it in 2020!
 
 With the current design, I hope to write more blog posts and share interesting things I find.

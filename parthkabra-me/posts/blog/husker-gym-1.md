@@ -6,14 +6,11 @@ categories:
 - blog
 - ui
 updatedAt: '2023-12-18'
-links:
-- title: GitHub
-  url: https://github.com/ninest/husker-gym
-- title: Website
-  url: https://gym.husker.nu
-related:
-- project:husker-gym
 ---
+
+Links: [GitHub](https://github.com/ninest/husker-gym), [Website](https://gym.husker.nu) \
+Related: [Husker Gym](/projects/husker-gym)
+
 My aim was to create a website that can answer these questions about Northeastern's gyms:
 
 - At what times is the gym usually crowded?

@@ -6,9 +6,10 @@ categories:
 - blog
 - ui
 updatedAt: '2023-12-18'
-related:
-- project:husker-gym
 ---
+
+Related: [Husker Gym](/projects/husker-gym)
+
 My university has two gyms, both of which are usually crowded. One of the gyms is pretty big, but because our university over-enrolled, it's not uncommon to wait in line before getting a machine.
 
 There are some times when the gym is less crowded, for example, at 9 AM when most students are either working, sleeping, or in class, and around 9 PM or later. But this changes semester by semester, and it's hard to find these times.

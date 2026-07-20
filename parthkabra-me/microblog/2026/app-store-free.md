@@ -2,8 +2,6 @@
 title: I wish the App Store was more open
 createdAt: 2026-04-26T19:07:11
 categories: [apple, platforms]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

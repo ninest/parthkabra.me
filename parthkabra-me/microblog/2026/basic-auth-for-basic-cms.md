@@ -2,8 +2,6 @@
 title: Basic auth for a personal CMS
 createdAt: 2026-04-16
 categories: [meta]
-links: []
-related: []
 thread: microblog:2026/cms-just-for-me
 inReplyTo: microblog:2026/just-for-me-auth
 ---

@@ -2,8 +2,6 @@
 title: Simple media editor
 createdAt: 2026-04-17T11:00:00
 categories: [meta]
-links: []
-related: []
 thread: microblog:2026/cms-just-for-me
 inReplyTo: microblog:2026/basic-cms-media-editor
 ---

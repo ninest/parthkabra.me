@@ -6,13 +6,10 @@ categories:
   - blog
   - ai
   - maps
-links:
-  - title: Map maker tool
-    url: /tools/map
-  - title: AI map maker tool
-    url: /tools/ai-map
-  
 ---
+
+Links: [Map maker tool](/tools/map), [AI map maker tool](/tools/ai-map)
+
 I've always wanted to make a map-making app, a "Google Docs, but for maps". The problem is that no one but me really seems to get what it's for, so I've had a hard time convincing anyone it's something they (might) need.
 
 ## The map tool

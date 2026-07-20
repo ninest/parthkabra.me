@@ -5,12 +5,10 @@ createdAt: '2021-07-01'
 categories:
 - python
 updatedAt: '2023-12-18'
-links:
-- title: Python Interactive window
-  url: https://code.visualstudio.com/docs/python/jupyter-support-py
-- title: Pyenv virtualenv documentation
-  url: https://github.com/pyenv/pyenv-virtualenv
 ---
+
+Links: [Python Interactive window](https://code.visualstudio.com/docs/python/jupyter-support-py), [Pyenv virtualenv documentation](https://github.com/pyenv/pyenv-virtualenv)
+
 ## Creating the virtualenv
 
 Create your folder, and initialize the virtual environment with `pyenv virtualenv`. I will use Python version `3.9.5` and call my environment `project-venv`:

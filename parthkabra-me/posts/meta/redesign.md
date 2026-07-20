@@ -6,10 +6,10 @@ categories:
 - meta
 - ui
 updatedAt: '2023-12-18'
-links:
-- title: My 2020 website
-  url: https://2020.parthkabra.me
 ---
+
+Links: [My 2020 website](https://2020.parthkabra.me)
+
 Before this redesign, my website looked like this (the 2020 version):
 
 ![Personal website 2020 homepage](/images/posts/meta/redesign/2020.png)

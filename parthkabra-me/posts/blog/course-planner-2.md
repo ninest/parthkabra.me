@@ -5,12 +5,10 @@ createdAt: '2023-06-19'
 categories:
 - blog
 updatedAt: '2023-12-18'
-links:
-- title: Website
-  url: https://coursky.vercel.app
-- title: GitHub
-  url: https://github.com/ninest/course-planner
 ---
+
+Links: [Website](https://coursky.vercel.app), [GitHub](https://github.com/ninest/course-planner)
+
 One issue with Northeastern's current course websites is that the information they show is limited to basic information like course description and professors. But what if students could share more?
 
 One update I plan to make to the Husker Course Planner (or whatever it's called) is to add a "Course Notes" section where students can share notes on the course. Things like syllabus links, FAQs, course websites, and more.

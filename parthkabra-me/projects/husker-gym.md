@@ -3,12 +3,10 @@ title: Husker Gym
 description: Realtime dashboard to monitor gym occupancy and crowd
 createdAt: '2023-01-25'
 updatedAt: '2024-09-10'
-links:
-- title: GitHub
-  url: https://github.com/ninest/husker-gym
-- title: Website
-  url: https://gym.husker.nu
 ---
+
+Links: [GitHub](https://github.com/ninest/husker-gym), [Website](https://gym.husker.nu)
+
 Husker Gym is a dashboard to monitor the crowds at the gyms in Northeastern University.
 
 ![Husker Gym crowd dashboard](/images/projects/husker-gym/image.png)

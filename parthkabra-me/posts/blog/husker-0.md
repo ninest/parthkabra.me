@@ -6,10 +6,10 @@ categories:
 - blog
 - ui
 updatedAt: '2021-12-01'
-links: []
-related:
-- project:husker
 ---
+
+Related: [Husker](/projects/husker)
+
 ## The problem
 
 My university (Northeastern University) used to have this website called myNortheastern. It was pretty simple and easy to use, and contained a list of useful links and resources, such as Canvas, advising services, course registration, degree audit, printing services, and more. It was a list of links to other pages.

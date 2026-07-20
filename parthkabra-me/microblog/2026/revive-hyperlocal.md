@@ -2,8 +2,6 @@
 title: Revive Hyperlocal
 createdAt: 2026-04-20T11:00:00
 categories: [maps]
-links: []
-related: []
 thread: microblog:2026/map-maker
 # inReplyTo: microblog:2026/specific-post
 ---

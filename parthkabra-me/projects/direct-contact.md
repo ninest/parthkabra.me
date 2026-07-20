@@ -3,12 +3,10 @@ title: Direct Contact
 description: WhatsApp message someone without saving them as a contact
 createdAt: '2021-01-12'
 updatedAt: '2023-12-18'
-links:
-- title: GitHub
-  url: https://github.com/ninest/direct-contact
-- title: Website
-  url: https://directcontact.vercel.app/
 ---
+
+Links: [GitHub](https://github.com/ninest/direct-contact), [Website](https://directcontact.vercel.app/)
+
 Direct Contact allows you start chats on WhatsApp without saving phone numbers.
 
 ![Direct Contact screen](/images/projects/direct-contact/contact.png)

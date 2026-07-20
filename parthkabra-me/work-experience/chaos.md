@@ -8,11 +8,10 @@ location: Boston, MA
 startDate: '2024-11-01'
 createdAt: '2025-03-01'
 updatedAt: '2025-03-01'
-links:
-- title: Website
-  url: https://chaos.dating
 featured: false
 ---
+
+Links: [Website](https://chaos.dating)
 
 Chaos is a new dating app that focuses on experiences. Traditional dating apps try to match you with whom they think is the best for you, but that rarely works. What if we could get matched based on what we want to do together?
 

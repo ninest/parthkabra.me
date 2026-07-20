@@ -2,8 +2,6 @@
 title: Thread helpers
 createdAt: 2026-04-19
 categories: [meta]
-links: []
-related: []
 thread: microblog:2026/cms-just-for-me
 # inReplyTo: microblog:2026/specific-post
 ---

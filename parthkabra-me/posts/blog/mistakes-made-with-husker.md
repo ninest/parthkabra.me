@@ -6,12 +6,10 @@ categories:
 - blog
 - ui
 updatedAt: '2023-12-19'
-links:
-- title: Husker
-  url: https://www.husker.nu/
-- title: GitHub
-  url: https://github.com/ninest/husker
 ---
+
+Links: [Husker](https://www.husker.nu/), [GitHub](https://github.com/ninest/husker)
+
 [Husker](https://www.husker.nu/), overall, is a success. As of 2023, it has saved over 6,000 students from the abomination that is Northeastern's Sharepoint Student Hub. In fact, there have been 10 users on the site in the past 30 minutes. And it's the middle of winter break!
 
 That doesn't mean that there are things I would change about it. Had I restarted the project today, here are a few things I would do different.

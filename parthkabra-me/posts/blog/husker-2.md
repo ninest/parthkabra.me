@@ -6,14 +6,11 @@ categories:
 - blog
 - ui
 updatedAt: '2023-12-21'
-links:
-- title: GitHub
-  url: https://github.com/ninest/husker
-- title: Husker
-  url: https://husker.nu
-related:
-- project:husker
 ---
+
+Links: [GitHub](https://github.com/ninest/husker), [Husker](https://husker.nu) \
+Related: [Husker](/projects/husker)
+
 Here's a showcase of various tweaks and minor improvements to Husker. This update is meant to improve and bring more focus to Husker's wiki.
 
 ## Links page

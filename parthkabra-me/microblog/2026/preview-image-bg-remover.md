@@ -2,8 +2,6 @@
 title: "TIL: Preview.app has a background remover"
 createdAt: 2026-04-28T18:51:07
 categories: [mac, apple]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

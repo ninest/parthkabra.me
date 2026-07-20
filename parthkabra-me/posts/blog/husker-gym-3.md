@@ -6,14 +6,11 @@ categories:
 - blog
 - ui
 updatedAt: '2023-12-18'
-links:
-- title: GitHub
-  url: https://github.com/ninest/husker-gym
-- title: Website
-  url: https://gym.husker.nu
-related:
-- project:husker-gym
 ---
+
+Links: [GitHub](https://github.com/ninest/husker-gym), [Website](https://gym.husker.nu) \
+Related: [Husker Gym](/projects/husker-gym)
+
 ## Charts
 
 After experimenting with different charting libraries like [Visx](https://airbnb.io/visx/), I decided to use raw D3 instead. I ran into issues integrating Visx into a Nextjs project with server components. Upon closer inspection, I found that Visx was a very thin wrapper around D3 for React, so working directly with D3 was easier.

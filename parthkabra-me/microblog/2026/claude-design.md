@@ -2,8 +2,6 @@
 title: Claude is good at design
 createdAt: 2026-05-20T19:08:23
 categories: [ai, ui]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

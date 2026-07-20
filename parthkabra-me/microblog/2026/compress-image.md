@@ -2,8 +2,6 @@
 title: CMS image compression
 createdAt: 2026-04-20T15:48:57
 categories: [meta]
-links: []
-related: []
 thread: microblog:2026/cms-just-for-me
 # inReplyTo: microblog:2026/specific-post
 ---

@@ -5,10 +5,10 @@ createdAt: '2023-07-12'
 categories:
 - leetcode
 updatedAt: '2023-12-18'
-links:
-- title: 'LeetCode #125'
-  url: https://leetcode.com/problems/valid-palindrome/
 ---
+
+Links: [LeetCode #125](https://leetcode.com/problems/valid-palindrome/)
+
 A phrase is a **palindrome** if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.
 
 Given a string `s`, return `true` if it is a **palindrome**, or `false` otherwise.

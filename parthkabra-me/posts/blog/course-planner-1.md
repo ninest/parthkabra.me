@@ -6,12 +6,10 @@ createdAt: '2023-03-19'
 categories:
 - blog
 updatedAt: '2023-12-18'
-links:
-- title: Website
-  url: https://coursky.vercel.app
-- title: GitHub
-  url: https://github.com/ninest/course-planner
 ---
+
+Links: [Website](https://coursky.vercel.app), [GitHub](https://github.com/ninest/course-planner)
+
 Last year, I created [NU Courses](https://github.com/ninest/nu-courses), a set of scripts to fetch course and section information from Banner, the service Northeastern University uses for registration. I always found it frustrating to navigate Banner's clunky interface and wished there was an easier way to explore all courses. So, I set out to create a tool that would allow anyone to quickly browse and filter through the catalog of courses.
 
 At the time, I would fetch the courses as static JSON files and use them in [Husker](https://www.husker.nu/) in the [courses page](https://www.husker.nu/courses/all) ([what's Husker?](/blog/better-university-website)). While this was a good start, I soon realized that there was more I could do to improve the course planning and selection process. One common pain point for students is trying to create schedules along with friends by signing up for the same sections. While there are many existing tools available to help with this, I found them to be either too complex or not flexible enough for my needs.

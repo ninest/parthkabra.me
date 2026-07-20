@@ -2,8 +2,6 @@
 title: Self editing HTML
 createdAt: 2026-04-22T18:02:50
 categories: [html]
-links: []
-related: []
 # thread: microblog:2026/root-slug
 # inReplyTo: microblog:2026/specific-post
 ---

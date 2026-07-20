@@ -3,12 +3,9 @@ title: Hexy Time
 description: Time as a color
 createdAt: '2020-12-11'
 updatedAt: '2025-06-18'
-links:
-- title: GitHub
-  url: https://github.com/ninest/hexy-time
-- title: Website
-  url: https://hexy-time.now.sh
 ---
+
+Links: [GitHub](https://github.com/ninest/hexy-time), [Website](https://hexy-time.now.sh)
 
 This project displays time as a color. It is a progressive app, so when added to the home screen via Safari on iOS or
 Chrome on Android, it acts as a native app. 
