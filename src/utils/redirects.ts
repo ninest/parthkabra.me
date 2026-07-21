@@ -1,4 +1,12 @@
-import { getCategoryUrl, getPageUrl, getProjectUrl, getToolUrl, getWorkUrl, routes } from "./links";
+import {
+  getCategoryUrl,
+  getCollectionUrl,
+  getPageUrl,
+  getProjectUrl,
+  getToolUrl,
+  getWorkUrl,
+  routes,
+} from "./links";
 
 const redirects = [
   {
@@ -19,6 +27,11 @@ const redirects = [
   {
     from: /^\/projects\/nsr(?=\/|$)/,
     to: getProjectUrl("national-service-resources"),
+    status: 301,
+  },
+  {
+    from: /^\/collections\/(.*)$/,
+    to: getCollectionUrl("$1"),
     status: 301,
   },
   {

@@ -6,13 +6,12 @@ export async function validateRelatedLinks() {
   if (validated) return;
   validated = true;
 
-  const [posts, microblog, projects, work, pages, postCollections, tools] = await Promise.all([
+  const [posts, microblog, projects, work, pages, tools] = await Promise.all([
     getCollection("posts"),
     getCollection("microblog"),
     getCollection("projects"),
     getCollection("workExperience"),
     getCollection("pages"),
-    getCollection("postCollections"),
     getCollection("tools"),
   ]);
 
@@ -22,22 +21,12 @@ export async function validateRelatedLinks() {
   for (const p of projects) validIds.add(`project:${p.id}`);
   for (const w of work) validIds.add(`work:${w.id}`);
   for (const p of pages) validIds.add(`page:${p.id}`);
-  for (const c of postCollections) validIds.add(`collection:${c.id}`);
   for (const t of tools) validIds.add(`tool:${t.id}`);
 
   // Build a map of microblog id → thread root ref for inReplyTo validation
   const microblogThreadRoot = new Map<string, string | undefined>();
   for (const m of microblog) {
     microblogThreadRoot.set(m.id, m.data.thread);
-  }
-
-  // Validate collection `items` references
-  for (const c of postCollections) {
-    for (const ref of c.data.items) {
-      if (!validIds.has(ref)) {
-        console.warn(`[items] Invalid reference "${ref}" in collection:${c.id}`);
-      }
-    }
   }
 
   // Validate thread + inReplyTo fields on microblog entries

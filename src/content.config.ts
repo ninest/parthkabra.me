@@ -97,16 +97,6 @@ const pages = defineCollection({
   }),
 });
 
-const postCollections = defineCollection({
-  loader: glob({ base: "./parthkabra-me/collections", pattern: "**/*.{md,mdx}" }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    ...baseFields,
-    items: z.array(z.string()).default([]),
-  }),
-});
-
 const tools = defineCollection({
   loader: glob({ base: "./parthkabra-me/tools", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
@@ -123,4 +113,4 @@ const status = defineCollection({
   }),
 });
 
-export const collections = { categories, supercats, links, microblog, posts, workExperience, projects, pages, postCollections, tools, status };
+export const collections = { categories, supercats, links, microblog, posts, workExperience, projects, pages, tools, status };

@@ -7,7 +7,6 @@ const COLLECTION_MAP: Record<string, string> = {
   project: "projects",
   work: "workExperience",
   page: "pages",
-  collection: "postCollections",
   tool: "tools",
 };
 
@@ -17,7 +16,6 @@ const COLLECTION_LABELS: Record<string, string> = {
   projects: "Project",
   workExperience: "Work",
   pages: "Page",
-  postCollections: "Collection",
   tools: "Tool",
 };
 

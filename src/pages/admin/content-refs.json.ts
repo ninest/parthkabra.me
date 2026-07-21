@@ -1,13 +1,12 @@
 import { getCollection } from "astro:content";
 
 export async function GET() {
-  const [posts, microblog, projects, workExperience, pages, postCollections, tools] = await Promise.all([
+  const [posts, microblog, projects, workExperience, pages, tools] = await Promise.all([
     getCollection("posts"),
     getCollection("microblog"),
     getCollection("projects"),
     getCollection("workExperience"),
     getCollection("pages"),
-    getCollection("postCollections"),
     getCollection("tools"),
   ]);
 
@@ -21,7 +20,6 @@ export async function GET() {
     ...projects.map((p) => ({ ref: `project:${p.id}`, title: p.data.title, type: "Project" })),
     ...workExperience.map((w) => ({ ref: `work:${w.id}`, title: w.data.title, type: "Work" })),
     ...pages.map((p) => ({ ref: `page:${p.id}`, title: p.data.title, type: "Page" })),
-    ...postCollections.map((c) => ({ ref: `collection:${c.id}`, title: c.data.title, type: "Collection" })),
     ...tools.map((t) => ({ ref: `tool:${t.id}`, title: t.data.title, type: "Tool" })),
   ];
 

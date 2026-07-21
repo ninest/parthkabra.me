@@ -4,7 +4,6 @@ export const routes = {
   all: "/all",
   projects: "/projects",
   work: "/work",
-  collections: "/collections",
   microblog: "/micro",
   tools: "/tools",
   llms: "/llms.txt",
@@ -25,7 +24,7 @@ export const getWorkUrl = (id: string) => `/work/${id}`;
 export const getCategoryUrl = (id: string) => `/${id}`;
 export const getPageUrl = (id: string) => `/${id}`;
 export const getMicroblogUrl = (id: string) => `/micro/${id}`; // id is `{year}/{slug}`
-export const getCollectionUrl = (id: string) => `/collections/${id}`;
+export const getCollectionUrl = (id: string) => `/collection/${id}`;
 export const getToolUrl = (id: string) => `/tools/${id}`;
 export const getToolAgentDocUrl = (id: string) => `${getToolUrl(id)}/agents`;
 export const getToolAgentMarkdownDocUrl = (id: string) => `${getToolUrl(id)}/agents.md`;
@@ -48,8 +47,6 @@ export function getContentUrl(
       return getPageUrl(id);
     case "microblog":
       return getMicroblogUrl(id);
-    case "postCollections":
-      return getCollectionUrl(id);
     case "tools":
       return getToolUrl(id);
     default:
