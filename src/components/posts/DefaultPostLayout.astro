@@ -2,9 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import { getCollection, render } from "astro:content";
 import SidebarLayout from "../sidebar-layout.astro";
-import ArticleLinks from "../article-links.astro";
 import DefaultPostSidebar from "./DefaultPostSidebar.astro";
-import { resolveRelated } from "../../utils/related";
 import { getCategoryUrl } from "../../utils/links";
 
 interface Props {
@@ -18,7 +16,6 @@ const categories = await getCollection("categories");
 const categoryTitle = categories.find((c) => c.id === categoryId)?.data.title ?? categoryId;
 
 const { Content } = await render(entry);
-const relatedItems = await resolveRelated(entry.data.related);
 const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 ---
 
@@ -32,14 +29,6 @@ const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long
   <h1 class="text-3xl font-black">{entry.data.title}</h1>
 
   <p class="mt-2 text-muted-foreground">{dateline} · {entry.data.description}</p>
-
-  <ArticleLinks
-    title="Links"
-    external
-    items={entry.data.links}
-  />
-
-  <ArticleLinks title="Related" items={relatedItems} />
 
   <article class="mt-8 typography">
     <Content />

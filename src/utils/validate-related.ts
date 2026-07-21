@@ -31,35 +31,11 @@ export async function validateRelatedLinks() {
     microblogThreadRoot.set(m.id, m.data.thread);
   }
 
-  const allEntries = [
-    ...posts.map((e) => ({ source: `post:${e.id}`, related: e.data.related })),
-    ...microblog.map((e) => ({
-      source: `microblog:${e.id}`,
-      related: e.data.related,
-    })),
-    ...projects.map((e) => ({
-      source: `project:${e.id}`,
-      related: e.data.related,
-    })),
-    ...work.map((e) => ({ source: `work:${e.id}`, related: e.data.related })),
-    ...pages.map((e) => ({
-      source: `page:${e.id}`,
-      related: e.data.related,
-    })),
-    ...postCollections.map((e) => ({
-      source: `collection:${e.id}`,
-      related: [...e.data.related, ...e.data.items],
-    })),
-    ...tools.map((e) => ({
-      source: `tool:${e.id}`,
-      related: e.data.related,
-    })),
-  ];
-
-  for (const entry of allEntries) {
-    for (const ref of entry.related) {
+  // Validate collection `items` references
+  for (const c of postCollections) {
+    for (const ref of c.data.items) {
       if (!validIds.has(ref)) {
-        console.warn(`[related] Invalid reference "${ref}" in ${entry.source}`);
+        console.warn(`[items] Invalid reference "${ref}" in collection:${c.id}`);
       }
     }
   }

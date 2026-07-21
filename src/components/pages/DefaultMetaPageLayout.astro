@@ -2,9 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import { render } from "astro:content";
 import SidebarLayout from "../sidebar-layout.astro";
-import ArticleLinks from "../article-links.astro";
 import DefaultMetaPageSidebar from "./DefaultMetaPageSidebar.astro";
-import { resolveRelated } from "../../utils/related";
 
 interface Props {
   entry: CollectionEntry<"pages">;
@@ -12,7 +10,6 @@ interface Props {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const relatedItems = await resolveRelated(entry.data.related);
 ---
 
 <SidebarLayout
@@ -26,14 +23,6 @@ const relatedItems = await resolveRelated(entry.data.related);
   {entry.data.description && (
     <p class="mt-2 text-muted-foreground">{entry.data.description}</p>
   )}
-
-  <ArticleLinks
-    title="Links"
-    external
-    items={entry.data.links}
-  />
-
-  <ArticleLinks title="Related" items={relatedItems} />
 
   <article class="mt-8 typography">
     <Content />

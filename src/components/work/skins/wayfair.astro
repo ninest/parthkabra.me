@@ -4,9 +4,7 @@ import Base from "../../../layouts/Base.astro";
 import Navbar from "../../navbar.astro";
 import Search from "../../search.astro";
 import SidebarColumns from "../../sidebar-columns.astro";
-import ArticleLinks from "../../article-links.astro";
 import DefaultWorkSidebar from "../DefaultWorkSidebar.astro";
-import { resolveRelated } from "../../../utils/related";
 import { routes } from "../../../utils/links";
 import type { WorkSkinProps } from "./types";
 
@@ -16,7 +14,6 @@ const wayfairPurple = "#712199";
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const relatedItems = await resolveRelated(entry.data.related);
 ---
 
 <Base
@@ -57,14 +54,6 @@ const relatedItems = await resolveRelated(entry.data.related);
             <p class="mt-2 text-muted-foreground">
               {entry.data.description} · {entry.data.location} · {entry.data.dateline}
             </p>
-
-            <ArticleLinks
-              title="Links"
-              external
-              items={entry.data.links}
-            />
-
-            <ArticleLinks title="Related" items={relatedItems} />
 
             <article class="mt-8 typography">
               <Content />

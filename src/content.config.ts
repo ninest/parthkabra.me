@@ -2,22 +2,15 @@ import { defineCollection } from "astro:content";
 import { file, glob } from "astro/loaders";
 import { z } from "astro/zod";
 
-const linkSchema = z.object({
-  title: z.string().min(1),
-  url: z.string(),
-});
-
 const baseFields = {
   draft: z.boolean().default(false),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
-  related: z.array(z.string()).default([]),
 };
 
 const contentFields = {
   ...baseFields,
   description: z.string().min(5),
-  links: z.array(linkSchema).default([]),
   showContents: z.boolean().default(false),
   featured: z.boolean().default(false),
   theme: z.string().optional(),
@@ -89,7 +82,6 @@ const microblog = defineCollection({
     ...baseFields,
     description: z.string().optional(),
     categories: z.array(z.string()).default([]),
-    links: z.array(linkSchema).default([]),
     featured: z.boolean().default(false),
     thread: z.string().optional(),
     inReplyTo: z.string().optional(),

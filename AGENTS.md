@@ -20,13 +20,16 @@ All internal URLs go through `src/utils/links.ts`. Never hardcode internal hrefs
 
 When adding a new route, add its helper here first, then use it from pages/components.
 
-### Related content
+### Links and related content
 
-Content items can reference related items across collections via `related` in frontmatter using `prefix:id` strings.
+Per-item external links and "related" cross-references live as plain markdown in the body, not frontmatter:
+- Posts/projects/work/pages/tools: a `Links:` / `Related:` block at the **top** of the body.
+- Microblog: the same block at the **bottom** of the body.
+- Multiple entries are comma-separated; `Links:` and `Related:` lines are separated by a trailing backslash (` \`).
 
-Prefixes: `post`, `microblog`, `project`, `work`, `page` (mapped in `src/utils/related.ts`).
+There is no `links`/`related` frontmatter field. The only structured `prefix:id` references remaining are microblog `thread`/`inReplyTo` and collection `items`, resolved via `resolveRelated`/`parseRelatedString` in `src/utils/related.ts`.
 
-When adding a new collection or detail page:
+When adding a new collection referenced by `thread`/`inReplyTo`/`items`:
 1. Add its prefix to `COLLECTION_MAP` and `COLLECTION_LABELS` in `src/utils/related.ts`
 2. Add its URL pattern to `getContentUrl()` (and a per-collection helper) in `src/utils/links.ts`
 3. Add its entries to the valid ID set in `src/utils/validate-related.ts`

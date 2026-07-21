@@ -2,7 +2,6 @@
 import { render, type CollectionEntry } from "astro:content";
 import { resolveRelated } from "../../utils/related";
 import { getMicroblogUrl } from "../../utils/links";
-import ArticleLinks from "../article-links.astro";
 
 interface Props {
   mb: CollectionEntry<"microblog">;
@@ -54,8 +53,6 @@ const replyTarget = !isSm && mb.data.inReplyTo
 const threadRoot = !isSm && showThread && mb.data.thread
   ? (await resolveRelated([mb.data.thread]))[0]
   : undefined;
-
-const relatedItems = !isSm ? await resolveRelated(mb.data.related) : [];
 ---
 
 <article
@@ -115,14 +112,9 @@ const relatedItems = !isSm ? await resolveRelated(mb.data.related) : [];
   )}
 
   {!isSm && (
-    <>
-      <ArticleLinks title="Links" external items={mb.data.links} />
-      <ArticleLinks title="Related" items={relatedItems} />
-
-      <div class="mt-4 text-muted-foreground text-sm">
-        {dateline}
-      </div>
-    </>
+    <div class="mt-4 text-muted-foreground text-sm">
+      {dateline}
+    </div>
   )}
 </article>
 
