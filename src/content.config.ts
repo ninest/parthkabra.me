@@ -17,14 +17,14 @@ const contentFields = {
 };
 
 const categories = defineCollection({
-  loader: glob({ base: "./parthkabra-me/categories", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/categories", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string(),
   }),
 });
 
 const supercats = defineCollection({
-  loader: glob({ base: "./parthkabra-me/supercats", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/supercats", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
@@ -34,7 +34,7 @@ const supercats = defineCollection({
 });
 
 const posts = defineCollection({
-  loader: glob({ base: "./parthkabra-me/posts", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/posts", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -44,7 +44,7 @@ const posts = defineCollection({
 });
 
 const workExperience = defineCollection({
-  loader: glob({ base: "./parthkabra-me/work-experience", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/work-experience", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -58,7 +58,7 @@ const workExperience = defineCollection({
 });
 
 const projects = defineCollection({
-  loader: glob({ base: "./parthkabra-me/projects", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/projects", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -76,7 +76,7 @@ const links = defineCollection({
 });
 
 const microblog = defineCollection({
-  loader: glob({ base: "./parthkabra-me/microblog", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/microblog", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string().optional(),
     ...baseFields,
@@ -89,7 +89,7 @@ const microblog = defineCollection({
 });
 
 const pages = defineCollection({
-  loader: glob({ base: "./parthkabra-me/pages", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/pages", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,
@@ -98,7 +98,7 @@ const pages = defineCollection({
 });
 
 const tools = defineCollection({
-  loader: glob({ base: "./parthkabra-me/tools", pattern: "**/*.{md,mdx}" }),
+  loader: glob({ base: "./parthkabra-me/tools", pattern: "**/*.md" }),
   schema: z.object({
     title: z.string(),
     ...contentFields,

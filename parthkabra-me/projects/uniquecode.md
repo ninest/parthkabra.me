@@ -1,0 +1,32 @@
+---
+title: Unique Code
+description: Fancy fonts with plain text
+createdAt: '2023-12-18'
+updatedAt: '2023-12-18'
+---
+
+Links: [GitHub](https://github.com/ninest/unique-code), [Website](https://uniquecode.vercel.app/)
+
+Unique Code lets you copy and paste 𝗿𝗶𝗰𝗵 𝒕𝒆𝒙𝒕 into fields that only support plain text.
+
+![Uniquecode interface for generating unique codes](/images/projects/uniquecode/uniquecode.png)
+
+For example,
+
+- Bold sans-serif: 𝗧𝗵𝗶𝘀 𝘁𝗲𝘅𝘁 𝗶𝘀 𝗳𝗮𝗻𝗰𝘆
+- Italics serif: 𝑻𝒉𝒊𝒔 𝒕𝒆𝒙𝒕 𝒊𝒔 𝒇𝒂𝒏𝒄𝒚
+- Light cirlces: ⓉⒽⒾⓈ ⓉⒺⓍⓉ ⒾⓈ ⒻⒶⓃⒸⓎ
+- Dark squares: 🆃🅷🅸🆂 🆃🅴🆇🆃 🅸🆂 🅵🅰🅽🅲🆈
+
+However, the use of these "unicode fonts" may impede accessibility. Screen readers can read "𝗛" as "mathematical character bold H" rather than "H".
+
+```component:alert
+variant: default
+---
+To make this website, I took reference from the following websites:
+
+- [dev.to/victoria/a-unicode-substitution-cipher-algorithm-59gm](https://dev.to/victoria/a-unicode-substitution-cipher-algorithm-59gm)
+- [mothereff.in/html-entities](https://mothereff.in/html-entities)
+- [www.rapidtables.com/convert/number/hex-to-decimal.html](https://www.rapidtables.com/convert/number/hex-to-decimal.html)
+- [boldtext.io/](https://boldtext.io)
+```

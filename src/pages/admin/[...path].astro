@@ -66,14 +66,14 @@ try {
       dirItems = await listDirectory(token, path);
       isDirectory = true;
 
-      // Sort MDX/MD files by createdAt (newest first), directories stay on top
+      // Sort Markdown files by createdAt (newest first), directories stay on top
       const dirs = dirItems.filter((i) => i.type === "dir");
-      const mdxFiles = dirItems.filter((i) => i.type === "file" && /\.mdx?$/.test(i.name));
-      const otherFiles = dirItems.filter((i) => i.type === "file" && !/\.mdx?$/.test(i.name));
+      const markdownFiles = dirItems.filter((i) => i.type === "file" && /\.md$/.test(i.name));
+      const otherFiles = dirItems.filter((i) => i.type === "file" && !/\.md$/.test(i.name));
 
-      if (mdxFiles.length > 0) {
+      if (markdownFiles.length > 0) {
         const withDates = await Promise.all(
-          mdxFiles.map(async (item) => {
+          markdownFiles.map(async (item) => {
             const file = await getFileSafe(token, item.path);
             let createdAt = "";
             if (file) {
@@ -106,7 +106,7 @@ try {
 
       // Resolve thread members for microblog files (content reflects last build, so
       // newly-created replies won't appear until the site is rebuilt).
-      const microblogMatch = path.match(/^parthkabra-me\/microblog\/(.+)\.mdx$/);
+      const microblogMatch = path.match(/^parthkabra-me\/microblog\/(.+)\.md$/);
       if (microblogMatch) {
         const entryId = microblogMatch[1];
         const members = await getMicroblogThreadMembers(entryId);
@@ -114,7 +114,7 @@ try {
           threadMembers = members.map((m) => ({
             id: m.id,
             title: m.data.title || m.id,
-            adminUrl: `/admin/parthkabra-me/microblog/${m.id}.mdx`,
+            adminUrl: `/admin/parthkabra-me/microblog/${m.id}.md`,
             isCurrent: m.id === entryId,
           }));
         }
@@ -143,9 +143,9 @@ function imageAltFromName(name: string): string {
   return name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
 }
 
-// Extract the microblog entry id from a file path (e.g. "parthkabra-me/microblog/2026/foo.mdx" → "2026/foo").
+// Extract the microblog entry id from a file path (e.g. "parthkabra-me/microblog/2026/foo.md" → "2026/foo").
 function microblogIdFromPath(ghPath: string): string | null {
-  const m = ghPath.match(/^parthkabra-me\/microblog\/(.+)\.mdx$/);
+  const m = ghPath.match(/^parthkabra-me\/microblog\/(.+)\.md$/);
   return m ? m[1] : null;
 }
 ---
@@ -181,7 +181,7 @@ function microblogIdFromPath(ghPath: string): string | null {
           <input
             id="new-filename"
             type="text"
-            placeholder="filename.mdx"
+            placeholder="filename.md"
             autocapitalize="off"
             autocomplete="off"
             autocorrect="off"
@@ -351,9 +351,15 @@ function microblogIdFromPath(ghPath: string): string | null {
       // For new files, build path from directory + filename
       let savePath = currentPath;
       if ($newFilename) {
-        const filename = $newFilename.value.trim().toLowerCase();
+        let filename = $newFilename.value.trim().toLowerCase();
         if (!filename) {
           $saveStatus.textContent = "Enter a filename";
+          $saveStatus.className = "text-sm text-red-600";
+          return;
+        }
+        if (!filename.includes(".")) filename += ".md";
+        if (!filename.endsWith(".md")) {
+          $saveStatus.textContent = "Filename must end in .md";
           $saveStatus.className = "text-sm text-red-600";
           return;
         }

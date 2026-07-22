@@ -1,5 +1,7 @@
+import { extractSearchableComponentMarkdown } from "../content-components/remark-content-components";
+
 export function stripMarkdown(md: string): string {
-  return md
+  return extractSearchableComponentMarkdown(md)
     .replace(/```[\s\S]*?```/g, "") // code blocks
     .replace(/`[^`]*`/g, "") // inline code
     .replace(/!\[.*?\]\(.*?\)/g, "") // images

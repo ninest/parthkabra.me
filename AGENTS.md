@@ -14,11 +14,21 @@
 
 All internal URLs go through `src/utils/links.ts`. Never hardcode internal hrefs.
 
+Exception: links authored inside `.md` content may use root-relative Markdown URLs.
+
 - Static routes (`/`, `/all`, `/projects`, `/work`): use `routes.*`
 - Per-collection links: use `getPostUrl`, `getProjectUrl`, `getWorkUrl`, `getCategoryUrl`, `getPageUrl`, `getMicroblogUrl`
 - Search and `resolveRelated` both go through this file — keep it that way
 
 When adding a new route, add its helper here first, then use it from pages/components.
+
+### Markdown content components
+
+- Content and content templates use `.md`, never `.mdx`.
+- Embed a registered component with a top-level `component:name` code fence.
+- Fence properties are YAML. Separate an optional body with a standalone `---` line.
+- Components cannot be nested. Use a longer outer fence when a Markdown body contains code fences.
+- Register new names, schemas, body modes, and lazy component loaders under `src/content-components/`.
 
 ### Links and related content
 

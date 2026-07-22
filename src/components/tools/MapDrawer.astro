@@ -10,6 +10,7 @@ import WalkIcon from "../icons/walk.astro";
 import BikeIcon from "../icons/bike.astro";
 import CarIcon from "../icons/car.astro";
 import RoadIcon from "../icons/road.astro";
+import { getToolAgentDocUrl } from "../../utils/links";
 ---
 
 <div id="mapdrawer" class="not-typography relative w-full h-full">
@@ -268,6 +269,11 @@ import RoadIcon from "../icons/road.astro";
   </div>
   </div>
 </div>
+
+<p class="mt-4 text-sm text-muted-foreground">
+  Building maps with ChatGPT, Claude, or other AI apps? Read the
+  <a href={getToolAgentDocUrl("map")}>agent docs</a>.
+</p>
 
 <script>
   import "./MapDrawer.ts";

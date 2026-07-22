@@ -1,8 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { render } from "astro:content";
 import Base from "../../../layouts/Base.astro";
 import Navbar from "../../navbar.astro";
+import ContentRenderer from "../../content/ContentRenderer.astro";
 import { routes } from "../../../utils/links";
 
 interface Props {
@@ -10,7 +10,6 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
 ---
 
 <Base head={{ title: entry.data.title, description: entry.data.description }}>
@@ -25,7 +24,7 @@ const { Content } = await render(entry);
       />
     </div>
     <div class="flex-1 min-h-0 relative">
-      <Content />
+      <ContentRenderer entry={entry} />
     </div>
   </div>
 </Base>

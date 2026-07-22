@@ -3,12 +3,12 @@ import { defineConfig, fontProviders } from "astro/config";
 
 import tailwindcss from "@tailwindcss/vite";
 import rehypeExternalLinks from "rehype-external-links";
-import AutoImport from "astro-auto-import";
-import mdx from "@astrojs/mdx";
+import remarkSmartypants from "remark-smartypants";
 
 import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
 import { getDraftPostPathnames } from "./src/utils/sitemap-drafts.ts";
+import { remarkContentComponents } from "./src/content-components/remark-content-components.ts";
 
 const draftPostPaths = getDraftPostPathnames();
 
@@ -26,10 +26,6 @@ export default defineConfig({
   },
 
   integrations: [
-    AutoImport({
-      imports: ["./src/components/content/Alert.astro", "./src/components/content/Mermaid.astro"],
-    }),
-    mdx(),
     sitemap({
       filter: (page) => !draftPostPaths.has(new URL(page).pathname),
     }),
@@ -40,6 +36,8 @@ export default defineConfig({
   },
 
   markdown: {
+    smartypants: false,
+    remarkPlugins: [remarkContentComponents, remarkSmartypants],
     rehypePlugins: [[rehypeExternalLinks, { target: "_blank", rel: ["noopener", "noreferrer"] }]],
   },
 

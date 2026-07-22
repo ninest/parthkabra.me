@@ -1,15 +1,14 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { render } from "astro:content";
 import SidebarLayout from "../sidebar-layout.astro";
 import DefaultMetaPageSidebar from "./DefaultMetaPageSidebar.astro";
+import ContentRenderer from "../content/ContentRenderer.astro";
 
 interface Props {
   entry: CollectionEntry<"pages">;
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
 ---
 
 <SidebarLayout
@@ -25,7 +24,7 @@ const { Content } = await render(entry);
   )}
 
   <article class="mt-8 typography">
-    <Content />
+    <ContentRenderer entry={entry} />
   </article>
 
   <DefaultMetaPageSidebar entry={entry} slot="sidebar" />

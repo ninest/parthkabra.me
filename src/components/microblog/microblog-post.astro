@@ -1,7 +1,8 @@
 ---
-import { render, type CollectionEntry } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import { resolveRelated } from "../../utils/related";
 import { getMicroblogUrl } from "../../utils/links";
+import ContentRenderer from "../content/ContentRenderer.astro";
 
 interface Props {
   mb: CollectionEntry<"microblog">;
@@ -35,7 +36,6 @@ const {
   truncate = false,
   inlineImages = false,
 } = Astro.props;
-const { Content } = await render(mb);
 
 const isSm = size === "sm";
 const url = getMicroblogUrl(mb.id);
@@ -102,7 +102,7 @@ const threadRoot = !isSm && showThread && mb.data.thread
       truncate && "line-clamp-4 [&_p]:!inline [&_p+p]:before:content-['_']",
     ]}
   >
-    <Content />
+    <ContentRenderer entry={mb} />
   </div>
 
   {truncate && (

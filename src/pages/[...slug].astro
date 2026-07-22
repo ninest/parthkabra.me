@@ -2,12 +2,13 @@
 export const prerender = true;
 
 import type { GetStaticPaths } from "astro";
-import { getCollection, render } from "astro:content";
+import { getCollection } from "astro:content";
 import CategoryList from "../components/category-list.astro";
 import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
 import PostList from "../components/post-list.astro";
 import SidebarLayout from "../components/sidebar-layout.astro";
 import DefaultMetaPageLayout from "../components/pages/DefaultMetaPageLayout.astro";
+import ContentRenderer from "../components/content/ContentRenderer.astro";
 import { getVisiblePosts } from "../utils/posts";
 
 export const getStaticPaths = (async () => {
@@ -54,10 +55,7 @@ export const getStaticPaths = (async () => {
 const props = Astro.props;
 
 // Render a category's markdown body (intro/notice) only when it has content.
-const CategoryContent =
-  props.type === "category" && props.category.body?.trim()
-    ? (await render(props.category)).Content
-    : null;
+const hasCategoryContent = props.type === "category" && Boolean(props.category.body?.trim());
 
 const skinModules = import.meta.glob<{ default: any }>(
   "../components/pages/skins/*.astro",
@@ -88,9 +86,9 @@ function resolvePageSkin(name: string | undefined) {
   >
     <h1 class="text-3xl font-black">{props.category.data.title}</h1>
 
-    {CategoryContent && (
+    {hasCategoryContent && (
       <article class="mt-4 typography">
-        <CategoryContent />
+        <ContentRenderer entry={props.category} />
       </article>
     )}
 

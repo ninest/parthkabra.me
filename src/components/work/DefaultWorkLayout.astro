@@ -1,8 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { render } from "astro:content";
 import SidebarLayout from "../sidebar-layout.astro";
 import DefaultWorkSidebar from "./DefaultWorkSidebar.astro";
+import ContentRenderer from "../content/ContentRenderer.astro";
 import { routes } from "../../utils/links";
 
 interface Props {
@@ -10,7 +10,6 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
 ---
 
 <SidebarLayout
@@ -28,7 +27,7 @@ const { Content } = await render(entry);
   <p class="mt-2 text-muted-foreground">{entry.data.description} · {entry.data.location} · {entry.data.dateline}</p>
 
   <article class="mt-8 typography">
-    <Content />
+    <ContentRenderer entry={entry} />
   </article>
 
   <DefaultWorkSidebar entry={entry} slot="sidebar" />

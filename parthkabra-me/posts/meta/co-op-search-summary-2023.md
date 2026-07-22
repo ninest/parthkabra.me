@@ -1,0 +1,23 @@
+---
+title: Co-op Search Summary 2023
+description: Breakdown of my applications
+createdAt: '2023-12-20'
+categories:
+- meta
+updatedAt: '2023-12-20'
+---
+```component:mermaid
+---
+sankey-beta
+Applied,Reject,175
+Applied,OA,17
+OA,Interview,1
+Applied,Interview request,8
+Interview request,Interview,4
+Interview,Reject,1
+Interview,Ghost,3
+Interview,Offer,2
+Offer,Accepted,1
+```
+
+Final offer accepted on October 11.

@@ -8,7 +8,7 @@ export const IMAGE_MAP = [
 ];
 
 export function getImagePath(contentPath: string): string | null {
-  const match = contentPath.match(/^parthkabra-me\/([^/]+)\/(.+)\.mdx?$/);
+  const match = contentPath.match(/^parthkabra-me\/([^/]+)\/(.+)\.md$/);
   if (!match) return null;
 
   const [, collection, rest] = match;

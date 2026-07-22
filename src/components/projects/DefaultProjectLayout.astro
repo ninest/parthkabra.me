@@ -1,8 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { render } from "astro:content";
 import SidebarLayout from "../sidebar-layout.astro";
 import DefaultProjectSidebar from "./DefaultProjectSidebar.astro";
+import ContentRenderer from "../content/ContentRenderer.astro";
 import { routes } from "../../utils/links";
 
 interface Props {
@@ -10,7 +10,6 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
 const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 ---
 
@@ -26,7 +25,7 @@ const dateline = entry.data.createdAt.toLocaleDateString("en-US", { month: "long
   <p class="mt-2 text-muted-foreground">{dateline} · {entry.data.description}</p>
 
   <article class="mt-8 typography">
-    <Content />
+    <ContentRenderer entry={entry} />
   </article>
 
   <DefaultProjectSidebar entry={entry} slot="sidebar" />

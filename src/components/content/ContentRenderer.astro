@@ -1,0 +1,112 @@
+---
+import { render } from "astro:content";
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+import {
+  CONTENT_COMPONENT_MARKER_PREFIX,
+  CONTENT_COMPONENT_METADATA_KEY,
+  contentComponentDefinitions,
+  type ContentComponentDescriptor,
+} from "../../content-components/definitions";
+import { contentComponentLoaders } from "../../content-components/registry";
+
+type RenderableEntry = Parameters<typeof render>[0] & {
+  rendered?: {
+    html?: string;
+    metadata?: {
+      frontmatter?: Record<string, unknown>;
+      imagePaths?: string[];
+    };
+  };
+};
+
+interface Props {
+  entry: RenderableEntry;
+}
+
+type HtmlSegment = { type: "html"; html: string };
+type ComponentSegment = {
+  type: "component";
+  descriptor: ContentComponentDescriptor;
+  html: string;
+};
+type Segment = HtmlSegment | ComponentSegment;
+
+const { entry } = Astro.props;
+const { Content: NativeContent } = await render(entry);
+const descriptors = (entry.rendered?.metadata?.frontmatter?.[
+  CONTENT_COMPONENT_METADATA_KEY
+] ?? []) as ContentComponentDescriptor[];
+
+/** Splits Astro-rendered HTML around the remark plugin's ordered component markers. */
+function splitRenderedHtml(html: string, items: ContentComponentDescriptor[]): Segment[] {
+  const segments: Segment[] = [];
+  let cursor = 0;
+
+  for (const descriptor of items) {
+    const startMarker = `<!--${CONTENT_COMPONENT_MARKER_PREFIX}:start:${descriptor.id}-->`;
+    const endMarker = `<!--${CONTENT_COMPONENT_MARKER_PREFIX}:end:${descriptor.id}-->`;
+    const start = html.indexOf(startMarker, cursor);
+    const end = html.indexOf(endMarker, start + startMarker.length);
+    if (start === -1 || end === -1) {
+      throw new Error(`[content-components] Missing render marker for ${descriptor.name} (${descriptor.id})`);
+    }
+
+    if (start > cursor) segments.push({ type: "html", html: html.slice(cursor, start) });
+    segments.push({
+      type: "component",
+      descriptor,
+      html: html.slice(start + startMarker.length, end),
+    });
+    cursor = end + endMarker.length;
+  }
+
+  if (cursor < html.length) segments.push({ type: "html", html: html.slice(cursor) });
+  return segments;
+}
+
+let segments: Segment[] = [];
+const components = new Map<string, AstroComponentFactory>();
+
+if (descriptors.length > 0) {
+  if (entry.rendered?.metadata?.imagePaths?.length) {
+    throw new Error(
+      `[content-components] ${entry.filePath ?? entry.id} uses local image imports alongside component fences. Use root-relative /images/... paths.`,
+    );
+  }
+  if (!entry.rendered?.html) {
+    throw new Error(`[content-components] ${entry.filePath ?? entry.id} has no rendered Markdown HTML`);
+  }
+
+  segments = splitRenderedHtml(entry.rendered.html, descriptors);
+  const names = [...new Set(descriptors.map((descriptor) => descriptor.name))];
+  await Promise.all(
+    names.map(async (name) => {
+      const module = await contentComponentLoaders[name]();
+      components.set(name, module.default);
+    }),
+  );
+}
+---
+
+{descriptors.length === 0 ? (
+  <NativeContent />
+) : (
+  segments.map((segment) => {
+    if (segment.type === "html") return <Fragment set:html={segment.html} />;
+
+    const { descriptor } = segment;
+    const Component = components.get(descriptor.name)!;
+    const definition = contentComponentDefinitions[descriptor.name];
+    const componentProps = definition.rawBodyProp
+      ? { ...descriptor.props, [definition.rawBodyProp]: descriptor.rawBody }
+      : descriptor.props;
+
+    return definition.body === "markdown" ? (
+      <Component {...componentProps}>
+        <Fragment set:html={segment.html} />
+      </Component>
+    ) : (
+      <Component {...componentProps} />
+    );
+  })
+)}
