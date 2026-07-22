@@ -12,29 +12,10 @@ import {
   isContentComponentName,
   type ContentComponentDescriptor,
 } from "./definitions";
+import { splitPayload } from "./search";
 
 const COMPONENT_LANGUAGE_PREFIX = "component:";
 const fragmentParser = unified().use(remarkParse).use(remarkGfm);
-
-type ParsedPayload = {
-  propsText: string;
-  body: string;
-  hasDelimiter: boolean;
-};
-
-/** Splits the component payload at the first standalone YAML/body delimiter. */
-function splitPayload(value: string): ParsedPayload {
-  const lines = value.split("\n");
-  const delimiterIndex = lines.findIndex((line) => line.trim() === "---");
-  if (delimiterIndex === -1) {
-    return { propsText: value, body: "", hasDelimiter: false };
-  }
-  return {
-    propsText: lines.slice(0, delimiterIndex).join("\n"),
-    body: lines.slice(delimiterIndex + 1).join("\n").trim(),
-    hasDelimiter: true,
-  };
-}
 
 /** Creates a file-aware build error anchored to the offending code fence. */
 function componentError(file: VFile, node: Code, message: string): never {
@@ -140,31 +121,3 @@ export const remarkContentComponents: Plugin<[], Root> = () => {
     frontmatter[CONTENT_COMPONENT_METADATA_KEY] = descriptors;
   };
 };
-
-/** Replaces component fences with only the Markdown text that should enter search. */
-export function extractSearchableComponentMarkdown(markdown: string): string {
-  const root = fragmentParser.parse(markdown) as Root;
-  const replacements: Array<{ start: number; end: number; value: string }> = [];
-
-  for (const node of root.children) {
-    if (node.type !== "code" || !node.lang?.startsWith(COMPONENT_LANGUAGE_PREFIX)) continue;
-    const name = node.lang.slice(COMPONENT_LANGUAGE_PREFIX.length);
-    if (!isContentComponentName(name) || node.position?.start.offset === undefined || node.position.end.offset === undefined) {
-      continue;
-    }
-
-    const definition = contentComponentDefinitions[name];
-    const { body } = splitPayload(node.value);
-    replacements.push({
-      start: node.position.start.offset,
-      end: node.position.end.offset,
-      value: definition.body === "markdown" ? body : "",
-    });
-  }
-
-  let result = markdown;
-  for (const replacement of replacements.toReversed()) {
-    result = result.slice(0, replacement.start) + replacement.value + result.slice(replacement.end);
-  }
-  return result;
-}

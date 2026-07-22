@@ -1,4 +1,4 @@
-import { extractSearchableComponentMarkdown } from "../content-components/remark-content-components";
+import { extractSearchableComponentMarkdown } from "../content-components/search";
 
 export function stripMarkdown(md: string): string {
   return extractSearchableComponentMarkdown(md)

@@ -1,10 +1,8 @@
 import { createMarkdownProcessor } from "@astrojs/markdown-remark";
 import { describe, expect, it } from "vitest";
 import { CONTENT_COMPONENT_METADATA_KEY } from "./definitions";
-import {
-  extractSearchableComponentMarkdown,
-  remarkContentComponents,
-} from "./remark-content-components";
+import { remarkContentComponents } from "./remark-content-components";
+import { extractSearchableComponentMarkdown } from "./search";
 
 /** Renders Markdown through the content-component plugin without syntax highlighting. */
 async function renderMarkdown(source: string) {
