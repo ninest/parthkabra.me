@@ -21,7 +21,7 @@ Making a website is easy. Open a text editor and just start writing.
 
 I'm sure we've all felt this excitement in 4th grade. HTML has always been my infinite canvas where I can make something and share it with anyone in the world almost instantly.
 
-For your next website, you dream bigger. Don't make a website, make an **app**. Rather than limit yourself to a static website that never changes, you want it to be a unique experience for every user. So you make a note-taking app:
+For your next website, you dream bigger. This time, don't make a website, make an **app**. Rather than limit yourself to a static website that never changes, you want it to be a unique experience for every user. So you make a note-taking app:
 
 ```html
 <head>
@@ -51,7 +51,7 @@ It's amazing! With just five minutes and one HTML file, you have something that 
 
 Until you refresh the page. Then your note is gone.
 
-You could add `localStorage`, but then your notes are stuck in one browser. You could set up a database and user accounts, but it's gone from from 5 minutes to 25 minutes. And now you need to babysit your database.
+You could add `localStorage`, but then your notes are stuck in one browser. You could set up a database and user accounts, but it's gone from from 5 minutes to 25 minutes. And now you need to babysit your database for the next 25 years.
 
 Where should the data live? How do you make it as easy as possible for your parents to use this app? How do you let users inspect and own their data?
 
@@ -87,19 +87,17 @@ AppShelf apps get their superpowers from a script tag. Here is what the note-tak
 
 That's it. This is all the code you need for a note taking app, where users can log in and save their notes under their account.
 
-There is no database to create and no backend to deploy. The app can save one file, like this example, or keep every note in a separate file. It can store JSON, text, or whatever structure makes sense for the app.
+There is no database to create and no backend to deploy. The app can save one file, like this example, or keep every note in a separate file. It can store JSON, text, or whatever structure makes sense for you and your app.
 
-The important thing is that the `note.txt` where the note is saved always stays in the user's file drive. The app can edit that file display its contents, but it cannot share the content or send it externally. Privacy by default!
+The important thing is that the `note.txt` where the note is saved always stays in the user's file drive, not in the app developer's storage. The app can edit that file display its contents, but it cannot share the content or send it externally. Privacy by default, with no other option.
 
 ## Try first, sign in later
 
-The same code works whether you have an AppShelf account or not.
+The same code works whether your users have an AppShelf account or not.
 
-If you aren't signed in, you are treated as a guest and `shelf.store` saves everything locally in your browser. You can open an app and try it without creating an account or wondering whether it is already sending your data somewhere.
+If you aren't signed in, you're a guest and `shelf.store` saves everything locally in your browser. If you decide the app is worth using, you can sign in. Your local data is synced to your AppShelf drive, and the app keeps working with the same code. That's great for you, and also for the app developer!
 
-If you decide the app is worth using, you can sign in. Your local data is synced to your AppShelf drive, and the app keeps working with the same code.
-
-I really like this for small apps and games. You probably don't need an account just to try a game someone sent you. Maybe you don't care whether a high score survives after you clear your browser data. If you eventually decide that you do care, you can sign in and keep it.
+I really like this for small apps and games. You probably don't need an account just to try a game someone sent you. Maybe you don't care whether a high score survives after you clear your browser data. If you eventually decide that you do care, you can always sign in and keep it.
 
 ## Your data is actually yours
 
@@ -107,27 +105,27 @@ Every app gets its own folder in your AppShelf drive. An app can access its fold
 
 You can inspect your files, download them, delete them, and move them somewhere else. AppShelf also keeps version history, so if an app makes a mistake and overwrites something important, you can recover an older version. In the future, I also want to let you sync this data directly to your computer.
 
-Apps run inside a restricted iframe with no direct access to the network. They cannot quietly send your notes to the developer or anywhere else. The AppShelf SDK is their only bridge out of the sandbox, and it can access only that app's folder in your account.
-
-There are a lot more technical details here, but those probably deserve their own post.
+Apps run inside a restricted iframe with no direct access to the network. They cannot quietly send your notes to the developer or anywhere else. The AppShelf SDK is their only bridge out of the sandbox, and it can access only that app's folder in your account. I'll share more technical details layer.
 
 ## From an HTML file to a real app
 
-Storage is only one of the things an app needs. AppShelf has a browser-based editor where you can write the HTML yourself, or you can use the chat interface to describe what you want and have AI build it. You can preview the app on the website itself, so you don't need to install an editor or download anything just to get started.
+Storage is only one of the many things an app needs. AppShelf has a browser-based editor where you can write the HTML yourself, or you can use the chat interface to describe what you want and have AI build it. You can preview the app on the website itself, so you don't need to install an editor or download anything just to get started.
 
-When ready, the app can have its own URL that you can send to someone. Soon, every AppShelf app will be installable on your home screen. More on this soon.
+When ready, the app can have its own URL. Soon, every AppShelf app will be installable on your home screen. More on this soon.
 
-Doesn't the App Store already solve this? Sort of, but the barrier to entry is much higher. I want to make an app that my parents can use today. I don't want to pay Apple $99, open Xcode, take screenshots of my app, and have my parents install TestFlight just so they can try it. I want to make something in five minutes, send them a link, and not have to worry about where the data is stored.
+*But doesn't the App Store already solve this?* Sort of, but the barrier to entry is much higher. I want to make an app that my parents can use today. I don't want to pay Apple $99, open Xcode, take screenshots of my app, and have my parents install TestFlight just so they can try it. I want to make something in five minutes, send them a link, and not have to worry about where the data is stored.
 
-I am also building the parts that come after publishing. Version history for app updates, ratings and reviews, notifications, file sharing, and a way for users to pay for the AI they use instead of leaving the app developer with an unlimited API bill.
+**I want to make something in 5 minutes, that I can use for the next 5 years.**
+
+I'm also building the parts that come after publishing. Version history for app updates, ratings and reviews, notifications, file sharing, and a way for users to pay for the AI they use instead of leaving the app developer with an unlimited API bill.
 
 ## Let AI do the boring parts
 
-I don't want AppShelf to be only a chat box that spits out an app. AI is great at writing code, especially for a small app. But making something is still fun, I want to build media and sound editors into AppShelf so you can let AI handle the boring coding parts while you keep working on the creative parts.
+I don't want AppShelf to be only a chat box that shits out an app. AI is great at writing code, especially for a small app. But creating something is still fun, so I'm building media and sound editors into AppShelf. Let AI handle the boring coding parts while you keep working on the creative parts.
 
-Maybe you draw the characters for your game, edit its sound effects, or keep changing the layout until it feels like yours. You should not have to leave the browser or set up a development environment to do any of that. More importantly, you should not have to let AI do that for you. It can give you a starting point, but you are way better at being creative.
+Maybe you draw the characters for your game, edit its sound effects, or keep changing the layout until it feels like yours. You shouldn't have to leave the browser or set up a development environment to do any of that. More importantly, you should not have to let AI do that for you. It can give you a starting point, but you are way better at being creative.
 
-## What I am building
+## Current status
 
 AppShelf is still early. I'm not trying to build another tool that generates a website and leaves you to figure out the rest. I want one HTML file to be enough to make a real app: something people can try immediately, sign into when they are ready, install, update, and share.
 
