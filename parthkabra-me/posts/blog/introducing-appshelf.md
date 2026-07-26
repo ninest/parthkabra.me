@@ -6,7 +6,7 @@ categories:
   - blog
 draft: false
 ---
-Links: [appshelf.org](https://appshelf.org), [Join the waitlist](https://appshelf.org/waitlist)
+Links: <a href="https://appshelf.org">appshelf.org</a>, <a href="https://appshelf.org/waitlist">Join the waitlist</a>
 
 Making a website is easy. Open a text editor and just start writing.
 
@@ -131,4 +131,4 @@ AppShelf is still early. I'm not trying to build another tool that generates a w
 
 And most importantly, I want the people using that app to own the data they create with it.
 
-If you have a small app you have always wanted to make, [join the AppShelf waitlist](https://appshelf.org/waitlist).
+If you have a small app you have always wanted to make, <a href="https://appshelf.org/waitlist">join the AppShelf waitlist</a>.

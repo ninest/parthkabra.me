@@ -6,7 +6,7 @@ categories:
   - blog
 draft: false
 ---
-Links: [appshelf.org](https://appshelf.org), [Join the waitlist](https://appshelf.org/waitlist), [Technical introduction to appshelf.org](/blog/introducing-appshelf)
+Links: <a href="https://appshelf.org">appshelf.org</a>, <a href="https://appshelf.org/waitlist">Join the waitlist</a>, [Technical introduction to appshelf.org](/blog/introducing-appshelf)
 
 I want to build a simple game where I can
 1. Create racing tracks
@@ -15,7 +15,7 @@ I want to build a simple game where I can
 
 I want to be creative: I want to to design the art, or at least customize it, but I want to let AI do all the coding.
 
-The first step is to create the app on [appshelf.org](https://appshelf.org). I'm just gonna call it "Roady"
+The first step is to create the app on <a href="https://appshelf.org">appshelf.org</a>. I'm just gonna call it "Roady"
 
 ![Creating the app](/images/posts/blog/creating-a-driving-app-with-appshelf/creating.png)
 
@@ -126,4 +126,4 @@ And mobile, the sides of the track are being cut off because the mobile screen i
 
 This is finally what I got to in around 15 minutes. There definitely are more enhancements and refinements I can make, but for a prototype, I think this is great!
 
-If you have a small app you have always wanted to make, [join the AppShelf waitlist](https://appshelf.org/waitlist). If you want a more technical introduction to appshelf, check out the [Technical introduction to appshelf.org](/blog/introducing-appshelf).
+If you have a small app you have always wanted to make, <a href="https://appshelf.org/waitlist">join the AppShelf waitlist</a>. If you want a more technical introduction to appshelf, check out the [Technical introduction to appshelf.org](/blog/introducing-appshelf).
