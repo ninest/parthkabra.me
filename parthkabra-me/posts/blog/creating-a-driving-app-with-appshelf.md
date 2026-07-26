@@ -1,6 +1,6 @@
 ---
 title: Creating a driving game with appshelf.org
-description: A fully functional game in 5 minutes
+description: A fully functional game in 15 minutes
 createdAt: 2026-07-26
 categories:
   - blog
