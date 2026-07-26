@@ -4,7 +4,7 @@ description: Turn a single HTML file into a shareable app with sign-in and user-
 createdAt: 2026-07-21
 categories:
   - blog
-draft: true
+draft: false
 ---
 Links: [appshelf.org](https://appshelf.org), [Join the waitlist](https://appshelf.org/waitlist)
 
