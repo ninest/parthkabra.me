@@ -4,6 +4,7 @@
 import "../styles/site.css";
 import "../styles/themes.prototype.css"; // PROTOTYPE: drop once a design is picked
 import "../styles/themes-saas.prototype.css"; // PROTOTYPE: round two
+import "../styles/themes-mix.prototype.css"; // PROTOTYPE: round three
 import PrototypeSwitcher from "../components/PrototypeSwitcher.astro";
 import { site } from "../lib/content";
 import { routes } from "../utils/links";
@@ -23,7 +24,7 @@ const { links } = site();
 ---
 
 <!doctype html>
-<html lang="en" data-variants={import.meta.env.DEV ? "A:paper,F:minimal,G:dark-app,H:devtool,I:gradient" : undefined}>
+<html lang="en" data-variants={import.meta.env.DEV ? "F:minimal,J:F + blue,K:F + blue + G ui,L:K in dark,G:dark-app" : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

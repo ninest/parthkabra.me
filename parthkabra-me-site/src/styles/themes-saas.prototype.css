@@ -39,7 +39,7 @@ html:is([data-variant="G"], [data-variant="H"], [data-variant="I"]) {
 }
 
 /* ================= F · minimal ================= */
-html[data-variant="F"] {
+html:is(:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]), [data-variant="J"], [data-variant="K"], [data-variant="L"]) {
   --font: "Instrument Sans Variable", system-ui, sans-serif;
   --paper: #ffffff;
   --ink: #111111;
@@ -53,7 +53,7 @@ html[data-variant="F"] {
   line-height: 1.65;
 }
 @media (prefers-color-scheme: dark) {
-  html[data-variant="F"] {
+  html:is(:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]), [data-variant="J"], [data-variant="K"], [data-variant="L"]) {
     --paper: #0e0e0e;
     --ink: #ededed;
     --muted: #6f6f6f;
@@ -62,125 +62,125 @@ html[data-variant="F"] {
     --accent: #ededed;
   }
 }
-[data-variant="F"] .name {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .name {
   font-weight: 500;
 }
-[data-variant="F"] .name .tld {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .name .tld {
   color: var(--muted);
 }
-[data-variant="F"] .top nav {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .top nav {
   gap: 1.6rem;
   font-size: 0.92rem;
 }
-[data-variant="F"] .top nav a[aria-current="page"] {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .top nav a[aria-current="page"] {
   text-decoration: none;
 }
-[data-variant="F"] .grid {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .grid {
   padding-top: clamp(4rem, 16vh, 9rem);
 }
-[data-variant="F"] h1.title {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) h1.title {
   font-size: 1.45rem;
   font-weight: 500;
   letter-spacing: -0.01em;
 }
-[data-variant="F"] .dek {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .dek {
   font-size: 1rem;
   margin-bottom: 3rem;
 }
-[data-variant="F"] .kicker {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .kicker {
   margin-bottom: 0.4rem;
 }
-[data-variant="F"] .lede {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .lede {
   font-size: 1.05rem;
   line-height: 1.65;
   letter-spacing: 0;
   max-width: 30rem;
 }
-[data-variant="F"] .lede a {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .lede a {
   text-decoration-thickness: 1px;
   text-decoration-color: var(--muted);
 }
-[data-variant="F"] .now {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .now {
   font-size: 0.9rem;
   margin-bottom: 5rem;
 }
-[data-variant="F"] .pulse {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .pulse {
   width: 0.35rem;
   height: 0.35rem;
   animation: none;
 }
-[data-variant="F"] .side h2,
-[data-variant="F"] .label {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .side h2,
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .label {
   text-transform: none;
   letter-spacing: 0;
   font-size: 0.85rem;
 }
-[data-variant="F"] .meta-row,
-[data-variant="F"] .meta-row:first-of-type {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .meta-row,
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .meta-row:first-of-type {
   border: 0;
   padding-block: 0.1rem;
 }
-[data-variant="F"] .year > h2::after {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .year > h2::after {
   display: none;
 }
-[data-variant="F"] .year + .year {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .year + .year {
   margin-top: 2.5rem;
 }
-[data-variant="F"] .entry a:hover .t,
-[data-variant="F"] .entry.on .t {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .entry a:hover .t,
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .entry.on .t {
   color: var(--ink);
   text-decoration: underline;
   text-decoration-color: var(--muted);
   text-underline-offset: 0.2em;
 }
-[data-variant="F"] .entry .d {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .entry .d {
   font-size: 0.85rem;
 }
-[data-variant="F"] .section-head {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .section-head {
   margin-top: 5rem;
 }
-[data-variant="F"] .prose h2,
-[data-variant="F"] .prose h3 {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .prose h2,
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .prose h3 {
   font-size: 1.05rem;
   font-weight: 500;
 }
-[data-variant="F"] .prose a:not(.anchor) {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .prose a:not(.anchor) {
   text-decoration-thickness: 1px;
   text-decoration-color: var(--muted);
 }
-[data-variant="F"] .prose img,
-[data-variant="F"] .prose video {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .prose img,
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .prose video {
   border-radius: 0;
 }
-[data-variant="F"] .prose blockquote {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .prose blockquote {
   border-left-width: 1px;
   border-color: var(--ink);
 }
-[data-variant="F"] .toc a {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .toc a {
   border-left: 0;
   padding-left: 0;
 }
-[data-variant="F"] .toc .d3 a {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .toc .d3 a {
   padding-left: 0.75rem;
 }
-[data-variant="F"] .toc a.on::before {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .toc a.on::before {
   content: "– ";
 }
-[data-variant="F"] .bar {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .bar {
   height: 1px;
 }
-[data-variant="F"] .next {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .next {
   border-top-color: var(--faint);
 }
-[data-variant="F"] .next .entries.cards .t {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .next .entries.cards .t {
   font-size: 1rem;
   font-weight: 500;
 }
-[data-variant="F"] .continue {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .continue {
   background: none;
   border: 1px solid var(--faint);
 }
-[data-variant="F"] .foot {
+:is([data-variant="F"], [data-variant="J"], [data-variant="K"], [data-variant="L"]) .foot {
   border: 0;
 }
 
