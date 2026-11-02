@@ -1,9 +1,9 @@
 /* Tailwind, for the tool pages only: the tools were written with it. Everything else is site.css. */
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "iA Writer Quattro", ui-monospace, monospace;
-  --font-mono: "iA Writer Quattro", ui-monospace, monospace;
+@theme inline {
+  --font-sans: var(--font);
+  --font-mono: var(--font);
 }
 
 /* The tools' colour names, pointed at the site's palette (site.css) */

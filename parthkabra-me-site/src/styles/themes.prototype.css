@@ -1,0 +1,663 @@
+/* PROTOTYPE (throwaway): five whole-site designs on the same markup, picked with ?variant=.
+   Same structure in each (name top left, links top right, content + right sidebar, full-page tools);
+   everything else differs. A is the plain site.css look.
+     A paper     · iA Writer Quattro, warm paper, quiet
+     B swiss     · Space Grotesk, white, black rules, red, huge type
+     C terminal  · JetBrains Mono, always dark, green, prompt-like
+     D editorial · Newsreader serif, cream, drop caps, magazine sidebar
+     E brutal    · Bricolage Grotesque, thick borders, hard shadows, yellow */
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/700.css";
+@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/newsreader/wght-italic.css";
+@import "@fontsource-variable/bricolage-grotesque";
+
+/* ================= B · swiss ================= */
+html[data-variant="B"] {
+  --font: "Space Grotesk Variable", sans-serif;
+  --paper: #ffffff;
+  --ink: #0a0a0a;
+  --muted: #6e6e6e;
+  --faint: #e4e4e4;
+  --wash: #f3f3f3;
+  --accent: #ff3b00;
+  --measure: 42rem;
+  --side: 16rem;
+  color-scheme: light;
+  font-size: 17px;
+  letter-spacing: -0.005em;
+}
+[data-variant="B"] .top {
+  border-bottom: 3px solid var(--ink);
+  padding-block: 1.4rem 0.9rem;
+}
+[data-variant="B"] .name {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.05rem;
+}
+[data-variant="B"] .name .tld {
+  color: var(--accent);
+}
+[data-variant="B"] .top nav {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+[data-variant="B"] .top nav a[aria-current="page"] {
+  color: var(--accent);
+  text-decoration: none;
+}
+[data-variant="B"] h1.title {
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  word-spacing: normal;
+  font-weight: 700;
+}
+[data-variant="B"] .dek {
+  color: var(--ink);
+  font-size: 1.3rem;
+  line-height: 1.35;
+  font-weight: 400;
+}
+[data-variant="B"] .lede {
+  font-size: clamp(1.9rem, 4.4vw, 2.7rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+}
+[data-variant="B"] .lede a {
+  text-decoration: none;
+  color: var(--accent);
+}
+[data-variant="B"] .side-inner > * {
+  border-top: 3px solid var(--ink);
+  padding-top: 0.6rem;
+}
+[data-variant="B"] .side h2,
+[data-variant="B"] .label {
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+[data-variant="B"] .meta-row:first-of-type {
+  border-top: 0;
+}
+[data-variant="B"] .year > h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.04em;
+  margin-bottom: 0.2rem;
+}
+[data-variant="B"] .year > h2::after {
+  border-top: 3px solid var(--ink);
+}
+[data-variant="B"] .entry a {
+  border-bottom: 1px solid var(--faint);
+  padding-block: 0.55rem;
+}
+[data-variant="B"] .entry .t {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+[data-variant="B"] .entries.cards .t {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+[data-variant="B"] .prose h2 {
+  font-size: 1.8rem;
+  letter-spacing: -0.03em;
+}
+[data-variant="B"] .prose a:not(.anchor) {
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+[data-variant="B"] .prose blockquote {
+  border-left-width: 6px;
+  color: var(--ink);
+  font-size: 1.2rem;
+}
+[data-variant="B"] .next {
+  border-top-width: 3px;
+}
+[data-variant="B"] .toc a {
+  border-left-width: 3px;
+}
+[data-variant="B"] .pulse {
+  border-radius: 0;
+}
+
+/* ================= C · terminal ================= */
+html[data-variant="C"] {
+  --font: "JetBrains Mono", ui-monospace, monospace;
+  --paper: #0c100e;
+  --ink: #cfe3d4;
+  --muted: #62786a;
+  --faint: #1e2a23;
+  --wash: #121a16;
+  --accent: #6dff9a;
+  --measure: 44rem;
+  color-scheme: dark;
+  font-size: 15px;
+  line-height: 1.7;
+}
+[data-variant="C"] body {
+  background-image: repeating-linear-gradient(transparent 0 2px, #0000000d 2px 3px);
+}
+[data-variant="C"] .name::before {
+  content: "~/";
+  color: var(--muted);
+  font-weight: 400;
+}
+[data-variant="C"] .name .tld {
+  color: var(--accent);
+}
+[data-variant="C"] .name::after {
+  content: "▍";
+  color: var(--accent);
+  animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+[data-variant="C"] .top nav a::before {
+  content: "./";
+  color: var(--faint);
+}
+[data-variant="C"] .top nav a[aria-current="page"] {
+  color: var(--accent);
+  text-decoration: none;
+}
+[data-variant="C"] h1.title {
+  font-size: 1.7rem;
+  word-spacing: normal;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+[data-variant="C"] h1.title::before,
+[data-variant="C"] .prose h2::before {
+  content: "# ";
+  color: var(--accent);
+}
+[data-variant="C"] .prose h3::before {
+  content: "## ";
+  color: var(--accent);
+}
+[data-variant="C"] .prose .anchor::before {
+  display: none;
+}
+[data-variant="C"] .kicker::before {
+  content: "$ cd ";
+  color: var(--muted);
+}
+[data-variant="C"] .lede {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+[data-variant="C"] .lede::before {
+  content: "$ whoami\A";
+  white-space: pre;
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+[data-variant="C"] .lede a {
+  color: var(--accent);
+  text-decoration: none;
+}
+[data-variant="C"] .pulse {
+  border-radius: 0;
+  width: 0.55rem;
+  height: 1rem;
+  animation: blink 1.1s steps(1) infinite;
+  transform: translateY(0.15rem);
+}
+[data-variant="C"] .side-inner > * {
+  border: 1px dashed var(--faint);
+  padding: 0.8rem 0.9rem;
+}
+[data-variant="C"] .side h2::before,
+[data-variant="C"] .label::before {
+  content: "-- ";
+}
+[data-variant="C"] .side h2::after,
+[data-variant="C"] .label::after {
+  content: " --";
+}
+[data-variant="C"] .meta-row,
+[data-variant="C"] .meta-row:first-of-type {
+  border: 0;
+}
+[data-variant="C"] .year > h2 {
+  color: var(--accent);
+}
+[data-variant="C"] .year > h2::before {
+  content: "## ";
+}
+[data-variant="C"] .year > h2::after {
+  border-top-style: dashed;
+}
+[data-variant="C"] .entry .d {
+  order: -1;
+}
+[data-variant="C"] .entry a {
+  grid-template-columns: 5.6em minmax(0, 1fr);
+}
+[data-variant="C"] .entries.cards .entry a {
+  grid-template-columns: minmax(0, 1fr);
+}
+[data-variant="C"] .entry .d::before {
+  content: "[";
+}
+[data-variant="C"] .entry .d::after {
+  content: "]";
+}
+[data-variant="C"] .entry a:hover .t::before,
+[data-variant="C"] .entry.on .t::before {
+  content: "> ";
+  color: var(--accent);
+}
+[data-variant="C"] .entry a:hover .t,
+[data-variant="C"] .entry.on .t {
+  color: var(--ink);
+}
+[data-variant="C"] .prose a:not(.anchor) {
+  color: var(--accent);
+  text-decoration-style: dotted;
+}
+[data-variant="C"] .prose img,
+[data-variant="C"] .prose video {
+  border: 1px solid var(--faint);
+  filter: saturate(0.6);
+}
+[data-variant="C"] .prose blockquote::before {
+  content: "> ";
+  color: var(--accent);
+}
+[data-variant="C"] .prose blockquote {
+  border-left: 0;
+  padding-left: 0;
+}
+[data-variant="C"] .prose li::marker {
+  content: "- ";
+  color: var(--accent);
+}
+[data-variant="C"] .prose ol li::marker {
+  content: counter(list-item) ". ";
+}
+[data-variant="C"] .next {
+  border-top: 1px dashed var(--muted);
+}
+[data-variant="C"] .shiki span {
+  color: var(--shiki-dark);
+}
+[data-variant="C"] .foot::before {
+  content: "[process exited with code 0]";
+  width: 100%;
+  color: var(--faint);
+}
+
+/* ================= D · editorial ================= */
+html[data-variant="D"] {
+  --font: "Newsreader Variable", Georgia, serif;
+  --paper: #f6f1e6;
+  --ink: #241f1a;
+  --muted: #7d7266;
+  --faint: #e2d9c8;
+  --wash: #ede6d6;
+  --accent: #9e1f1f;
+  --measure: 36rem;
+  --side: 14rem;
+  --gap: clamp(2.5rem, 7vw, 6rem);
+  font-size: 20px;
+  line-height: 1.55;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-variant="D"] {
+    --paper: #1b1714;
+    --ink: #ece3d4;
+    --muted: #9c8f80;
+    --faint: #352d26;
+    --wash: #241f1b;
+    --accent: #e0745f;
+  }
+}
+[data-variant="D"] .top {
+  align-items: baseline;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 0.8rem;
+  position: relative;
+}
+[data-variant="D"] .top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  border-bottom: 1px solid var(--ink);
+}
+[data-variant="D"] .name {
+  font-size: 2rem;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+[data-variant="D"] .top nav {
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+}
+[data-variant="D"] h1.title {
+  font-size: clamp(2.4rem, 5.4vw, 3.6rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  word-spacing: normal;
+}
+[data-variant="D"] .dek {
+  font-style: italic;
+  font-size: 1.3rem;
+  line-height: 1.35;
+}
+[data-variant="D"] .kicker {
+  font-variant: small-caps;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+[data-variant="D"] .kicker a {
+  color: var(--accent);
+}
+[data-variant="D"] .prose > p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.6em;
+  line-height: 0.82;
+  padding: 0.06em 0.08em 0 0;
+  color: var(--accent);
+  font-weight: 500;
+}
+[data-variant="D"] .prose p {
+  hyphens: auto;
+  text-align: justify;
+}
+[data-variant="D"] .prose h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-style: italic;
+}
+[data-variant="D"] .prose hr::after {
+  content: "❦";
+  letter-spacing: 0;
+  font-size: 1.4rem;
+}
+[data-variant="D"] .prose blockquote {
+  border: 0;
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--ink);
+  padding: 0 1.5rem;
+}
+[data-variant="D"] .prose code,
+[data-variant="D"] .prose pre {
+  font-size: 0.78em;
+}
+[data-variant="D"] .lede {
+  font-size: clamp(1.6rem, 3.6vw, 2.15rem);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+[data-variant="D"] .lede::first-line {
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+[data-variant="D"] .side {
+  font-size: 0.85rem;
+  font-style: italic;
+}
+[data-variant="D"] .side-inner {
+  border-left: 1px solid var(--faint);
+  padding-left: 1.25rem;
+}
+[data-variant="D"] .side h2,
+[data-variant="D"] .label {
+  font-style: normal;
+  font-variant: small-caps;
+  text-transform: lowercase;
+  letter-spacing: 0.12em;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+[data-variant="D"] .meta-row,
+[data-variant="D"] .meta-row:first-of-type {
+  border: 0;
+  padding-block: 0.1rem;
+}
+[data-variant="D"] .year > h2 {
+  font-size: 2.4rem;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--accent);
+  margin-bottom: 0;
+}
+[data-variant="D"] .year > h2::after {
+  display: none;
+}
+[data-variant="D"] .entry .t {
+  font-size: 1.08rem;
+}
+[data-variant="D"] .entry .d {
+  font-style: italic;
+  font-size: 0.85rem;
+}
+[data-variant="D"] .entry .k {
+  font-variant: small-caps;
+  font-style: italic;
+}
+[data-variant="D"] .entries.cards .t {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+[data-variant="D"] .entries.cards .x {
+  font-style: italic;
+  font-size: 0.95rem;
+}
+[data-variant="D"] .foot {
+  justify-content: center;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ================= E · brutal ================= */
+html[data-variant="E"] {
+  --font: "Bricolage Grotesque Variable", sans-serif;
+  --paper: #fffdf5;
+  --ink: #000;
+  --muted: #555;
+  --faint: #000;
+  --wash: #fff3a6;
+  --accent: #2b3dff;
+  --hi: #ffe22e;
+  color-scheme: light;
+  font-size: 17.5px;
+}
+[data-variant="E"] .top {
+  align-items: center;
+}
+[data-variant="E"] .name {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.3rem 0.65rem;
+  font-weight: 800;
+  box-shadow: 4px 4px 0 var(--hi);
+}
+[data-variant="E"] .name .tld {
+  color: var(--hi);
+}
+[data-variant="E"] .top nav {
+  gap: 0.5rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+[data-variant="E"] .top nav a {
+  border: 2px solid var(--ink);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+}
+[data-variant="E"] .top nav a:hover,
+[data-variant="E"] .top nav a[aria-current="page"] {
+  background: var(--hi);
+  text-decoration: none;
+}
+[data-variant="E"] h1.title {
+  font-size: clamp(2.6rem, 6.5vw, 4.4rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  word-spacing: normal;
+}
+[data-variant="E"] .dek {
+  color: var(--ink);
+  font-size: 1.25rem;
+}
+[data-variant="E"] .lede {
+  font-size: clamp(1.8rem, 4.2vw, 2.6rem);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+[data-variant="E"] .lede a {
+  text-decoration: none;
+  background: var(--hi);
+  padding: 0 0.15em;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+[data-variant="E"] .side-inner > * {
+  border: 2px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 0.9rem 1rem;
+  background: var(--paper);
+}
+[data-variant="E"] .side-inner > .peek {
+  background: var(--hi);
+}
+[data-variant="E"] .side-inner {
+  padding: 0 6px 6px 0;
+}
+[data-variant="E"] .side h2,
+[data-variant="E"] .label {
+  color: var(--ink);
+  font-weight: 800;
+}
+[data-variant="E"] .meta-row,
+[data-variant="E"] .meta-row:first-of-type {
+  border-color: #0002;
+}
+[data-variant="E"] .year > h2 {
+  font-weight: 800;
+  color: var(--paper);
+  font-size: 0.9rem;
+}
+[data-variant="E"] .year > h2 {
+  background: var(--ink);
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+[data-variant="E"] .year > h2::after {
+  display: none;
+}
+[data-variant="E"] .entry a {
+  padding: 0.35rem 0.5rem;
+  margin-inline: -0.5rem;
+  border-radius: 3px;
+}
+[data-variant="E"] .entry a:hover,
+[data-variant="E"] .entry.on a {
+  background: var(--hi);
+}
+[data-variant="E"] .entry a:hover .t,
+[data-variant="E"] .entry.on .t {
+  color: var(--ink);
+}
+[data-variant="E"] .entry .t {
+  font-weight: 600;
+}
+[data-variant="E"] .entries.cards .entry a {
+  border: 2px solid var(--ink);
+  margin: 0 0 0.8rem;
+  padding: 0.8rem 1rem;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+[data-variant="E"] .entries.cards .t {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+[data-variant="E"] .prose a:not(.anchor) {
+  color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+[data-variant="E"] .prose a:not(.anchor):hover {
+  background: var(--hi);
+  color: var(--ink);
+}
+[data-variant="E"] .prose h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+[data-variant="E"] .prose img,
+[data-variant="E"] .prose video {
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  border-radius: 0;
+}
+[data-variant="E"] .prose pre {
+  background: var(--ink) !important;
+  border-radius: 0;
+}
+[data-variant="E"] .prose pre .shiki span,
+[data-variant="E"] .prose pre span {
+  color: var(--shiki-dark);
+}
+[data-variant="E"] .prose code {
+  background: var(--hi);
+}
+[data-variant="E"] .prose pre code {
+  background: none;
+  color: #fff;
+}
+[data-variant="E"] .callout,
+[data-variant="E"] .continue {
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  border-radius: 0;
+}
+[data-variant="E"] .toc a.on {
+  background: var(--hi);
+  border-left-color: var(--ink);
+}
+[data-variant="E"] .bar {
+  height: 8px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+}
+[data-variant="E"] .bar > i {
+  background: var(--ink);
+}
+[data-variant="E"] .next {
+  border-top: 4px solid var(--ink);
+}
+[data-variant="E"] .tool-body .top {
+  border-bottom: 3px solid var(--ink);
+}
+
+[data-variant="E"] .tool-main {
+  --wash: #f4f1e8;
+}
