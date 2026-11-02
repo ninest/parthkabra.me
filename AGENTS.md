@@ -3,7 +3,7 @@ My personal website, at https://parthkabra.me
 
 ## Codebases
 - parthkabra-me-site: main codebase for website (empty for now)
-- content: the miscfs instance `parthkabra-me` (config and actions tracked here), served at http://hel:8003 by the systemd user service `miscfs@parthkabra-me`. Its content root, `content/miscfs-content/`, is its own git repo (no remote yet) and is ignored by this one; miscfs commits every save there, and the `git-push` action pushes it
+- content: the miscfs instance `parthkabra-me` (config and actions tracked here), served at http://hel:8003 by the systemd user service `miscfs@parthkabra-me`. Its content root, `content/miscfs-content/`, is its own git repo (https://github.com/ninest/parthkabra.me-content, private) and is ignored by this one; miscfs commits every save there, and the `git-push` action pushes it
 - miscfs source: `../miscfs` (https://github.com/ninest/miscfs) — read its AGENTS.md, GLOSSARY.md and docs/ for how miscfs works
 ## Agents
 - Prefix all commits with the agent's name and model, for example "codex(GPT-6.1-sol): ..." or "claude(opus-5.5): ..."
