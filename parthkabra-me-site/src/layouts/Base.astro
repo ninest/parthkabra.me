@@ -3,6 +3,7 @@
 // viewport below a slim header, for the full-page tools.
 import "../styles/site.css";
 import "../styles/themes.prototype.css"; // PROTOTYPE: drop once a design is picked
+import "../styles/themes-saas.prototype.css"; // PROTOTYPE: round two
 import PrototypeSwitcher from "../components/PrototypeSwitcher.astro";
 import { site } from "../lib/content";
 import { routes } from "../utils/links";
@@ -22,7 +23,7 @@ const { links } = site();
 ---
 
 <!doctype html>
-<html lang="en" data-variants={import.meta.env.DEV ? "A:paper,B:swiss,C:terminal,D:editorial,E:brutal" : undefined}>
+<html lang="en" data-variants={import.meta.env.DEV ? "A:paper,F:minimal,G:dark-app,H:devtool,I:gradient" : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

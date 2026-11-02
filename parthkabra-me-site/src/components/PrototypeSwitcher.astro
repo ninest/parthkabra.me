@@ -32,7 +32,8 @@
             const url = new URL(location.href);
             url.searchParams.set("variant", key);
             history.replaceState(null, "", url);
-            label.textContent = `${key} (${variants.find((v) => v[0] === key)?.[1]})`;
+            const name = variants.find((v) => v[0] === key)?.[1];
+            label.textContent = name ? `${key} (${name})` : `${key} (round one)`;
             document.querySelectorAll("a[href^='/']").forEach((a) => {
               const u = new URL((a as HTMLAnchorElement).href);
               u.searchParams.set("variant", key);
