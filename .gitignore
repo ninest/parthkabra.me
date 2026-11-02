@@ -1,0 +1,4 @@
+# miscfs content root: its own git repo (miscfs commits every save there)
+content/miscfs-content/
+# miscfs internal state
+content/.miscfs/

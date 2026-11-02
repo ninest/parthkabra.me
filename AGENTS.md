@@ -1,0 +1,12 @@
+# parthkabra.me
+My personal website, at https://parthkabra.me
+
+## Codebases
+- parthkabra-me-site: main codebase for website (empty for now)
+- content: the miscfs instance `parthkabra-me` (config and actions tracked here), served at http://hel:8003 by the systemd user service `miscfs@parthkabra-me`. Its content root, `content/miscfs-content/`, is its own git repo (no remote yet) and is ignored by this one; miscfs commits every save there, and the `git-push` action pushes it
+- miscfs source: `../miscfs` (https://github.com/ninest/miscfs) — read its AGENTS.md, GLOSSARY.md and docs/ for how miscfs works
+## Agents
+- Prefix all commits with the agent's name and model, for example "codex(GPT-6.1-sol): ..." or "claude(opus-5.5): ..."
+- Story: if the work involves a story to review, post a link to it when you start and finish working so that it is easier to track work
+- Commit after finishing a ticket / unit of work
+- Links: give every URL served from this machine as `http://hel:<port>/...` (its Tailscale name), so the user can open it from their phone or laptop. Dev servers use ports 2000–2999; 8000+ is reserved for applications.

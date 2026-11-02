@@ -1,0 +1,19 @@
+# miscfs instance configuration.
+# Unknown keys are ignored, so it is safe to keep notes or future settings here.
+
+# The instance's name, also its MCP server's name (agents see it when several instances are connected).
+name = "parthkabra-me"
+
+[ui]
+# Address the web UI and API listen on, as "host:port".
+# The default only accepts connections from this machine. To reach the UI from
+# your other devices, bind to your tailnet IP or put `tailscale serve` in front.
+listen = "100.123.158.24:8003"
+# The address you open the UI at, for links the server hands out (e.g. session links an agent replies
+# with). Defaults to the listen address.
+url = "http://hel:8003"
+
+[chat]
+# opencode's web UI. When set, each session's menu gets "Chat with opencode", which opens it
+# with a starting prompt naming this instance and the session on your clipboard.
+# opencode = "http://hel:49374"
