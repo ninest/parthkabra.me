@@ -2,7 +2,7 @@
 My personal website, at https://parthkabra.me
 
 ## Codebases
-- parthkabra-me-site: main codebase for website (empty for now)
+- parthkabra-me-site: the website, in Astro. Builds from an export of the miscfs instance (`scripts/content.mjs`); `npm run dev` serves it at http://hel:2102
 - content: the miscfs instance `parthkabra-me` (config and actions tracked here), served at http://hel:8003 by the systemd user service `miscfs@parthkabra-me`. Its content root, `content/miscfs-content/`, is its own git repo (https://github.com/ninest/parthkabra.me-content, private) and is ignored by this one; miscfs commits every save there, and the `git-push` action pushes it
 - miscfs source: `../miscfs` (https://github.com/ninest/miscfs) — read its AGENTS.md, GLOSSARY.md and docs/ for how miscfs works
 ## Agents

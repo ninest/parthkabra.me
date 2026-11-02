@@ -1,0 +1,39 @@
+---
+interface Props {
+  id: string;
+  highlightId?: string;
+  placeholder?: string;
+  wrapperClass?: string;
+  textareaClass?: string;
+  highlightContentClass?: string;
+}
+
+const {
+  id,
+  highlightId = `${id}-highlights`,
+  placeholder,
+  wrapperClass = "",
+  textareaClass = "",
+  highlightContentClass = "",
+} = Astro.props;
+---
+
+<div class={`relative h-full w-full ${wrapperClass}`} data-textarea-with-highlights>
+  <div
+    id={highlightId}
+    class="pointer-events-none absolute inset-0 overflow-hidden"
+    aria-hidden="true"
+    data-textarea-highlights
+  >
+    <div
+      class={`min-h-full whitespace-pre-wrap break-words p-5 font-sans text-base leading-6 text-transparent ${highlightContentClass}`}
+      data-textarea-highlight-content
+    ></div>
+  </div>
+  <textarea
+    id={id}
+    class={`relative z-10 block h-full w-full resize-none overflow-auto bg-transparent p-5 font-sans text-base leading-6 text-foreground caret-primary focus:outline-none ${textareaClass}`}
+    placeholder={placeholder}
+    data-textarea-highlight-input
+  ></textarea>
+</div>

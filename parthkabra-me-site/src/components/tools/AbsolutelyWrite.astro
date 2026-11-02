@@ -1,0 +1,233 @@
+---
+import Button from "../button.astro";
+import Input from "../input.astro";
+---
+
+<div class="not-typography relative flex h-full w-full flex-col overflow-hidden md:flex-row">
+  <div class="min-w-0 flex-1 overflow-auto bg-gray-50 dark:bg-neutral-900">
+    <textarea
+      id="aw-doc"
+      placeholder="Start writing…"
+      class="w-full h-full p-4 bg-transparent focus:outline-none resize-none font-sans text-base"
+      autocomplete="off"
+      spellcheck="true"
+    ></textarea>
+  </div>
+  <aside
+    class="h-2/5 w-full shrink-0 overflow-auto p-5 md:h-auto md:w-96 md:min-w-36 flex flex-col gap-4 border-t border-border md:border-t-0 md:border-l"
+  >
+    <Input
+      id="aw-title"
+      type="text"
+      placeholder="Title"
+      autocomplete="off"
+      class="w-full px-2 py-1 bg-transparent rounded text-base"
+    />
+
+    <form id="aw-comment-form" class="flex flex-col gap-2">
+      <textarea
+        id="aw-comment-input"
+        rows="3"
+        placeholder="Add a comment…"
+        class="w-full px-2 py-1 border border-border focus:outline-none resize-none rounded bg-transparent text-base"
+      ></textarea>
+      <Button id="aw-comment-add" type="submit" variant="secondary" class="self-start text-sm">
+        Add comment
+      </Button>
+    </form>
+
+    <div id="aw-comments" class="flex flex-col gap-3"></div>
+  </aside>
+</div>
+
+<script>
+  import { buttonClasses } from "../button";
+  import {
+    readAbsolutelyWriteShareState,
+    writeAbsolutelyWriteShareState,
+    type AbsolutelyWriteComment,
+  } from "../../utils/absolutely-write-share-url";
+
+  const $doc = document.getElementById("aw-doc") as HTMLTextAreaElement | null;
+  const $title = document.getElementById("aw-title") as HTMLInputElement | null;
+  const $commentForm = document.getElementById("aw-comment-form") as HTMLFormElement | null;
+  const $commentInput = document.getElementById("aw-comment-input") as HTMLTextAreaElement | null;
+  const $commentsList = document.getElementById("aw-comments") as HTMLDivElement | null;
+
+  if (!$doc || !$title || !$commentForm || !$commentInput || !$commentsList) {
+    throw new Error("[absolutely-write] required elements missing");
+  }
+
+  type State = {
+    doc: string;
+    title: string;
+    comments: AbsolutelyWriteComment[];
+  };
+
+  const state: State = { doc: "", title: "", comments: [] };
+
+  function escapeHtml(text: string) {
+    return text
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function newId(): string {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+    return `c-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  // Render the comments list from state. Each row has an inline overflow panel
+  // (no popup) that holds a two-state Delete button — matches MapDrawer's pattern.
+  function renderComments() {
+    const deleteBtnClass = buttonClasses("outline", "sm", "text-error self-start");
+    $commentsList.innerHTML = state.comments
+      .map(
+        (c) => `
+          <div data-id="${escapeHtml(c.id)}" class="border border-border rounded p-2 flex flex-col gap-2">
+            <div class="flex items-start justify-between gap-2">
+              <p class="whitespace-pre-wrap break-words text-sm flex-1 min-w-0">${escapeHtml(c.body)}</p>
+              <button
+                data-action="toggle"
+                type="button"
+                aria-label="More actions"
+                aria-expanded="false"
+                class="shrink-0 w-7 h-7 rounded text-muted-foreground hover:bg-muted flex items-center justify-center cursor-pointer select-none touch-manipulation"
+              ><span aria-hidden="true">⋯</span></button>
+            </div>
+            <div data-extras class="hidden flex-col gap-1 border-t border-border pt-2">
+              <button data-action="delete" type="button" class="${deleteBtnClass}">Delete</button>
+            </div>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  // Debounced URL write — paste into the document shouldn't recompress on every keystroke.
+  let shareUrlTimer: ReturnType<typeof setTimeout> | null = null;
+  function scheduleShareUrlWrite() {
+    if (shareUrlTimer !== null) clearTimeout(shareUrlTimer);
+    shareUrlTimer = setTimeout(() => {
+      shareUrlTimer = null;
+      writeAbsolutelyWriteShareState(state);
+    }, 300);
+  }
+
+  function applyShareState() {
+    const loaded = readAbsolutelyWriteShareState();
+    if (!loaded) return;
+    state.doc = loaded.doc;
+    state.title = loaded.title;
+    state.comments = loaded.comments;
+    if ($doc!.value !== state.doc) $doc!.value = state.doc;
+    if ($title!.value !== state.title) $title!.value = state.title;
+    renderComments();
+  }
+
+  $doc.addEventListener("input", () => {
+    state.doc = $doc.value;
+    scheduleShareUrlWrite();
+  });
+
+  $title.addEventListener("input", () => {
+    state.title = $title.value;
+    scheduleShareUrlWrite();
+  });
+
+  $commentForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const body = $commentInput.value.trim();
+    if (body.length === 0) return;
+    state.comments.push({ id: newId(), body });
+    $commentInput.value = "";
+    renderComments();
+    writeAbsolutelyWriteShareState(state);
+  });
+
+  // Disarm a "Sure?" delete button back to "Delete", clearing the row's armed state.
+  function disarmDelete(btn: HTMLButtonElement) {
+    btn.textContent = "Delete";
+    delete btn.dataset.armed;
+    const timerId = btn.dataset.armTimer;
+    if (timerId) {
+      clearTimeout(Number(timerId));
+      delete btn.dataset.armTimer;
+    }
+  }
+
+  function disarmAllDeletes(except?: HTMLButtonElement) {
+    $commentsList.querySelectorAll<HTMLButtonElement>('[data-action="delete"][data-armed="true"]').forEach((btn) => {
+      if (btn !== except) disarmDelete(btn);
+    });
+  }
+
+  function setExtrasOpen(row: HTMLElement, open: boolean) {
+    const extras = row.querySelector<HTMLElement>("[data-extras]");
+    const toggle = row.querySelector<HTMLElement>('[data-action="toggle"]');
+    if (!extras || !toggle) return;
+    extras.classList.toggle("hidden", !open);
+    extras.classList.toggle("flex", open);
+    toggle.setAttribute("aria-expanded", String(open));
+    if (!open) {
+      extras.querySelectorAll<HTMLButtonElement>('[data-action="delete"][data-armed="true"]').forEach(disarmDelete);
+    }
+  }
+
+  function closeAllExtras(exceptRow?: HTMLElement) {
+    $commentsList.querySelectorAll<HTMLElement>("[data-id]").forEach((row) => {
+      if (row === exceptRow) return;
+      const extras = row.querySelector<HTMLElement>("[data-extras]");
+      if (extras && !extras.classList.contains("hidden")) setExtrasOpen(row, false);
+    });
+  }
+
+  $commentsList.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const toggle = target.closest<HTMLElement>('[data-action="toggle"]');
+    const del = target.closest<HTMLButtonElement>('[data-action="delete"]');
+    const row = target.closest<HTMLElement>("[data-id]");
+    if (!row) return;
+
+    if (toggle) {
+      e.stopPropagation();
+      const extras = row.querySelector<HTMLElement>("[data-extras]");
+      const isOpen = extras ? !extras.classList.contains("hidden") : false;
+      closeAllExtras(row);
+      setExtrasOpen(row, !isOpen);
+      return;
+    }
+
+    if (del) {
+      e.stopPropagation();
+      if (del.dataset.armed !== "true") {
+        disarmAllDeletes(del);
+        del.dataset.armed = "true";
+        del.textContent = "Sure?";
+        const timer = setTimeout(() => disarmDelete(del), 3000);
+        del.dataset.armTimer = String(timer);
+        return;
+      }
+      const id = row.dataset.id;
+      if (!id) return;
+      state.comments = state.comments.filter((c) => c.id !== id);
+      renderComments();
+      writeAbsolutelyWriteShareState(state);
+    }
+  });
+
+  // Outside click closes any open overflow panel and disarms any "Sure?" button.
+  document.addEventListener("click", (e) => {
+    const target = e.target as Node;
+    if (!$commentsList.contains(target)) {
+      closeAllExtras();
+      disarmAllDeletes();
+    }
+  });
+
+  window.addEventListener("hashchange", applyShareState);
+
+  applyShareState();
+</script>

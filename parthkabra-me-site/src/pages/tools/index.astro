@@ -1,0 +1,19 @@
+---
+import Columns from "../../layouts/Columns.astro";
+import Entries from "../../components/Entries.astro";
+import { ofKind } from "../../lib/content";
+
+const tools = ofKind("tool");
+---
+
+<Columns title="Tools" description="Small tools that run in the browser.">
+  <h1 class="title">Tools</h1>
+  <p class="dek">Small things that run in your browser. Nothing to sign up for.</p>
+  <Entries items={tools} byYear={false} cards />
+  <Fragment slot="side">
+    <section>
+      <div class="meta-row"><span>Tools</span><span class="num">{tools.length}</span></div>
+      <div class="meta-row"><span>Newest</span><span>{tools[0]?.title}</span></div>
+    </section>
+  </Fragment>
+</Columns>

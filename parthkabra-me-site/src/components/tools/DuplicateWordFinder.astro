@@ -1,0 +1,176 @@
+---
+import TextareaWithHighlights from "../TextareaWithHighlights.astro";
+---
+
+<div class="not-typography relative flex h-full w-full flex-col overflow-hidden md:flex-row">
+  <div class="min-w-0 flex-1 resize overflow-auto bg-gray-50 dark:bg-neutral-900">
+    <TextareaWithHighlights
+      id="duplicate-word-input"
+      placeholder="Paste your essay here ..."
+    />
+  </div>
+  <aside class="h-2/5 w-full shrink-0 overflow-auto p-5 md:h-auto md:w-96 md:min-w-36">
+    <div id="duplicate-word-results" class="space-y-4"></div>
+  </aside>
+</div>
+
+<script>
+  import { findDuplicateWords, type DuplicateWord } from "../../lib/duplicate-word";
+  import {
+    readDuplicateWordShareText,
+    writeDuplicateWordShareText,
+  } from "../../utils/duplicate-word-share-url";
+  import { setTextareaHighlights, syncTextareaHighlights } from "../TextareaWithHighlights";
+
+  type CompromiseFactory = typeof import("compromise").default;
+
+  const $input = document.getElementById("duplicate-word-input") as HTMLTextAreaElement | null;
+  const $highlights = document.getElementById("duplicate-word-input-highlights");
+  const $results = document.getElementById("duplicate-word-results");
+
+  let nlp: CompromiseFactory | null = null;
+  const lemmaCache = new Map<string, string>();
+  let lastWrittenShareText = $input?.value ?? "";
+  let lastCapturedAnalysis = "";
+
+  function escapeHtml(text: string) {
+    return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  }
+
+  // Reduce a single normalized word to its lemma using compromise: normalize
+  // strips possessives, verbs go to infinitive, nouns to singular. Falls back
+  // to the surface word until the compromise chunk has finished loading.
+  function lemmatize(word: string): string {
+    if (!nlp) return word;
+    const cached = lemmaCache.get(word);
+    if (cached !== undefined) return cached;
+    const doc = nlp(word);
+    doc.normalize({ possessives: true });
+    doc.verbs().toInfinitive();
+    doc.nouns().toSingular();
+    const lemma = doc.text("normal") || word;
+    lemmaCache.set(word, lemma);
+    return lemma;
+  }
+
+  let analyticsTimer: ReturnType<typeof setTimeout> | null = null;
+  function scheduleAnalysisCapture(duplicates: DuplicateWord[]) {
+    if (!$input || !nlp || $input.value.trim().length === 0) return;
+
+    const passageLength = $input.value.length;
+    const duplicateCount = duplicates.length;
+    const signature = `${passageLength}:${duplicateCount}`;
+    if (signature === lastCapturedAnalysis) return;
+
+    if (analyticsTimer !== null) clearTimeout(analyticsTimer);
+    analyticsTimer = setTimeout(() => {
+      analyticsTimer = null;
+      if (signature === lastCapturedAnalysis) return;
+      lastCapturedAnalysis = signature;
+      window.posthog?.capture("duplicate_word_analysis", {
+        tool: "duplicate_word_finder",
+        passage_length: passageLength,
+        duplicate_count: duplicateCount,
+      });
+    }, 3000);
+  }
+
+  function renderDuplicateWords() {
+    if (!$input || !$results) return;
+
+    const duplicates = findDuplicateWords($input.value, {
+      ignoreStopWords: true,
+      lemmatize,
+    });
+    setTextareaHighlights(
+      $input,
+      $highlights,
+      duplicates.flatMap((duplicate) => duplicate.occurrences),
+    );
+    scheduleAnalysisCapture(duplicates);
+    $results.innerHTML = duplicates
+      .map((duplicate) => {
+        const variants = duplicate.variants.toSorted((a, b) => {
+          if (a.toLocaleLowerCase() === duplicate.word) return -1;
+          if (b.toLocaleLowerCase() === duplicate.word) return 1;
+          return a.localeCompare(b);
+        });
+
+        return `
+          <div>
+            <div class="flex justify-between gap-2">
+              <span>${escapeHtml(duplicate.word)}</span>
+              <span>${duplicate.count}</span>
+            </div>
+            <div class="text-gray-500">${escapeHtml(variants.join(", "))}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Debounce so paste-of-essay doesn't re-tag on every keystroke.
+  let renderTimer: ReturnType<typeof setTimeout> | null = null;
+  function scheduleRender() {
+    if (renderTimer !== null) clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => {
+      renderTimer = null;
+      renderDuplicateWords();
+    }, 150);
+  }
+
+  let shareUrlTimer: ReturnType<typeof setTimeout> | null = null;
+  function writeShareUrl() {
+    if (!$input || $input.value === lastWrittenShareText) return;
+    lastWrittenShareText = $input.value;
+    writeDuplicateWordShareText($input.value);
+  }
+
+  function scheduleShareUrlWrite() {
+    if (shareUrlTimer !== null) clearTimeout(shareUrlTimer);
+    shareUrlTimer = setTimeout(() => {
+      shareUrlTimer = null;
+      writeShareUrl();
+    }, 300);
+  }
+
+  function handleInput() {
+    scheduleRender();
+    scheduleShareUrlWrite();
+  }
+
+  // Lazy-load compromise off the critical path so first paint stays cheap.
+  // The dynamic import becomes its own chunk that ships only on this page.
+  async function loadNlp() {
+    if (nlp) return;
+    const mod = await import("compromise");
+    nlp = mod.default;
+    renderDuplicateWords();
+  }
+
+  function kickoffNlpLoad() {
+    const idle = (window as Window & {
+      requestIdleCallback?: (cb: () => void, options?: { timeout?: number }) => number;
+    }).requestIdleCallback;
+    if (typeof idle === "function") idle(() => void loadNlp(), { timeout: 500 });
+    else setTimeout(() => void loadNlp(), 0);
+  }
+
+  function applyShareUrlText() {
+    if (!$input) return;
+    const text = readDuplicateWordShareText();
+    if (text === null || text === $input.value) return;
+
+    $input.value = text;
+    lastWrittenShareText = text;
+    renderDuplicateWords();
+    syncTextareaHighlights($input, $highlights);
+  }
+
+  applyShareUrlText();
+  $input?.addEventListener("input", handleInput);
+  $input?.addEventListener("scroll", () => syncTextareaHighlights($input, $highlights));
+  window.addEventListener("hashchange", applyShareUrlText);
+  renderDuplicateWords();
+  kickoffNlpLoad();
+</script>

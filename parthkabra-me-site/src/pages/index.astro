@@ -1,0 +1,65 @@
+---
+import Columns from "../layouts/Columns.astro";
+import Entries from "../components/Entries.astro";
+import Peek from "../components/Peek.astro";
+import { formatDate, ledger, ofKind, site, topics } from "../lib/content";
+import { getCategoryUrl, routes } from "../utils/links";
+
+const { status, statusSince } = site();
+const writing = ledger();
+const posts = writing.filter((i) => i.kind === "post").length;
+const notes = writing.length - posts;
+const recent = writing.slice(0, 10);
+const projects = ofKind("project").filter((p) => p.frontmatter.featured).slice(0, 5);
+const tools = ofKind("tool");
+---
+
+<Columns description="Parth Kabra, a software engineer in Boston, writes about software, AI, interfaces and the city.">
+  <p class="lede">
+    I’m Parth, a software engineer in Boston working at the edge of AI, product and UX. This is where I keep{" "}
+    <a href={routes.all}>{posts} posts</a>, <a href={routes.microblog}>{notes} shorter notes</a>, a few{" "}
+    <a href={routes.projects}>projects</a>, and <a href={routes.tools}>{tools.length} small tools</a> you can use right
+    here.
+  </p>
+  <p class="now">
+    <span class="pulse"></span>
+    <span><b>{status}</b>{statusSince && <> · since {formatDate(statusSince.replace("/", "-") + "-01", "month")}</>}</span>
+  </p>
+
+  <div class="section-head">
+    <h2 class="label">Lately</h2>
+    <a href={routes.all}>All writing →</a>
+  </div>
+  <Entries items={recent} />
+
+  <div class="section-head">
+    <h2 class="label">Things I’ve made</h2>
+    <a href={routes.projects}>All projects →</a>
+  </div>
+  <Entries items={projects} byYear={false} cards />
+
+  <div class="section-head">
+    <h2 class="label">Tools</h2>
+    <a href={routes.tools}>All tools →</a>
+  </div>
+  <Entries items={tools} byYear={false} cards />
+
+  <Fragment slot="side">
+    <Peek />
+    <section>
+      <h2>Topics</h2>
+      <ul>
+        {
+          topics()
+            .slice(0, 12)
+            .map((t) => (
+              <li class="meta-row" style="border:0;padding:0">
+                <a href={getCategoryUrl(t.item.slug)}>{t.item.title}</a>
+                <span class="muted num">{t.count}</span>
+              </li>
+            ))
+        }
+      </ul>
+    </section>
+  </Fragment>
+</Columns>

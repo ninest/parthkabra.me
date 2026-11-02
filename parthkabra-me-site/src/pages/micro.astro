@@ -1,0 +1,16 @@
+---
+import Columns from "../layouts/Columns.astro";
+import Entries from "../components/Entries.astro";
+import Peek from "../components/Peek.astro";
+import { ledger, thread } from "../lib/content";
+
+const roots = ledger().filter((i) => i.kind === "micro");
+const threads = roots.filter((r) => thread(r).length > 1).length;
+---
+
+<Columns title="Notes" description="Short notes, some of them threads.">
+  <h1 class="title">Notes</h1>
+  <p class="dek">Shorter than posts. Some grow into threads: {threads} of these have follow-ups.</p>
+  <Entries items={roots} />
+  <Fragment slot="side"><Peek /></Fragment>
+</Columns>

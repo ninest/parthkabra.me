@@ -1,0 +1,26 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 10 10"
+  shape-rendering="crispEdges"
+  role="img"
+  aria-label="PK"
+>
+  <!-- P -->
+  <rect x="1" y="2" width="3" height="1"></rect>
+  <rect x="1" y="3" width="1" height="5"></rect>
+  <rect x="4" y="3" width="1" height="2"></rect>
+  <rect x="2" y="5" width="2" height="1"></rect>
+  <!-- K -->
+  <rect x="6" y="2" width="1" height="6"></rect>
+  <rect x="9" y="2" width="1" height="1"></rect>
+  <rect x="8" y="3" width="1" height="1"></rect>
+  <rect x="7" y="4" width="1" height="2"></rect>
+  <rect x="8" y="6" width="1" height="1"></rect>
+  <rect x="9" y="7" width="1" height="1"></rect>
+  <style>
+    rect { fill: #d63b1f; }
+    @media (prefers-color-scheme: dark) {
+      rect { fill: #ff7a59; }
+    }
+  </style>
+</svg>

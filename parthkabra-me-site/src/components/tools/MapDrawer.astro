@@ -1,0 +1,286 @@
+---
+import Button from "../button.astro";
+import SearchIcon from "../icons/search.astro";
+import CrosshairIcon from "../icons/crosshair.astro";
+import SpinnerIcon from "../icons/spinner.astro";
+import XIcon from "../icons/x.astro";
+import CheckIcon from "../icons/check.astro";
+import ChevronRightIcon from "../icons/chevron-right.astro";
+import WalkIcon from "../icons/walk.astro";
+import BikeIcon from "../icons/bike.astro";
+import CarIcon from "../icons/car.astro";
+import RoadIcon from "../icons/road.astro";
+import { getToolAgentDocUrl } from "../../utils/links";
+---
+
+<div id="mapdrawer" class="not-typography relative w-full h-full">
+  <template id="md-road-icon-template">
+    <RoadIcon class="ml-3 h-4 w-4 shrink-0 text-white" />
+  </template>
+
+  <div id="mapdrawer-map" class="w-full h-full"></div>
+
+  <div
+    class="absolute bottom-4 left-4 flex flex-col items-start gap-2 max-w-[calc(100%-2rem)]"
+  >
+    <div
+      id="md-hint"
+      class="hidden select-none bg-background/90 border border-border rounded-lg shadow px-3 py-1.5 text-xs text-foreground backdrop-blur max-w-full"
+    >
+    </div>
+    <div
+      id="md-controls"
+      class="flex flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden bg-background/90 border border-border rounded-xl shadow px-3 py-2 backdrop-blur max-w-full"
+    >
+      <Button id="md-exit-mode" variant="outline" class="shrink-0 whitespace-nowrap text-sm text-error hidden" aria-label="Exit mode">✕</Button>
+      <Button id="md-mode-point" variant="secondary" class="shrink-0 whitespace-nowrap text-sm">Point</Button>
+      <Button id="md-mode-line" variant="secondary" class="shrink-0 whitespace-nowrap text-sm">Line</Button>
+      <Button id="md-finish-line" variant="secondary" class="shrink-0 whitespace-nowrap text-sm hidden">Finish line</Button>
+      <Button id="md-route-walk" variant="secondary" class="shrink-0 whitespace-nowrap text-sm hidden">Walk</Button>
+      <Button id="md-route-bike" variant="secondary" class="shrink-0 whitespace-nowrap text-sm hidden">Bike</Button>
+      <Button id="md-route-drive" variant="secondary" class="shrink-0 whitespace-nowrap text-sm hidden">Drive</Button>
+      <span class="mx-1 h-5 w-px shrink-0 bg-border"></span>
+      <div id="md-swatches" class="flex h-7 shrink-0 items-center gap-1 overflow-x-auto max-w-36 min-w-0 px-1 py-1"></div>
+      <button
+        id="md-collapse-toggle"
+        type="button"
+        aria-label="Hide controls"
+        aria-expanded="true"
+        class="text-sm w-7 h-7 rounded hover:bg-muted flex items-center justify-center shrink-0 ml-auto select-none touch-manipulation cursor-pointer"
+      >
+        <span id="md-collapse-icon" aria-hidden="true">▾</span>
+      </button>
+    </div>
+  </div>
+
+  <style is:global>
+    /* When collapsed, hide every direct child of the control bar except the caret itself.
+       New buttons added inside the bar are automatically covered — no per-item wiring.
+       Padding collapses to a single unit so the bar becomes a square pill around the caret. */
+    #md-controls[data-collapsed="true"] > *:not(#md-collapse-toggle) {
+      display: none;
+    }
+    #md-controls[data-collapsed="true"] {
+      padding: 0.25rem;
+    }
+    /* Same glyph in both states; rotate 180deg when collapsed so it matches the expanded caret exactly. */
+    #md-controls[data-collapsed="true"] #md-collapse-icon {
+      transform: rotate(180deg);
+    }
+    /* Mirrors the toolbar caret: ▾ when expanded, rotated 180deg when collapsed.
+       data-collapsed lives on #md-list-toggle so the caret state stays local to the header button. */
+    #md-list-toggle[data-collapsed="true"] #md-list-caret {
+      transform: rotate(180deg);
+      display: inline-block;
+    }
+    /* Hide scrollbar chrome on every swatch row — the cap is small and the bar would be visual noise.
+       Applies to the toolbar palette (#md-swatches) and the per-row extras palettes (.md-palette-scroll). */
+    #md-swatches,
+    #md-controls,
+    .md-palette-scroll { scrollbar-width: none; }
+    #md-swatches::-webkit-scrollbar,
+    #md-controls::-webkit-scrollbar,
+    .md-palette-scroll::-webkit-scrollbar { display: none; }
+    /* Drag-to-reorder visuals. Transitions are scoped to data-reordering so non-drag
+       rerenders don't animate row construction. The dragged row floats above siblings
+       while neighbors slide into place via translateY. */
+    #md-list-body[data-reordering="true"] > div { transition: transform 140ms ease; will-change: transform; }
+    #md-list-body > div[data-dragging="true"] {
+      transition: none;
+      opacity: 0.9;
+      position: relative;
+      z-index: 10;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+    }
+  </style>
+
+  <div
+    class="absolute top-4 left-4 right-4 sm:left-auto sm:w-96 max-w-[calc(100vw-2rem)] flex flex-col gap-2"
+  >
+  <div
+    id="md-list-panel"
+    class="hidden bg-background/90 border border-border rounded-lg shadow backdrop-blur overflow-hidden"
+  >
+    <div id="md-list-header" class="flex items-stretch">
+      <button
+        id="md-list-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="md-list-body"
+        data-collapsed="true"
+        class="flex-1 px-3 py-2 flex items-center justify-between gap-2 text-sm bg-muted/60 hover:bg-muted select-none touch-manipulation cursor-pointer"
+      >
+        <span class="flex items-center gap-2 min-w-0">
+          <span id="md-list-caret" aria-hidden="true" class="shrink-0">▾</span>
+          <span>Items</span>
+        </span>
+        <span id="md-list-count" class="text-muted-foreground text-xs">0</span>
+      </button>
+      <button
+        id="md-list-overflow"
+        type="button"
+        aria-label="More actions"
+        aria-expanded="false"
+        class="px-3 bg-muted/60 hover:bg-muted text-muted-foreground shrink-0 border-l border-border flex items-center select-none touch-manipulation cursor-pointer"
+      >
+        <span aria-hidden="true">⋯</span>
+      </button>
+    </div>
+    <div
+      id="md-list-extras"
+      class="hidden flex-col gap-2 p-2 border-t border-border"
+    >
+      <Button id="md-copy-link" variant="secondary" class="text-sm">Copy link</Button>
+      <Button id="md-toggle-labels" variant="secondary" class="text-sm">Hide map labels</Button>
+      <Button id="md-clear" variant="outline" class="text-sm text-error">Clear all</Button>
+    </div>
+    <div
+      id="md-list-body"
+      class="hidden flex-col gap-0.5 px-2 py-1 max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto border-t border-border"
+    >
+    </div>
+    <div
+      id="md-list-detail"
+      class="hidden flex-col max-h-[min(20rem,calc(100vh-13rem))] overflow-y-auto"
+    >
+      <div class="flex items-center gap-2 p-2 border-b border-border">
+        <button
+          id="md-detail-back"
+          type="button"
+          aria-label="Back to list"
+          class="shrink-0 w-8 h-8 rounded flex items-center justify-center text-muted-foreground hover:bg-muted select-none touch-manipulation cursor-pointer"
+        >
+          <ChevronRightIcon class="w-4 h-4 rotate-180" />
+        </button>
+        <input
+          id="md-detail-name"
+          type="text"
+          class="flex-1 min-w-0 rounded px-2 py-1 bg-transparent border border-border focus:outline-none text-base leading-tight"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="words"
+          spellcheck="false"
+        />
+        <span
+          id="md-detail-mode"
+          class="hidden shrink-0 inline-flex items-center justify-center w-8 h-8 text-muted-foreground"
+        >
+          <WalkIcon id="md-detail-mode-walk" class="w-4 h-4 hidden" />
+          <BikeIcon id="md-detail-mode-bike" class="w-4 h-4 hidden" />
+          <CarIcon id="md-detail-mode-drive" class="w-4 h-4 hidden" />
+        </span>
+      </div>
+      <div class="flex flex-col gap-3 p-3">
+        <div class="flex items-center gap-2">
+          <div
+            id="md-detail-swatches"
+            class="md-palette-scroll flex items-center gap-1 overflow-x-auto max-w-36 min-w-0 px-1 py-1"
+          ></div>
+          <Button id="md-detail-label-toggle" variant="outline" size="sm" class="shrink-0">Hide label</Button>
+        </div>
+        <div id="md-detail-address-block" class="flex flex-col gap-1 min-h-12">
+          <p id="md-detail-address" class="text-xs text-muted-foreground break-words"></p>
+          <div id="md-detail-address-actions" class="hidden items-center gap-3">
+            <button id="md-detail-edit-address" type="button" class="text-xs underline cursor-pointer select-none touch-manipulation">Edit</button>
+            <button id="md-detail-copy-address" type="button" class="text-xs underline cursor-pointer select-none touch-manipulation">Copy address</button>
+          </div>
+        </div>
+        <div id="md-detail-points-list" class="hidden flex-col gap-2 min-h-12"></div>
+        <Button id="md-detail-delete" variant="outline" size="sm" class="self-start text-error">Delete</Button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-stretch gap-2">
+    <div class="relative flex-1">
+      <SearchIcon
+        id="md-search-icon"
+        class="absolute left-2.5 inset-y-0 my-auto z-10 w-4 h-4 text-muted-foreground pointer-events-none"
+      />
+      <SpinnerIcon
+        id="md-search-spinner"
+        class="hidden absolute left-2.5 inset-y-0 my-auto z-10 w-4 h-4 text-muted-foreground pointer-events-none"
+      />
+      <input
+        id="md-search-input"
+        type="text"
+        placeholder="Search places"
+        autocomplete="off"
+        spellcheck="false"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="md-suggestions"
+        aria-expanded="false"
+        class="w-full pl-8 pr-9 py-1.5 text-base leading-tight bg-background/90 border border-border rounded-lg shadow backdrop-blur focus:outline-none"
+      />
+      <button
+        id="md-search-clear"
+        type="button"
+        aria-label="Clear search"
+        class="hidden absolute right-1.5 inset-y-0 my-auto z-10 w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted select-none touch-manipulation cursor-pointer"
+      >
+        <XIcon class="w-3.5 h-3.5" />
+      </button>
+      <ul
+        id="md-suggestions"
+        role="listbox"
+        class="hidden absolute left-0 right-0 top-full mt-1 z-20 bg-background/95 border border-border rounded-lg shadow backdrop-blur overflow-y-auto max-h-64"
+      ></ul>
+    </div>
+    <button
+      id="md-my-location"
+      type="button"
+      aria-label="Use my location"
+      aria-pressed="false"
+      class="shrink-0 px-2.5 bg-background/90 border border-border rounded-lg shadow backdrop-blur flex items-center justify-center hover:bg-muted aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:border-primary aria-pressed:hover:bg-primary select-none touch-manipulation cursor-pointer"
+    >
+      <CrosshairIcon class="w-4 h-4" />
+    </button>
+  </div>
+  <p
+    id="md-search-status"
+    class="hidden text-xs text-muted-foreground self-start bg-background/90 border border-border rounded px-2 py-0.5 backdrop-blur shadow"
+  >
+  </p>
+  <div
+    id="md-search-confirm"
+    class="hidden items-center gap-2 bg-background/90 border border-border rounded-lg shadow backdrop-blur px-2 py-1"
+  >
+    <span id="md-search-confirm-text" class="flex-1 min-w-0 truncate text-xs"></span>
+    <Button
+      id="md-search-confirm-cancel"
+      variant="outline"
+      size="sm"
+      class="text-error shrink-0"
+      aria-label="Dismiss"
+    >
+      <XIcon class="w-3.5 h-3.5" />
+    </Button>
+    <Button
+      id="md-search-confirm-add"
+      variant="outline"
+      size="sm"
+      class="text-primary shrink-0"
+      aria-label="Add point"
+    >
+      <CheckIcon id="md-search-confirm-add-icon" class="w-3.5 h-3.5" />
+      <SpinnerIcon id="md-search-confirm-add-spinner" class="hidden w-3.5 h-3.5" />
+    </Button>
+  </div>
+  </div>
+</div>
+
+<p class="mt-4 text-sm text-muted-foreground">
+  Building maps with ChatGPT, Claude, or other AI apps? Read the
+  <a href={getToolAgentDocUrl("map")}>agent docs</a>.
+</p>
+
+<script>
+  import "./MapDrawer.ts";
+</script>
+
+<style>
+  #mapdrawer-map {
+    z-index: 0;
+  }
+</style>

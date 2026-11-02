@@ -1,0 +1,25 @@
+---
+import Columns from "../layouts/Columns.astro";
+import Entries from "../components/Entries.astro";
+import Peek from "../components/Peek.astro";
+import { ofKind } from "../lib/content";
+
+const all = ofKind("project");
+const featured = all.filter((p) => p.frontmatter.featured);
+const rest = all.filter((p) => !p.frontmatter.featured);
+---
+
+<Columns title="Projects" description="Things I’ve built.">
+  <h1 class="title">Projects</h1>
+  <p class="dek">Things I’ve built, mostly to fix something that annoyed me.</p>
+  <Entries items={featured} byYear={false} cards />
+  {
+    rest.length > 0 && (
+      <>
+        <div class="section-head"><h2 class="label">Smaller things</h2></div>
+        <Entries items={rest} />
+      </>
+    )
+  }
+  <Fragment slot="side"><Peek /></Fragment>
+</Columns>

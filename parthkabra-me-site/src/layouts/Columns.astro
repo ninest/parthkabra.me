@@ -1,0 +1,14 @@
+---
+// The reading layout: the content zone, and a sidebar on the right for metadata, contents and the like.
+import Base from "./Base.astro";
+
+type Props = { title?: string; description?: string };
+---
+
+<Base {...Astro.props}>
+  <slot name="head" slot="head" />
+  <div class="frame grid">
+    <main><slot /></main>
+    <aside class="side"><div class="side-inner"><slot name="side" /></div></aside>
+  </div>
+</Base>

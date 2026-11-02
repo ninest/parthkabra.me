@@ -1,0 +1,27 @@
+---
+import Columns from "../layouts/Columns.astro";
+import Peek from "../components/Peek.astro";
+import { excerpt, ofKind } from "../lib/content";
+
+const jobs = ofKind("work").sort((a, b) => (b.frontmatter.order ?? 0) - (a.frontmatter.order ?? 0));
+---
+
+<Columns title="Work" description="Where I’ve worked.">
+  <h1 class="title">Work</h1>
+  <p class="dek">Where I’ve worked, most recent first.</p>
+  <ul class="entries">
+    {
+      jobs.map((j) => (
+        <li class="entry">
+          <a href={j.href} data-title={j.title} data-x={excerpt(j)} data-meta={[j.frontmatter.location, j.frontmatter.dateline].filter(Boolean).join(" · ")}>
+            <span class="t">
+              {j.title} <span class="muted">· {j.description}</span>
+            </span>
+            <span class="d">{j.frontmatter.dateline}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <Fragment slot="side"><Peek /></Fragment>
+</Columns>

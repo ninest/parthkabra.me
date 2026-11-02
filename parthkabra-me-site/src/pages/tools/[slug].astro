@@ -1,0 +1,49 @@
+---
+// A tool gets the whole page under a slim header. The apps (map, writing pads) fill it edge to edge;
+// the smaller form-like tools sit in a centered column.
+import "../../styles/tools.css";
+import Base from "../../layouts/Base.astro";
+import AbsolutelyWrite from "../../components/tools/AbsolutelyWrite.astro";
+import AIMapMaker from "../../components/tools/AIMapMaker.astro";
+import AverageLocationCalculator from "../../components/tools/AverageLocationCalculator.astro";
+import DuplicateWordFinder from "../../components/tools/DuplicateWordFinder.astro";
+import MapDrawer from "../../components/tools/MapDrawer.astro";
+import { bodyOf, ofKind, type Item } from "../../lib/content";
+
+const COMPONENTS = {
+  "absolutely-write": { Tool: AbsolutelyWrite, fill: true },
+  "ai-map-maker": { Tool: AIMapMaker, fill: false },
+  "average-location-calculator": { Tool: AverageLocationCalculator, fill: false },
+  "duplicate-word-finder": { Tool: DuplicateWordFinder, fill: true },
+  "map-drawer": { Tool: MapDrawer, fill: true },
+} as const;
+type Name = keyof typeof COMPONENTS;
+
+export function getStaticPaths() {
+  return ofKind("tool").flatMap((item) => {
+    const name = /```component:([\w-]+)/.exec(bodyOf(item))?.[1];
+    return name ? [{ params: { slug: item.slug }, props: { item, name } }] : [];
+  });
+}
+
+const { item, name } = Astro.props as { item: Item; name: Name };
+const { Tool, fill } = COMPONENTS[name];
+---
+
+<Base title={item.title} description={item.description} tool>
+  {
+    fill ? (
+      <Tool />
+    ) : (
+      <div class="mx-auto w-full max-w-5xl px-5 py-10">
+        {name !== "ai-map-maker" && (
+          <>
+            <h1 class="title">{item.title}</h1>
+            <p class="dek">{item.description}</p>
+          </>
+        )}
+        <Tool />
+      </div>
+    )
+  }
+</Base>

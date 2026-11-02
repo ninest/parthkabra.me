@@ -1,0 +1,58 @@
+---
+// Every page: the head, the name top left, the links top right. `tool` gives the page the whole
+// viewport below a slim header, for the full-page tools.
+import "../styles/site.css";
+import { site } from "../lib/content";
+import { routes } from "../utils/links";
+
+type Props = { title?: string; description?: string; tool?: boolean };
+const { title, description, tool = false } = Astro.props;
+const fullTitle = title ? `${title} · Parth Kabra` : "Parth Kabra";
+const here = Astro.url.pathname;
+const nav = [
+  { href: routes.all, label: "writing" },
+  { href: routes.projects, label: "projects" },
+  { href: routes.tools, label: "tools" },
+  { href: routes.about, label: "about" },
+];
+const current = (href: string) => here === href || here.startsWith(href + "/");
+const { links } = site();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <meta property="og:title" content={title ?? "Parth Kabra"} />
+    {description && <meta property="og:description" content={description} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="Parth Kabra" href={routes.rss} />
+    <link rel="canonical" href={new URL(here, Astro.site)} />
+    <slot name="head" />
+  </head>
+  <body class:list={{ "tool-body": tool }}>
+    <header class="frame top">
+      <a class="name" href="/">parthkabra<span class="tld">.me</span></a>
+      {tool && <span class="here">{title}</span>}
+      <nav aria-label="Site">
+        {nav.map((n) => <a href={n.href} aria-current={current(n.href) ? "page" : undefined}>{n.label}</a>)}
+      </nav>
+    </header>
+    {tool ? <main class="tool-main"><slot /></main> : <slot />}
+    {
+      !tool && (
+        <footer class="frame">
+          <div class="foot">
+            <span>Parth Kabra · Boston</span>
+            <nav aria-label="Elsewhere">
+              {links.map((l) => <a href={l.url}>{l.title}</a>)}
+            </nav>
+          </div>
+        </footer>
+      )
+    }
+  </body>
+</html>

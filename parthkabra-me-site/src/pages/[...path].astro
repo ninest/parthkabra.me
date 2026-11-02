@@ -1,0 +1,182 @@
+---
+// Every item that has a page of its own, at the URL the content guide gives it. A topic lists its
+// writing; everything else is prose with its metadata, contents and links in the sidebar.
+import Columns from "../layouts/Columns.astro";
+import Entries from "../components/Entries.astro";
+import Peek from "../components/Peek.astro";
+import Toc from "../components/Toc.astro";
+import KeepReading from "../components/KeepReading.astro";
+import {
+  byPath,
+  formatDate,
+  hasPage,
+  items,
+  ledger,
+  mentionedIn,
+  readingTime,
+  thread,
+  type Item,
+} from "../lib/content";
+import { render } from "../lib/markdown";
+import { getCategoryUrl, routes } from "../utils/links";
+
+export function getStaticPaths() {
+  return items()
+    .filter(hasPage)
+    .map((item) => ({ params: { path: item.href.slice(1) }, props: { item } }));
+}
+
+const { item } = Astro.props as { item: Item };
+const topic = (slug: string) => byPath(`categories/${slug}`);
+const kindName = { post: "Writing", micro: "Note", project: "Project", work: "Work", collection: "Collection", page: "", category: "Topic", tool: "Tool" }[item.kind];
+const kindHref = { post: routes.all, micro: routes.microblog, project: routes.projects, work: routes.work }[item.kind as string];
+
+const isTopic = item.kind === "category";
+const listed = isTopic ? ledger().filter((i) => i.categories.includes(item.slug)) : [];
+const r = isTopic ? undefined : await render(item);
+const fm = item.frontmatter;
+const notes = item.kind === "micro" ? thread(item) : [];
+const nextNote = notes[notes.indexOf(item) + 1];
+const mentions = isTopic ? [] : mentionedIn(item).slice(0, 6);
+const minutes = readingTime(item);
+const showToc = r && (r.headings.length > 1 || fm.showContents) && minutes > 1;
+const groups: { slug: string; title: string }[] = byPath("categories")?.frontmatter.groups ?? [];
+const kicker = isTopic ? groups.find((g) => g.slug === fm.group)?.title : kindName;
+---
+
+<Columns title={item.title} description={item.description}>
+  {
+    r?.hasMermaid && (
+      <script slot="head" type="module">
+        const {default: m} = await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");
+        m.initialize({ startOnLoad: true, theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "neutral" });
+      </script>
+    )
+  }
+  <article>
+    <p class="kicker">
+      {kicker && (kindHref ? <a href={kindHref}>{kicker}</a> : <span>{kicker}</span>)}
+      {item.categories[0] && !isTopic && (
+        <>
+          {" / "}
+          <a href={getCategoryUrl(item.categories[0])}>{topic(item.categories[0])?.title ?? item.categories[0]}</a>
+        </>
+      )}
+    </p>
+    <h1 class="title">{item.title}</h1>
+    {item.description && item.kind !== "work" && <p class="dek">{item.description}</p>}
+    {item.kind === "work" && <p class="dek">{fm.description} · {fm.dateline}</p>}
+
+    {isTopic ? <Entries items={listed} /> : <div class="prose" set:html={r!.html} />}
+
+    {
+      nextNote && (
+        <a class="continue" href={nextNote.href}>
+          <span class="label">Next in this thread · {notes.indexOf(nextNote) + 1} of {notes.length}</span>
+          <span class="continue-title">{nextNote.title} →</span>
+        </a>
+      )
+    }
+    {!isTopic && item.kind !== "page" && <KeepReading item={item} />}
+  </article>
+
+  <Fragment slot="side">
+    {
+      isTopic ? (
+        <>
+          <section>
+            <div class="meta-row">
+              <span>Entries</span>
+              <span class="num">{listed.length}</span>
+            </div>
+            {listed.at(-1) && (
+              <div class="meta-row">
+                <span>Since</span>
+                <span>{listed.at(-1)!.date.slice(0, 4)}</span>
+              </div>
+            )}
+          </section>
+          <Peek />
+        </>
+      ) : (
+        <>
+          <section>
+            {item.kind === "work" ? (
+              <>
+                <div class="meta-row"><span>Role</span><span>{fm.description}</span></div>
+                <div class="meta-row"><span>When</span><span>{fm.dateline}</span></div>
+                {fm.location && <div class="meta-row"><span>Where</span><span>{fm.location}</span></div>}
+              </>
+            ) : (
+              item.date && (
+                <div class="meta-row">
+                  <span>{item.kind === "micro" ? "Posted" : "Published"}</span>
+                  <time datetime={item.date}>{formatDate(item.date)}</time>
+                </div>
+              )
+            )}
+            {item.updated && item.kind !== "work" && (
+              <div class="meta-row">
+                <span>Updated</span>
+                <time datetime={item.updated}>{formatDate(item.updated)}</time>
+              </div>
+            )}
+            {item.categories.length > 0 && (
+              <div class="meta-row">
+                <span>Topics</span>
+                <span>
+                  {item.categories.map((c, n) => (
+                    <>
+                      {n > 0 && ", "}
+                      <a href={getCategoryUrl(c)}>{topic(c)?.title ?? c}</a>
+                    </>
+                  ))}
+                </span>
+              </div>
+            )}
+          </section>
+
+          {showToc && <Toc headings={r!.headings} minutes={minutes} />}
+
+          {notes.length > 1 && (
+            <section>
+              <h2>Thread · {notes.length} notes</h2>
+              <ul class="thread">
+                {notes.map((n) => (
+                  <li class:list={{ on: n === item }}>
+                    <a href={n.href}>{n.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {r!.links.length > 0 && (
+            <section>
+              <h2>Links</h2>
+              <ul>{r!.links.map((l) => <li set:html={l} />)}</ul>
+            </section>
+          )}
+          {r!.related.length > 0 && (
+            <section>
+              <h2>Related</h2>
+              <ul>{r!.related.map((l) => <li set:html={l} />)}</ul>
+            </section>
+          )}
+          {mentions.length > 0 && (
+            <section>
+              <h2>Mentioned in</h2>
+              <ul>
+                {mentions.map((m) => (
+                  <li>
+                    <a href={m.href}>{m.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )
+    }
+  </Fragment>
+</Columns>

@@ -1,0 +1,17 @@
+---
+// The end of a page: two nearby pages, with their openings, so there's somewhere to go next.
+import Entries from "./Entries.astro";
+import { keepReading, type Item } from "../lib/content";
+
+type Props = { item: Item };
+const picks = keepReading(Astro.props.item);
+---
+
+{
+  picks.length > 0 && (
+    <section class="next">
+      <p class="label">Keep reading</p>
+      <Entries items={picks} byYear={false} cards />
+    </section>
+  )
+}
