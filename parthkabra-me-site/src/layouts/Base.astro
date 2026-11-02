@@ -2,6 +2,7 @@
 // Every page: the head, the name top left, the links top right. `tool` gives the page the whole
 // viewport below a slim header, for the full-page tools.
 import "../styles/site.css";
+import PrototypeSwitcher from "../components/PrototypeSwitcher.astro";
 import { site } from "../lib/content";
 import { routes } from "../utils/links";
 
@@ -32,6 +33,7 @@ const { links } = site();
     <link rel="alternate" type="application/rss+xml" title="Parth Kabra" href={routes.rss} />
     <link rel="canonical" href={new URL(here, Astro.site)} />
     <slot name="head" />
+    <PrototypeSwitcher />
   </head>
   <body class:list={{ "tool-body": tool }}>
     <header class="frame top">

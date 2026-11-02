@@ -1,5 +1,6 @@
 ---
 // A list of items, under a heading per year by default. Each row carries what <Peek> shows for it.
+import EntriesByYear from "./EntriesByYear.prototype.astro";
 import { excerpt, formatDate, readingTime, hasPage, type Item } from "../lib/content";
 
 type Props = { items: Item[]; byYear?: boolean; cards?: boolean; dates?: boolean };
@@ -13,7 +14,7 @@ const meta = (i: Item) =>
   [formatDate(i.date), hasPage(i) && `${readingTime(i)} min`, i.categories.join(", ")].filter(Boolean).join(" · ");
 ---
 
-{
+{byYear && !cards ? <EntriesByYear items={items} /> : (
   years.map(([year, list]) => {
     const ul = (
       <ul class:list={["entries", { cards }]}>
@@ -42,4 +43,5 @@ const meta = (i: Item) =>
       ul
     );
   })
+)
 }

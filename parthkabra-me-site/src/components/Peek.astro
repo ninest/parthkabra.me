@@ -25,8 +25,9 @@ const { label = "Preview" } = Astro.props;
     wrap.append(p("peek-title", a.dataset.title), p("peek-body", a.dataset.x || "…"), p("peek-meta", a.dataset.meta));
     box.replaceChildren(wrap);
   }
-  if (matchMedia("(hover: hover)").matches && rows[0]) {
-    show(rows[0]);
+  const first = [...rows].find((a) => a.offsetParent);
+  if (matchMedia("(hover: hover)").matches && first) {
+    show(first);
     rows.forEach((a) => {
       a.addEventListener("mouseenter", () => show(a));
       a.addEventListener("focus", () => show(a));

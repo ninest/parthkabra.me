@@ -1,0 +1,102 @@
+---
+// PROTOTYPE (throwaway): ways to show writing by date without the year taking a column.
+// Every variant is rendered; PrototypeSwitcher shows one, picked by ?variant=.
+//   A divider  · year as a ruled line across the list
+//   B ledger   · no groups; full dates on the right, dot leaders
+//   C stream   · two-line entries: a meta line (date, kind, topic) over the title
+//   D sticky   · year label sticks to the top while you scroll its posts
+import { excerpt, formatDate, hasPage, readingTime, type Item } from "../lib/content";
+
+type Props = { items: Item[] };
+const { items } = Astro.props;
+const years = Object.entries(Object.groupBy(items, (i) => i.date.slice(0, 4))).sort(([a], [b]) => b.localeCompare(a));
+const kind = (i: Item) => (i.external ? "↗" : i.kind === "micro" ? "note" : "");
+const peek = (i: Item) => ({
+  "data-title": i.title,
+  "data-x": i.description ?? (hasPage(i) ? excerpt(i) : ""),
+  "data-meta": [formatDate(i.date), hasPage(i) && `${readingTime(i)} min`, i.categories.join(", ")].filter(Boolean).join(" · "),
+});
+const dot = (d: string) => d.slice(0, 10).replaceAll("-", "·");
+---
+
+<div class="pv" data-variants="A:divider,B:ledger,C:stream,D:sticky">
+  <div data-v="A" class="pv-a">
+    {
+      years.map(([year, list]) => (
+        <section>
+          <h2 class="pv-a-year"><span>{year}</span></h2>
+          <ul class="entries">
+            {list!.map((i) => (
+              <li class="entry"><a href={i.href} {...peek(i)}><span class="t">{i.title}{kind(i) && <span class="k">{kind(i)}</span>}</span><span class="d">{formatDate(i.date, "short")}</span></a></li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+
+  <ul data-v="B" class="pv-b entries">
+    {
+      items.map((i) => (
+        <li class="entry"><a href={i.href} {...peek(i)}><span class="t">{i.title}{kind(i) && <span class="k">{kind(i)}</span>}</span><span class="lead" /><span class="d">{dot(i.date)}</span></a></li>
+      ))
+    }
+  </ul>
+
+  <ul data-v="C" class="pv-c entries">
+    {
+      items.map((i) => (
+        <li class="entry"><a href={i.href} {...peek(i)}>
+          <span class="m">{formatDate(i.date)}{kind(i) && ` · ${kind(i)}`}{i.categories[0] && ` · ${i.categories[0]}`}</span>
+          <span class="t">{i.title}</span>
+        </a></li>
+      ))
+    }
+  </ul>
+
+  <div data-v="D" class="pv-d">
+    {
+      years.map(([year, list]) => (
+        <section>
+          <h2 class="pv-d-year">{year} <span class="muted">· {list!.length}</span></h2>
+          <ul class="entries">
+            {list!.map((i) => (
+              <li class="entry"><a href={i.href} {...peek(i)}><span class="t">{i.title}{kind(i) && <span class="k">{kind(i)}</span>}</span><span class="d">{formatDate(i.date, "short")}</span></a></li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</div>
+
+<style is:global>
+  .pv [data-v] { display: none; }
+  html:not([data-variant]) .pv [data-v="A"],
+  html[data-variant="A"] .pv [data-v="A"],
+  html[data-variant="B"] .pv [data-v="B"],
+  html[data-variant="C"] .pv [data-v="C"],
+  html[data-variant="D"] .pv [data-v="D"] { display: block; }
+
+  /* A: year as a rule */
+  .pv-a-year { display: flex; align-items: center; gap: 0.75rem; font-size: 0.78rem; font-weight: 400; color: var(--muted); margin: 1.75rem 0 0.4rem; font-variant-numeric: tabular-nums; }
+  .pv-a-year::after { content: ""; flex: 1; border-top: 1px solid var(--faint); }
+  .pv-a section:first-child .pv-a-year { margin-top: 0.5rem; }
+
+  /* B: flat ledger with leaders */
+  .pv-b { border-top: 1px solid var(--faint); padding-top: 0.5rem !important; }
+  .pv-b .entry a { grid-template-columns: auto minmax(1rem, 1fr) auto; gap: 0.6rem; }
+  .pv-b .lead { border-bottom: 1px dotted var(--muted); opacity: 0.45; transform: translateY(-0.3em); }
+  .pv-b .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* C: meta line over title */
+  .pv-c { border-top: 1px solid var(--faint); }
+  .pv-c .entry a { grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: 0.7rem; border-bottom: 1px solid var(--faint); }
+  .pv-c .m { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.03em; font-variant-numeric: tabular-nums; }
+  .pv-c .t { font-size: 1.05rem; }
+
+  /* D: sticky year */
+  .pv-d-year { position: sticky; top: 0; z-index: 1; background: var(--paper); font-size: 0.78rem; font-weight: 400; letter-spacing: 0.12em; padding: 0.6rem 0 0.4rem; margin: 0; border-bottom: 1px solid var(--faint); font-variant-numeric: tabular-nums; }
+  .pv-d section + section { margin-top: 1.25rem; }
+  .pv-d .entries { padding-top: 0.3rem; }
+</style>
