@@ -1,0 +1,13 @@
+---
+// The navbar as a full-width bar in the page's theme colour (`theme.navbar.color`).
+import Navbar, { type Breadcrumb } from "./navbar.astro";
+
+type Props = { color: string; breadcrumbs?: Breadcrumb[]; class?: string };
+const { color, breadcrumbs, class: className } = Astro.props;
+---
+
+<div style={`background-color: ${color}`} class="px-4 text-white">
+  <div class:list={["max-w-300 mx-auto", className ?? "py-1"]}>
+    <Navbar breadcrumbs={breadcrumbs} />
+  </div>
+</div>

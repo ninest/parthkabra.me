@@ -1,0 +1,63 @@
+---
+interface Props {
+  class?: string;
+  id?: string;
+}
+const { class: className = "h-5 w-auto", id } = Astro.props;
+---
+
+<svg
+  id={id}
+  role="img"
+  aria-label="Parth Kabra"
+  width="46"
+  height="6"
+  viewBox="4 2 46 6"
+  xmlns="http://www.w3.org/2000/svg"
+  shape-rendering="crispEdges"
+  class:list={["text-primary", className]}
+>
+  <!-- Parth -->
+  <rect x="4" y="2" width="3" height="1" fill="currentColor"></rect>
+  <rect x="18" y="2" width="1" height="5" fill="currentColor"></rect>
+  <rect x="21" y="2" width="1" height="6" fill="currentColor"></rect>
+  <rect x="4" y="3" width="1" height="5" fill="currentColor"></rect>
+  <rect x="7" y="3" width="1" height="2" fill="currentColor"></rect>
+  <rect x="10" y="3" width="2" height="1" fill="currentColor"></rect>
+  <rect x="14" y="3" width="1" height="5" fill="currentColor"></rect>
+  <rect x="16" y="3" width="1" height="1" fill="currentColor"></rect>
+  <rect x="19" y="3" width="1" height="1" fill="currentColor"></rect>
+  <rect x="12" y="4" width="1" height="4" fill="currentColor"></rect>
+  <rect x="15" y="4" width="1" height="1" fill="currentColor"></rect>
+  <rect x="22" y="4" width="2" height="1" fill="currentColor"></rect>
+  <rect x="5" y="5" width="2" height="1" fill="currentColor"></rect>
+  <rect x="10" y="5" width="2" height="1" fill="currentColor"></rect>
+  <rect x="24" y="5" width="1" height="3" fill="currentColor"></rect>
+  <rect x="9" y="6" width="1" height="1" fill="currentColor"></rect>
+  <rect x="10" y="7" width="2" height="1" fill="currentColor"></rect>
+  <rect x="19" y="7" width="1" height="1" fill="currentColor"></rect>
+  <!-- Kabra (shifted x +23, y -7 to sit on the same line as Parth) -->
+  <rect x="27" y="2" width="1" height="6" fill="currentColor"></rect>
+  <rect x="30" y="2" width="1" height="1" fill="currentColor"></rect>
+  <rect x="37" y="2" width="1" height="6" fill="currentColor"></rect>
+  <rect x="29" y="3" width="1" height="1" fill="currentColor"></rect>
+  <rect x="33" y="3" width="2" height="1" fill="currentColor"></rect>
+  <rect x="42" y="3" width="1" height="5" fill="currentColor"></rect>
+  <rect x="44" y="3" width="1" height="1" fill="currentColor"></rect>
+  <rect x="47" y="3" width="2" height="1" fill="currentColor"></rect>
+  <rect x="28" y="4" width="1" height="2" fill="currentColor"></rect>
+  <rect x="35" y="4" width="1" height="4" fill="currentColor"></rect>
+  <rect x="38" y="4" width="2" height="1" fill="currentColor"></rect>
+  <rect x="43" y="4" width="1" height="1" fill="currentColor"></rect>
+  <rect x="49" y="4" width="1" height="4" fill="currentColor"></rect>
+  <rect x="33" y="5" width="2" height="1" fill="currentColor"></rect>
+  <rect x="40" y="5" width="1" height="2" fill="currentColor"></rect>
+  <rect x="47" y="5" width="2" height="1" fill="currentColor"></rect>
+  <rect x="29" y="6" width="1" height="1" fill="currentColor"></rect>
+  <rect x="32" y="6" width="1" height="1" fill="currentColor"></rect>
+  <rect x="46" y="6" width="1" height="1" fill="currentColor"></rect>
+  <rect x="30" y="7" width="1" height="1" fill="currentColor"></rect>
+  <rect x="33" y="7" width="2" height="1" fill="currentColor"></rect>
+  <rect x="38" y="7" width="2" height="1" fill="currentColor"></rect>
+  <rect x="47" y="7" width="2" height="1" fill="currentColor"></rect>
+</svg>

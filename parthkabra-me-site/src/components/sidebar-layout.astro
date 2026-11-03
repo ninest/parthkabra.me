@@ -1,0 +1,30 @@
+---
+import FilledNavbar from "./filled-navbar.astro";
+import Navbar, { type Breadcrumb } from "./navbar.astro";
+import Search from "./search.astro";
+import SidebarColumns from "./sidebar-columns.astro";
+import Base, { type Head } from "../layouts/Base.astro";
+
+type Props = { breadcrumbs?: Breadcrumb[]; head?: Head; navbarColor?: string };
+const { breadcrumbs, head, navbarColor } = Astro.props;
+---
+
+<Base head={{ ...head, themeColor: navbarColor }}>
+  <slot name="head" slot="head" />
+  {navbarColor && <FilledNavbar color={navbarColor} breadcrumbs={breadcrumbs} />}
+  <div class="px-4">
+    <div class:list={["max-w-300 mx-auto", navbarColor ? "mb-16" : "my-16"]}>
+      {!navbarColor && <Navbar breadcrumbs={breadcrumbs} />}
+
+      <div class="mt-8">
+        <SidebarColumns>
+          <slot />
+          <Fragment slot="sidebar">
+            <Search />
+            <slot name="sidebar" />
+          </Fragment>
+        </SidebarColumns>
+      </div>
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,56 @@
+---
+import ThemeToggle from "./theme-toggle.astro";
+import Wordmark from "./wordmark.astro";
+
+export type Breadcrumb = { label: string; href?: string };
+type Props = { breadcrumbs?: Breadcrumb[]; class?: string };
+
+const { breadcrumbs } = Astro.props;
+---
+
+<div class:list={["flex items-baseline justify-between", Astro.props.class]}>
+  {
+    breadcrumbs ? (
+      <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap min-w-0">
+        {breadcrumbs.map((crumb, i) => (
+          <>
+            {i > 0 && <span>{">"}</span>}
+            {crumb.href ? (
+              <a href={crumb.href} class="underline">
+                {crumb.label}
+              </a>
+            ) : (
+              <span>{crumb.label}</span>
+            )}
+          </>
+        ))}
+      </div>
+    ) : (
+      <h1>
+        <a href="/" aria-label="Parth Kabra — home">
+          <Wordmark class="h-5 w-auto" />
+          <span class="sr-only">Parth Kabra</span>
+        </a>
+      </h1>
+    )
+  }
+  <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
+    <ThemeToggle />
+    <p class="et-time"></p>
+  </div>
+</div>
+
+<script>
+  const $etTimes = document.querySelectorAll<HTMLElement>(".et-time");
+  function updateTime() {
+    const time = new Date().toLocaleTimeString("en-US", {
+      timeZone: "America/New_York",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    $etTimes.forEach(($t) => ($t.textContent = `${time} ET`));
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+</script>

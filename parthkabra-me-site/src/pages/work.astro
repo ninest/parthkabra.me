@@ -1,27 +1,30 @@
 ---
-import Columns from "../layouts/Columns.astro";
-import Peek from "../components/Peek.astro";
-import { excerpt, ofKind } from "../lib/content";
+import SidebarLayout from "../components/sidebar-layout.astro";
+import { assetUrl, workByOrder } from "../lib/content";
 
-const jobs = ofKind("work").sort((a, b) => (b.frontmatter.order ?? 0) - (a.frontmatter.order ?? 0));
+const work = workByOrder();
 ---
 
-<Columns title="Work" description="Where I’ve worked.">
-  <h1 class="title">Work</h1>
-  <p class="dek">Where I’ve worked, most recent first.</p>
-  <ul class="entries">
-    {
-      jobs.map((j) => (
-        <li class="entry">
-          <a href={j.href} data-title={j.title} data-x={excerpt(j)} data-meta={[j.frontmatter.location, j.frontmatter.dateline].filter(Boolean).join(" · ")}>
-            <span class="t">
-              {j.title} <span class="muted">· {j.description}</span>
-            </span>
-            <span class="d">{j.frontmatter.dateline}</span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-  <Fragment slot="side"><Peek /></Fragment>
-</Columns>
+<SidebarLayout head={{ title: "Work", description: "Parth Kabra's work experience" }} breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Work" }]}>
+  <h1 class="text-3xl font-black">Work experience</h1>
+
+  <section class="mt-8">
+    <ul class="space-y-4">
+      {
+        work.map((ex) => (
+          <li>
+            <a href={ex.href} class="block">
+              <div class="flex items-center gap-3">
+                <span class="inline-block w-4 h-4 shrink-0">
+                  {ex.frontmatter.icon && <img src={assetUrl(ex, ex.frontmatter.icon)} alt={`${ex.title} logo`} class="w-4 h-4" />}
+                </span>
+                <div class="font-bold">{ex.title}</div>
+              </div>
+              <div class="ml-7">{ex.description}</div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</SidebarLayout>

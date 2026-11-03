@@ -1,32 +1,18 @@
 ---
-import Columns from "../layouts/Columns.astro";
-import Entries from "../components/Entries.astro";
-import Peek from "../components/Peek.astro";
-import { ledger, topics } from "../lib/content";
-import { getCategoryUrl } from "../utils/links";
+import CategoryList from "../components/category-list.astro";
+import PostList from "../components/post-list.astro";
+import SidebarLayout from "../components/sidebar-layout.astro";
+import { ofKind } from "../lib/content";
 
-const writing = ledger();
-const first = writing.at(-1)!.date.slice(0, 4);
+const posts = ofKind("post");
 ---
 
-<Columns title="Writing" description="Everything I’ve written, newest first.">
-  <h1 class="title">Writing</h1>
-  <p class="dek">Everything, newest first: {writing.length} posts and notes since {first}.</p>
-  <Entries items={writing} />
-  <Fragment slot="side">
-    <Peek />
-    <section>
-      <h2>By topic</h2>
-      <ul>
-        {
-          topics().map((t) => (
-            <li class="meta-row" style="border:0;padding:0">
-              <a href={getCategoryUrl(t.item.slug)}>{t.item.title}</a>
-              <span class="muted num">{t.count}</span>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-  </Fragment>
-</Columns>
+<SidebarLayout head={{ title: "All posts", description: "All posts on Parth Kabra's website" }} breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "All" }]}>
+  <h1 class="text-3xl font-black">All posts ({posts.length})</h1>
+
+  <section class="mt-8">
+    <PostList posts={posts} />
+  </section>
+
+  <CategoryList slot="sidebar" />
+</SidebarLayout>

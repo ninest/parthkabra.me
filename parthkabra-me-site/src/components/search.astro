@@ -1,0 +1,49 @@
+---
+import Input from "./input.astro";
+import Button from "./button.astro";
+---
+
+<div class="flex items-center justify-between gap-1">
+  <Input id="search-input" placeholder="search" autocomplete="off" class="rounded-l px-1 w-full h-7" />
+  <Button variant="secondary" class="rounded-l-none">Go</Button>
+</div>
+
+<ul id="search-results" class="mt-2 space-y-0.5 rounded overflow-hidden"></ul>
+
+<script>
+  import { search, type SearchHit } from "../lib/search";
+
+  const $input = document.getElementById("search-input") as HTMLInputElement;
+  const $resultsList = document.getElementById("search-results")!;
+
+  let debounceTimer: ReturnType<typeof setTimeout>;
+
+  function renderResults(results: SearchHit[]) {
+    if (results.length === 0) {
+      $resultsList.innerHTML = `<li class="text-muted-foreground text-sm">No results</li>`;
+      return;
+    }
+    $resultsList.innerHTML = results
+      .slice(0, 15)
+      .map(
+        (r) =>
+          `<li>
+            <a href="${r.url}" ${r.external ? 'target="_blank" rel="noopener"' : ""} class="flex items-center justify-between bg-muted/50 py-1 px-2">
+              <div>${r.title}</div>
+              <div class="text-sm">${r.type}</div>
+            </a>
+          </li>`,
+      )
+      .join("");
+  }
+
+  $input.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    const query = $input.value.trim();
+    if (!query) {
+      $resultsList.innerHTML = "";
+      return;
+    }
+    debounceTimer = setTimeout(async () => renderResults(await search(query)), 150);
+  });
+</script>

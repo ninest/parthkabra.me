@@ -1,23 +1,26 @@
 ---
-// Every item that has a page of its own, at the URL the content guide gives it. A topic lists its
-// writing; everything else is prose with its metadata, contents and links in the sidebar.
-import Columns from "../layouts/Columns.astro";
-import Entries from "../components/Entries.astro";
-import Peek from "../components/Peek.astro";
-import Toc from "../components/Toc.astro";
-import KeepReading from "../components/KeepReading.astro";
+// Every item with a page of its own, at the URL the content guide gives it.
+import CategoryList from "../components/category-list.astro";
+import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
+import Note from "../components/microblog/note.astro";
+import ThreadList from "../components/microblog/thread-list.astro";
+import PageTitle from "../components/page-title.astro";
+import PostList from "../components/post-list.astro";
+import SidebarLayout from "../components/sidebar-layout.astro";
 import {
+  assetUrl,
+  bodyOf,
   byPath,
   formatDate,
   hasPage,
   items,
-  ledger,
-  mentionedIn,
-  readingTime,
+  ofKind,
   thread,
+  workByOrder,
   type Item,
 } from "../lib/content";
 import { render } from "../lib/markdown";
+import { pageTheme } from "../lib/theme";
 import { getCategoryUrl, routes } from "../utils/links";
 
 export function getStaticPaths() {
@@ -27,156 +30,154 @@ export function getStaticPaths() {
 }
 
 const { item } = Astro.props as { item: Item };
-const topic = (slug: string) => byPath(`categories/${slug}`);
-const kindName = { post: "Writing", micro: "Note", project: "Project", work: "Work", collection: "Collection", page: "", category: "Topic", tool: "Tool" }[item.kind];
-const kindHref = { post: routes.all, micro: routes.microblog, project: routes.projects, work: routes.work }[item.kind as string];
-
-const isTopic = item.kind === "category";
-const listed = isTopic ? ledger().filter((i) => i.categories.includes(item.slug)) : [];
-const r = isTopic ? undefined : await render(item);
 const fm = item.frontmatter;
+const home = { label: "Parth Kabra", href: "/" };
+const theme = pageTheme(item);
+const r = await render(item);
+const head = { title: item.title, description: item.description };
+const month = item.date && formatDate(item.date, "month");
+
+// What goes under the title and in the sidebar depends on the kind of page.
+const firstCategory = item.categories[0];
+const categoryTitle = firstCategory ? (byPath(`categories/${firstCategory}`)?.title ?? firstCategory) : "";
+
+const breadcrumbs = {
+  post: [home, { label: categoryTitle, href: firstCategory && getCategoryUrl(firstCategory) }],
+  micro: [home, { label: "Microblog", href: routes.microblog }],
+  project: [home, { label: "Projects", href: routes.projects }],
+  work: [home, { label: "Work", href: routes.work }],
+  collection: [home],
+  page: [home],
+  category: [home, { label: item.title }],
+}[item.kind];
+
+const subtitle = {
+  post: [month, item.description],
+  project: [month, item.description],
+  work: [item.description, fm.location, fm.dateline],
+  page: [item.description],
+  collection: [item.description],
+}[item.kind as string]
+  ?.filter(Boolean)
+  .join(" · ");
+
 const notes = item.kind === "micro" ? thread(item) : [];
-const nextNote = notes[notes.indexOf(item) + 1];
-const mentions = isTopic ? [] : mentionedIn(item).slice(0, 6);
-const minutes = readingTime(item);
-const showToc = r && (r.headings.length > 1 || fm.showContents) && minutes > 1;
-const groups: { slug: string; title: string }[] = byPath("categories")?.frontmatter.groups ?? [];
-const kicker = isTopic ? groups.find((g) => g.slug === fm.group)?.title : kindName;
+
+const sameCategory = ofKind("post")
+  .filter((p) => p !== item && p.categories[0] === firstCategory)
+  .slice(0, 8);
+const otherProjects = ofKind("project").filter((p) => p !== item);
+const otherPages = ofKind("page")
+  .filter((p) => p !== item)
+  .sort((a, b) => a.title.localeCompare(b.title));
+const work = workByOrder();
+const at = work.indexOf(item);
+const neighbours = item.kind === "work" ? [{ label: "Next", item: work[at - 1] }, { label: "Previous", item: work[at + 1] }].filter((n) => n.item) : [];
+
+const categoryPosts = ofKind("post").filter((p) => p.categories.includes(item.slug));
+const categoryNotes = ofKind("micro").filter((m) => m.categories.includes(item.slug));
+const hasBody = bodyOf(item).trim().length > 0;
 ---
 
-<Columns title={item.title} description={item.description}>
+<SidebarLayout head={head} breadcrumbs={breadcrumbs} navbarColor={theme.navbarColor}>
   {
-    r?.hasMermaid && (
+    r.hasMermaid && (
       <script slot="head" type="module">
         const {default: m} = await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");
-        m.initialize({ startOnLoad: true, theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "neutral" });
+        m.initialize({ startOnLoad: true, theme: document.documentElement.classList.contains("dark") ? "dark" : "neutral" });
       </script>
     )
   }
-  <article>
-    <p class="kicker">
-      {kicker && (kindHref ? <a href={kindHref}>{kicker}</a> : <span>{kicker}</span>)}
-      {item.categories[0] && !isTopic && (
-        <>
-          {" / "}
-          <a href={getCategoryUrl(item.categories[0])}>{topic(item.categories[0])?.title ?? item.categories[0]}</a>
-        </>
-      )}
-    </p>
-    <h1 class="title">{item.title}</h1>
-    {item.description && item.kind !== "work" && <p class="dek">{item.description}</p>}
-    {item.kind === "work" && <p class="dek">{fm.description} · {fm.dateline}</p>}
 
-    {isTopic ? <Entries items={listed} /> : <div class="prose" set:html={r!.html} />}
+  {
+    item.kind === "micro" ? (
+      <div class="border-y border-border">
+        {notes.map((note, n) => (
+          <Note note={note} current={note === item && notes.length > 1} threadedUp={n > 0} threadedDown={n < notes.length - 1} />
+        ))}
+      </div>
+    ) : (
+      <>
+        <PageTitle title={item.title} theme={theme} icon={fm.icon && assetUrl(item, fm.icon)} />
+        {subtitle && <p class="mt-2 text-muted-foreground">{subtitle}</p>}
+
+        {item.kind === "category" ? (
+          <>
+            {hasBody && <article class="mt-4 typography" set:html={r.html} />}
+            <section class="mt-8">
+              <PostList posts={categoryPosts} />
+            </section>
+            {categoryNotes.length > 0 && (
+              <div class="mt-8">
+                <MicroblogSidebar notes={categoryNotes} title="Microposts" showViewAll={false} />
+              </div>
+            )}
+          </>
+        ) : (
+          <article class="mt-8 typography" set:html={r.html} />
+        )}
+      </>
+    )
+  }
+
+  <Fragment slot="sidebar">
+    {item.kind === "category" && <CategoryList />}
+    {item.kind === "micro" && <ThreadList />}
 
     {
-      nextNote && (
-        <a class="continue" href={nextNote.href}>
-          <span class="label">Next in this thread · {notes.indexOf(nextNote) + 1} of {notes.length}</span>
-          <span class="continue-title">{nextNote.title} →</span>
-        </a>
+      item.kind === "post" && sameCategory.length > 0 && (
+        <nav class="mt-8 rounded-md overflow-hidden flex flex-col gap-1">
+          {sameCategory.map((post) => (
+            <a href={post.href} target={post.external ? "_blank" : undefined} rel={post.external ? "noopener" : undefined} class="block bg-muted py-1 px-2">
+              <div class="text-sm text-muted-foreground">{post.date.slice(0, 7).replace("-", "/")}</div>
+              <div class="mt-1 font-semibold">{post.title}</div>
+            </a>
+          ))}
+        </nav>
       )
     }
-    {!isTopic && item.kind !== "page" && <KeepReading item={item} />}
-  </article>
 
-  <Fragment slot="side">
     {
-      isTopic ? (
-        <>
-          <section>
-            <div class="meta-row">
-              <span>Entries</span>
-              <span class="num">{listed.length}</span>
-            </div>
-            {listed.at(-1) && (
-              <div class="meta-row">
-                <span>Since</span>
-                <span>{listed.at(-1)!.date.slice(0, 4)}</span>
-              </div>
-            )}
-          </section>
-          <Peek />
-        </>
-      ) : (
-        <>
-          <section>
-            {item.kind === "work" ? (
-              <>
-                <div class="meta-row"><span>Role</span><span>{fm.description}</span></div>
-                <div class="meta-row"><span>When</span><span>{fm.dateline}</span></div>
-                {fm.location && <div class="meta-row"><span>Where</span><span>{fm.location}</span></div>}
-              </>
-            ) : (
-              item.date && (
-                <div class="meta-row">
-                  <span>{item.kind === "micro" ? "Posted" : "Published"}</span>
-                  <time datetime={item.date}>{formatDate(item.date)}</time>
-                </div>
-              )
-            )}
-            {item.updated && item.kind !== "work" && (
-              <div class="meta-row">
-                <span>Updated</span>
-                <time datetime={item.updated}>{formatDate(item.updated)}</time>
-              </div>
-            )}
-            {item.categories.length > 0 && (
-              <div class="meta-row">
-                <span>Topics</span>
-                <span>
-                  {item.categories.map((c, n) => (
-                    <>
-                      {n > 0 && ", "}
-                      <a href={getCategoryUrl(c)}>{topic(c)?.title ?? c}</a>
-                    </>
-                  ))}
-                </span>
-              </div>
-            )}
-          </section>
+      neighbours.length > 0 && (
+        <nav class="mt-8 rounded-md overflow-hidden flex flex-col gap-1">
+          {neighbours.map((n) => (
+            <a href={n.item!.href} class="block bg-muted py-1 px-2">
+              <div class="text-sm">{n.label}</div>
+              <div class="mt-1 font-semibold">{n.item!.title}</div>
+            </a>
+          ))}
+        </nav>
+      )
+    }
 
-          {showToc && <Toc headings={r!.headings} minutes={minutes} />}
+    {
+      item.kind === "project" && (
+        <nav class="mt-8">
+          <h2 class="font-bold">Projects</h2>
+          <div class="mt-1 rounded-md overflow-hidden flex flex-col gap-1">
+            {otherProjects.map((project) => (
+              <a href={project.href} class="block bg-muted py-1 px-2">
+                <div class="mt-1">{project.title}</div>
+              </a>
+            ))}
+          </div>
+        </nav>
+      )
+    }
 
-          {notes.length > 1 && (
-            <section>
-              <h2>Thread · {notes.length} notes</h2>
-              <ul class="thread">
-                {notes.map((n) => (
-                  <li class:list={{ on: n === item }}>
-                    <a href={n.href}>{n.title}</a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {r!.links.length > 0 && (
-            <section>
-              <h2>Links</h2>
-              <ul>{r!.links.map((l) => <li set:html={l} />)}</ul>
-            </section>
-          )}
-          {r!.related.length > 0 && (
-            <section>
-              <h2>Related</h2>
-              <ul>{r!.related.map((l) => <li set:html={l} />)}</ul>
-            </section>
-          )}
-          {mentions.length > 0 && (
-            <section>
-              <h2>Mentioned in</h2>
-              <ul>
-                {mentions.map((m) => (
-                  <li>
-                    <a href={m.href}>{m.title}</a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </>
+    {
+      item.kind === "page" && otherPages.length > 0 && (
+        <nav class="mt-8">
+          <h2 class="font-bold">Pages</h2>
+          <div class="mt-1 rounded-md overflow-hidden flex flex-col gap-1">
+            {otherPages.map((page) => (
+              <a href={page.href} class="block bg-muted py-1 px-2">
+                <div class="mt-1">{page.title}</div>
+              </a>
+            ))}
+          </div>
+        </nav>
       )
     }
   </Fragment>
-</Columns>
+</SidebarLayout>

@@ -1,0 +1,26 @@
+---
+import { byPath, type Item } from "../lib/content";
+import { routes } from "../utils/links";
+
+// The topics worth browsing; the rest have only a post or two.
+const VISIBLE = ["ai", "astro", "blog", "cli", "firefox", "git", "html", "javascript", "leetcode", "mac", "maps", "meta", "origami", "python", "restaurants", "typescript", "ui", "vscode"];
+const categories = VISIBLE.map((slug) => byPath(`categories/${slug}`)).filter((c): c is Item => !!c);
+---
+
+<nav class="mt-8">
+  <div class="text-sm font-bold">Categories</div>
+  <ul class="mt-2 flex flex-wrap gap-1 rounded-md overflow-hidden">
+    <li class="grow min-w-[20%]">
+      <a href={routes.all} class="block bg-muted py-1 px-2 text-center">All</a>
+    </li>
+    {
+      categories.map((cat) => (
+        <li class="grow min-w-[20%]">
+          <a href={cat.href} class="block bg-muted py-1 px-2 text-center">
+            {cat.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

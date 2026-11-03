@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@import "./typography.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/mulish"; /* only fetched by pages whose theme.title.font asks for it */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: "Inter Variable", sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-error: var(--error);
+}
+
+:root {
+  --background: var(--color-white);
+  --foreground: var(--color-neutral-950);
+  --primary: var(--color-indigo-600);
+  --primary-foreground: var(--color-neutral-50);
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-500);
+  --border: var(--color-neutral-200);
+  --error: var(--color-red-600);
+}
+
+.dark {
+  --background: var(--color-neutral-950);
+  --foreground: var(--color-neutral-50);
+  --primary: var(--color-indigo-400);
+  --primary-foreground: var(--color-neutral-950);
+  --muted: var(--color-neutral-900);
+  --muted-foreground: var(--color-neutral-400);
+  --border: var(--color-neutral-800);
+  --error: var(--color-red-400);
+}
+
+/* A page's `theme.navbar.color` is also its accent. Lightened in dark mode so that dark brand
+   colours stay readable as text; the navbar itself keeps the exact colour. */
+html[data-theme-color] {
+  --primary: var(--page-color);
+}
+html[data-theme-color].dark {
+  --primary: color-mix(in oklab, var(--page-color) 55%, white);
+}
+
+/* Code: Shiki's two palettes, switched by the theme toggle rather than the OS setting */
+.shiki span {
+  color: var(--shiki-light);
+}
+.dark .shiki span {
+  color: var(--shiki-dark);
+}
+
+/* ` ```component:alert ` blocks */
+.callout {
+  margin-block: calc(var(--spacing) * 6);
+  padding: calc(var(--spacing) * 4);
+  border-left: 3px solid var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+.callout-secondary {
+  border-color: var(--color-border);
+  background-color: var(--color-muted);
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: calc(var(--spacing) * 2);
+}
+.callout > :first-child {
+  margin-top: 0;
+}
+.callout > :last-child {
+  margin-bottom: 0;
+}
+
+/* PROTOTYPE: drop once a microblog variant is picked. Without the switcher, A shows. */
+.variant-b,
+.variant-c,
+html[data-variant="B"] .variant-a,
+html[data-variant="C"] .variant-a {
+  display: none;
+}
+html[data-variant="B"] .variant-b,
+html[data-variant="C"] .variant-c {
+  display: block;
+}

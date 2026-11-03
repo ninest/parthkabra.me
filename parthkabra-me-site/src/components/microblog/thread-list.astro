@@ -1,0 +1,20 @@
+---
+import { microThreads } from "../../lib/content";
+
+const threads = microThreads().filter((notes) => notes.length > 1);
+---
+
+{
+  threads.length > 0 && (
+    <section class="mt-8">
+      <h2 class="font-bold">Threads</h2>
+      <ul class="mt-1 mb-10 space-y-1">
+        {threads.map(([root]) => (
+          <li>
+            <a href={root!.href} class="text-sm text-primary underline">{root!.title}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

@@ -1,18 +1,22 @@
 ---
-// A tool gets the whole page under a slim header. The apps (map, writing pads) fill it edge to edge;
-// the smaller form-like tools sit in a centered column.
-import "../../styles/tools.css";
+// A tool gets the whole viewport under a slim navbar; the one form-like tool sits in the normal page.
 import Base from "../../layouts/Base.astro";
 import AbsolutelyWrite from "../../components/tools/AbsolutelyWrite.astro";
 import AIMapMaker from "../../components/tools/AIMapMaker.astro";
 import AverageLocationCalculator from "../../components/tools/AverageLocationCalculator.astro";
 import DuplicateWordFinder from "../../components/tools/DuplicateWordFinder.astro";
 import MapDrawer from "../../components/tools/MapDrawer.astro";
-import { bodyOf, ofKind, type Item } from "../../lib/content";
+import FilledNavbar from "../../components/filled-navbar.astro";
+import Navbar from "../../components/navbar.astro";
+import PageTitle from "../../components/page-title.astro";
+import Search from "../../components/search.astro";
+import { bodyOf, formatDate, ofKind, type Item } from "../../lib/content";
+import { pageTheme } from "../../lib/theme";
+import { routes } from "../../utils/links";
 
 const COMPONENTS = {
   "absolutely-write": { Tool: AbsolutelyWrite, fill: true },
-  "ai-map-maker": { Tool: AIMapMaker, fill: false },
+  "ai-map-maker": { Tool: AIMapMaker, fill: true },
   "average-location-calculator": { Tool: AverageLocationCalculator, fill: false },
   "duplicate-word-finder": { Tool: DuplicateWordFinder, fill: true },
   "map-drawer": { Tool: MapDrawer, fill: true },
@@ -28,22 +32,51 @@ export function getStaticPaths() {
 
 const { item, name } = Astro.props as { item: Item; name: Name };
 const { Tool, fill } = COMPONENTS[name];
+const theme = pageTheme(item);
+const color = theme.navbarColor;
+const crumbs = [
+  { label: "Parth Kabra", href: routes.home },
+  { label: "Tools", href: routes.tools },
+];
+const head = { title: item.title, description: item.description, themeColor: color };
 ---
 
-<Base title={item.title} description={item.description} tool>
+<Base head={head}>
   {
     fill ? (
-      <Tool />
-    ) : (
-      <div class="mx-auto w-full max-w-5xl px-5 py-10">
-        {name !== "ai-map-maker" && (
-          <>
-            <h1 class="title">{item.title}</h1>
-            <p class="dek">{item.description}</p>
-          </>
+      <div class="fixed inset-0 flex flex-col">
+        {color ? (
+          <FilledNavbar color={color} class="py-3" breadcrumbs={[...crumbs, { label: item.title }]} />
+        ) : (
+          <div class="px-4 py-3 border-b border-border bg-background">
+            <Navbar breadcrumbs={[...crumbs, { label: item.title }]} />
+          </div>
         )}
-        <Tool />
+        <main class="flex-1 min-h-0 relative">
+          <Tool />
+        </main>
       </div>
+    ) : (
+      <>
+        {color && <FilledNavbar color={color} breadcrumbs={crumbs} />}
+        <div class="px-4">
+          <div class:list={["max-w-300 mx-auto", color ? "mb-16" : "my-16"]}>
+            {!color && <Navbar breadcrumbs={crumbs} />}
+            <div class="mt-8 flex flex-col md:flex-row gap-12 lg:gap-24">
+              <div class="flex-1 min-w-0">
+                <PageTitle title={item.title} theme={theme} />
+                <p class="mt-2 text-muted-foreground">{formatDate(item.date, "month")} · {item.description}</p>
+              </div>
+              <div class="hidden md:block md:w-72 lg:w-84 shrink-0">
+                <Search />
+              </div>
+            </div>
+            <main class="mt-8">
+              <Tool />
+            </main>
+          </div>
+        </div>
+      </>
     )
   }
 </Base>

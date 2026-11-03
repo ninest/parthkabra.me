@@ -1,0 +1,43 @@
+---
+// PROTOTYPE: the two variants (A links, B and C timeline) of a compact list of notes.
+import { excerpt, firstImage, formatDate, ofKind, type Item } from "../../lib/content";
+import { routes } from "../../utils/links";
+
+type Props = { notes?: Item[]; title?: string; showViewAll?: boolean };
+const { notes = ofKind("micro").slice(0, 10), title = "Microblog", showViewAll = true } = Astro.props;
+---
+
+<section data-variants={import.meta.env.DEV ? "A:Links,B:Timeline,C:Date column" : undefined}>
+  <div class="flex items-center justify-between">
+    <h2 class="font-bold">{title}</h2>
+    {showViewAll && <a href={routes.microblog} class="underline text-sm text-primary">View all</a>}
+  </div>
+
+  <ul class="variant-a ml-5 mt-1 space-y-1.5">
+    {
+      notes.map((note) => (
+        <li>
+          <a href={note.href} class="underline text-primary">{note.title}</a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <ul class="variant-b variant-c mt-2 divide-y divide-border border-y border-border">
+    {
+      notes.map((note) => {
+        const image = firstImage(note);
+        return (
+          <li>
+            <a href={note.href} class="block py-3 hover:bg-muted/50">
+              <p class="text-xs text-muted-foreground">{formatDate(note.date)}</p>
+              <p class="mt-0.5 text-sm font-semibold">{note.title}</p>
+              <p class="mt-0.5 line-clamp-3 text-sm leading-snug">{excerpt(note, 160)}</p>
+              {image && <img src={image} alt="" loading="lazy" class="mt-2 max-h-32 rounded-lg ring-1 ring-border" />}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</section>

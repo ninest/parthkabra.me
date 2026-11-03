@@ -1,62 +1,57 @@
 ---
-// Every page: the head, the name top left, the links top right. `tool` gives the page the whole
-// viewport below a slim header, for the full-page tools.
-import "../styles/site.css";
-import "../styles/themes.prototype.css"; // PROTOTYPE: drop once a design is picked
-import "../styles/themes-saas.prototype.css"; // PROTOTYPE: round two
-import "../styles/themes-mix.prototype.css"; // PROTOTYPE: round three
+// Every page: the head and the page's colour, if its theme sets one.
+import "../styles/global.css";
 import PrototypeSwitcher from "../components/PrototypeSwitcher.astro";
-import { site } from "../lib/content";
+import ThemeInit from "../components/theme-init.astro";
 import { routes } from "../utils/links";
 
-type Props = { title?: string; description?: string; tool?: boolean };
-const { title, description, tool = false } = Astro.props;
-const fullTitle = title ? `${title} · Parth Kabra` : "Parth Kabra";
-const here = Astro.url.pathname;
-const nav = [
-  { href: routes.all, label: "writing" },
-  { href: routes.projects, label: "projects" },
-  { href: routes.tools, label: "tools" },
-  { href: routes.about, label: "about" },
-];
-const current = (href: string) => here === href || here.startsWith(href + "/");
-const { links } = site();
+export type Head = { title?: string; fullTitle?: string; description?: string; themeColor?: string };
+type Props = { head?: Head };
+
+const siteName = "Parth Kabra";
+const { title, fullTitle, description, themeColor } = Astro.props.head ?? {};
+
+const pageTitle = fullTitle ?? (title ? `${title} - ${siteName}` : siteName);
+const pageDescription = description ?? "Parth Kabra's personal website";
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en" data-variants={import.meta.env.DEV ? "F:minimal,J:F + blue,K:F + blue + G ui,L:K in dark,G:dark-app" : undefined}>
+<html lang="en" data-theme-color={themeColor} style={themeColor ? `--page-color: ${themeColor}` : undefined}>
   <head>
+    <meta name="theme-color" content={themeColor ?? "#ffffff"} />
+    <ThemeInit />
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{fullTitle}</title>
-    {description && <meta name="description" content={description} />}
-    <meta property="og:title" content={title ?? "Parth Kabra"} />
-    {description && <meta property="og:description" content={description} />}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="alternate" type="application/rss+xml" title="Parth Kabra" href={routes.rss} />
-    <link rel="canonical" href={new URL(here, Astro.site)} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" type="application/rss+xml" title={siteName} href={new URL(routes.rss, Astro.site)} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={siteName} />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
     <slot name="head" />
     <PrototypeSwitcher />
   </head>
-  <body class:list={{ "tool-body": tool }}>
-    <header class="frame top">
-      <a class="name" href="/">parthkabra<span class="tld">.me</span></a>
-      {tool && <span class="here">{title}</span>}
-      <nav aria-label="Site">
-        {nav.map((n) => <a href={n.href} aria-current={current(n.href) ? "page" : undefined}>{n.label}</a>)}
-      </nav>
-    </header>
-    {tool ? <main class="tool-main"><slot /></main> : <slot />}
+
+  <body class="bg-background text-foreground" style={themeColor ? `background-color: ${themeColor}` : undefined}>
     {
-      !tool && (
-        <footer class="frame">
-          <div class="foot">
-            <span>Parth Kabra · Boston</span>
-            <nav aria-label="Elsewhere">
-              {links.map((l) => <a href={l.url}>{l.title}</a>)}
-            </nav>
-          </div>
-        </footer>
+      themeColor ? (
+        <div class="min-h-dvh bg-background">
+          <slot />
+        </div>
+      ) : (
+        <slot />
       )
     }
   </body>

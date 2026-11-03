@@ -1,0 +1,13 @@
+---
+// A page's heading: its logo and title, as its theme customizes them.
+import type { PageTheme } from "../lib/theme";
+
+type Props = { title: string; theme?: PageTheme; icon?: string };
+const { title, theme, icon } = Astro.props;
+const logo = theme?.logo ?? (icon ? { src: icon, size: 24 } : undefined);
+---
+
+<div class:list={["flex", theme?.logo ? "items-end gap-1" : "items-center gap-3"]}>
+  {logo && <img src={logo.src} alt={`${title} logo`} style={`width: ${logo.size}px; height: ${logo.size}px`} />}
+  <h1 class:list={["text-3xl font-black", theme?.title?.custom && "tracking-tight"]} style={theme?.title?.style}>{title}</h1>
+</div>

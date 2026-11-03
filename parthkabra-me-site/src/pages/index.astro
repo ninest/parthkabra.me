@@ -1,65 +1,117 @@
 ---
-import Columns from "../layouts/Columns.astro";
-import Entries from "../components/Entries.astro";
-import Peek from "../components/Peek.astro";
-import { formatDate, ledger, ofKind, site, topics } from "../lib/content";
-import { getCategoryUrl, routes } from "../utils/links";
+import SidebarLayout from "../components/sidebar-layout.astro";
+import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
+import CategoryList from "../components/category-list.astro";
+import { assetUrl, ofKind, site, workByOrder } from "../lib/content";
+import { getPageUrl, routes } from "../utils/links";
 
-const { status, statusSince } = site();
-const writing = ledger();
-const posts = writing.filter((i) => i.kind === "post").length;
-const notes = writing.length - posts;
-const recent = writing.slice(0, 10);
-const projects = ofKind("project").filter((p) => p.frontmatter.featured).slice(0, 5);
-const tools = ofKind("tool");
+const { now, links } = site();
+const work = workByOrder().filter((w) => w.frontmatter.featured);
+const projects = ofKind("project").filter((p) => p.frontmatter.featured);
+const posts = ofKind("post").slice(0, 10);
+const isExternal = (url: string) => /^https?:/.test(url);
 ---
 
-<Columns description="Parth Kabra, a software engineer in Boston, writes about software, AI, interfaces and the city.">
-  <p class="lede">
-    I’m Parth, a software engineer in Boston working at the edge of AI, product and UX. This is where I keep{" "}
-    <a href={routes.all}>{posts} posts</a>, <a href={routes.microblog}>{notes} shorter notes</a>, a few{" "}
-    <a href={routes.projects}>projects</a>, and <a href={routes.tools}>{tools.length} small tools</a> you can use right
-    here.
-  </p>
-  <p class="now">
-    <span class="pulse"></span>
-    <span><b>{status}</b>{statusSince && <> · since {formatDate(statusSince.replace("/", "-") + "-01", "month")}</>}</span>
-  </p>
+<SidebarLayout
+  head={{
+    fullTitle: "Parth Kabra — Software Engineer",
+    description: "Parth Kabra is a full-stack software engineer building at the intersection of AI, product, and UX.",
+  }}
+>
+  <section>
+    <h2 class="font-bold">Currently</h2>
+    <p class="ml-5 mt-1">Software engineer @ Wayfair</p>
+  </section>
 
-  <div class="section-head">
-    <h2 class="label">Lately</h2>
-    <a href={routes.all}>All writing →</a>
-  </div>
-  <Entries items={recent} />
+  <section class="mt-8">
+    <h2 class="font-bold">Links</h2>
+    <p class="ml-5 mt-1">
+      {
+        links.map((link, i) => (
+          <span><a href={link.url} target={isExternal(link.url) ? "_blank" : undefined} class="underline text-primary">{link.title}</a>{i < links.length - 1 && ", "}</span>
+        ))
+      }
+    </p>
+  </section>
 
-  <div class="section-head">
-    <h2 class="label">Things I’ve made</h2>
-    <a href={routes.projects}>All projects →</a>
-  </div>
-  <Entries items={projects} byYear={false} cards />
+  <section class="mt-8">
+    <h2 class="font-bold">About</h2>
+    <p class="ml-5 mt-1">
+      Full-stack engineer building at the intersection of AI, product, and UX. From tools used at scale to AI-powered consumer products, I like turning ideas into software people actually use.{" "}
+      <a class="text-primary underline" href={getPageUrl("about")}>Read more</a>
+    </p>
+  </section>
 
-  <div class="section-head">
-    <h2 class="label">Tools</h2>
-    <a href={routes.tools}>All tools →</a>
-  </div>
-  <Entries items={tools} byYear={false} cards />
-
-  <Fragment slot="side">
-    <Peek />
-    <section>
-      <h2>Topics</h2>
-      <ul>
+  <section class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="font-bold">Work</h2>
+      <a href={routes.work} class="underline text-sm text-primary">View all</a>
+    </div>
+    <table class="ml-5 mt-1 w-[calc(100%-1.25rem)] border-collapse border border-border">
+      <tbody>
         {
-          topics()
-            .slice(0, 12)
-            .map((t) => (
-              <li class="meta-row" style="border:0;padding:0">
-                <a href={getCategoryUrl(t.item.slug)}>{t.item.title}</a>
-                <span class="muted num">{t.count}</span>
-              </li>
-            ))
+          work.map((ex, i) => (
+            <tr class={i % 2 === 1 ? "bg-muted" : ""}>
+              <td class="border border-border">
+                <a href={ex.href} class="block py-1 px-2">
+                  <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-4 h-4 shrink-0">
+                      {ex.frontmatter.icon && <img src={assetUrl(ex, ex.frontmatter.icon)} alt={`${ex.title} logo`} class="w-4 h-4" />}
+                    </span>
+                    {ex.title}
+                  </span>
+                </a>
+              </td>
+              <td class="border border-border text-right tabular-nums">
+                <a href={ex.href} class="block py-1 px-2">{ex.frontmatter.dateline}</a>
+              </td>
+            </tr>
+          ))
         }
-      </ul>
-    </section>
-  </Fragment>
-</Columns>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="font-bold">Recent Projects</h2>
+      <a href={routes.projects} class="underline text-sm text-primary">View all</a>
+    </div>
+    <ul class="mt-1 ml-3 space-y-2 list-none">
+      {
+        projects.map((p) => (
+          <li class="pl-5 before:content-['-'] before:absolute before:left-0 relative">
+            <a href={p.href} class="underline text-primary">{p.title}</a>: <span>{p.description}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="font-bold">Posts</h2>
+      <a href={routes.all} class="underline text-sm text-primary">View all</a>
+    </div>
+    <ul class="ml-5 mt-1 space-y-1.5">
+      {
+        posts.map((post) => (
+          <li>
+            <a href={post.href} target={post.external ? "_blank" : undefined} rel={post.external ? "noopener" : undefined} class="underline text-primary">{post.title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <CategoryList />
+
+  <section slot="sidebar" class="mt-8">
+    <h2 class="font-bold">Now</h2>
+    <p class="ml-5 mt-1">{now}</p>
+  </section>
+
+  <div slot="sidebar" class="mt-8">
+    <MicroblogSidebar />
+  </div>
+</SidebarLayout>

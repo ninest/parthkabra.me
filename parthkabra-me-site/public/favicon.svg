@@ -18,9 +18,9 @@
   <rect x="8" y="6" width="1" height="1"></rect>
   <rect x="9" y="7" width="1" height="1"></rect>
   <style>
-    rect { fill: #d63b1f; }
+    rect { fill: #4f46e5; }
     @media (prefers-color-scheme: dark) {
-      rect { fill: #ff7a59; }
+      rect { fill: #818cf8; }
     }
   </style>
 </svg>

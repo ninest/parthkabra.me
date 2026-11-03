@@ -1,19 +1,25 @@
 ---
-import Columns from "../../layouts/Columns.astro";
-import Entries from "../../components/Entries.astro";
+import SidebarLayout from "../../components/sidebar-layout.astro";
 import { ofKind } from "../../lib/content";
 
 const tools = ofKind("tool");
 ---
 
-<Columns title="Tools" description="Small tools that run in the browser.">
-  <h1 class="title">Tools</h1>
-  <p class="dek">Small things that run in your browser. Nothing to sign up for.</p>
-  <Entries items={tools} byYear={false} cards />
-  <Fragment slot="side">
-    <section>
-      <div class="meta-row"><span>Tools</span><span class="num">{tools.length}</span></div>
-      <div class="meta-row"><span>Newest</span><span>{tools[0]?.title}</span></div>
-    </section>
-  </Fragment>
-</Columns>
+<SidebarLayout head={{ title: "Tools", description: "Small tools that run in the browser" }} breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Tools" }]}>
+  <h1 class="text-3xl font-black">Tools</h1>
+
+  <section class="mt-8">
+    <ul class="space-y-4">
+      {
+        tools.map((t) => (
+          <li>
+            <a href={t.href} class="block">
+              <div class="font-bold">{t.title}</div>
+              <div>{t.description}</div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</SidebarLayout>

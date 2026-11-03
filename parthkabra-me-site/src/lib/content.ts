@@ -121,8 +121,7 @@ export const hasPage = (i: Item) => !i.external && i.kind !== "tool";
 /** The site-wide status line and profile links from `site.md`. */
 export function site() {
   const fm = entries().find((e) => e.path === "site")!.frontmatter;
-  const [, stamp, text] = /^(\d{4}\/\d{2})?\s*(.*)$/.exec(String(fm.status ?? ""))!;
-  return { status: text!, statusSince: stamp, links: fm.links as { title: string; url: string }[] };
+  return { now: String(fm.status ?? ""), links: fm.links as { title: string; url: string }[] };
 }
 
 /** A page's markdown with its frontmatter removed. */
@@ -148,52 +147,50 @@ export function thread(i: Item): Item[] {
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-/** Plain-text opening of a page: its first real paragraph, cut to a sentence or two. */
-export function excerpt(i: Item, max = 190): string {
-  const block = bodyOf(i)
+/** Page `i`'s body as plain text, for search and excerpts. */
+export function plainText(i: Pick<Item, "file">): string {
+  return bodyOf(i)
     .replace(/(`{3,})[\s\S]*?\n\1/g, "")
-    .split(/\n\s*\n/)
-    .map((b) => b.trim())
-    .find((b) => b && !/^(#|!\[|>|[-*] |\d+\. |\||<|Links:|Related:)/.test(b));
-  if (!block) return "";
-  const text = block
+    .replace(/^(Links|Related):.*$/gm, "")
     .replace(/\[\[[^\]|]+\|([^\]]+)\]\]/g, "$1")
     .replace(/\[\[([^\]]+)\]\]/g, "$1")
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
     .replace(/[*_`\\]/g, "")
     .replace(/\s+/g, " ")
-    .replace(/'/g, "’");
+    .trim();
+}
+
+/** Plain-text opening of a page, cut to a sentence or two. */
+export function excerpt(i: Item, max = 190): string {
+  const text = plainText(i).replace(/'/g, "’");
   if (text.length <= max) return text;
   const cut = text.slice(0, max);
   const sentence = cut.search(/[.!?](?=[^.!?]*$)/);
   return sentence > 60 ? cut.slice(0, sentence + 1) : cut.replace(/\s+\S*$/, "") + "…";
 }
 
-/** Rough reading time in minutes. */
-export function readingTime(i: Item): number {
-  return Math.max(1, Math.round(bodyOf(i).split(/\s+/).length / 220));
+/** The URL of an image in a page's folder, as named by its markdown or properties. */
+export const assetUrl = (i: Pick<Item, "file">, name: string) =>
+  /^(https?:)?\//.test(name) ? name : mediaUrl(`${fileDir(i)}/${name}`);
+
+/** The first image in a page's body, if any. */
+export function firstImage(i: Item): string | undefined {
+  const name = /!\[[^\]]*\]\(([^)\s]+)/.exec(bodyOf(i))?.[1];
+  return name && !/\.(mp4|mov|webm)$/i.test(name) ? assetUrl(i, name) : undefined;
 }
 
-/** The items that link to `i`, newest first, skipping its own thread. */
-export function mentionedIn(i: Item): Item[] {
-  const own = i.kind === "micro" ? thread(i) : [i];
-  return items()
-    .filter((o) => Object.values(o.links).includes(i.path) && !own.includes(o) && o.kind !== "category")
-    .sort(newestFirst);
-}
+/** Work, most recent first. */
+export const workByOrder = () =>
+  ofKind("work").sort((a, b) => (b.frontmatter.order ?? 0) - (a.frontmatter.order ?? 0));
 
-/** What to read after `i`: its neighbours in the same topic first, then in the same kind. */
-export function keepReading(i: Item, count = 2): Item[] {
-  const pool = (i.kind === "micro" ? ledger() : ofKind(i.kind)).filter((o) => !o.external && o.kind !== "tool");
-  const at = pool.findIndex((o) => o.path === threadRoot(i).path);
-  const near = (list: Item[]) => {
-    const older = list.filter((o) => pool.indexOf(o) > at);
-    const newer = list.filter((o) => pool.indexOf(o) < at).reverse();
-    return [older[0], newer[0], ...older.slice(1)];
-  };
-  const sameTopic = pool.filter((o) => o.categories[0] && o.categories[0] === i.categories[0]);
-  const picks = [...near(sameTopic), ...near(pool)].filter((o): o is Item => !!o && o.path !== threadRoot(i).path);
-  return [...new Set(picks)].slice(0, count);
+/** Each microblog thread as its notes (oldest first), the most recently active thread first. */
+export function microThreads(): Item[][] {
+  return ofKind("micro")
+    .filter((m) => threadRoot(m) === m)
+    .map(thread)
+    .sort((a, b) => b.at(-1)!.date.localeCompare(a.at(-1)!.date));
 }
 
 /** The chronological list of writing: posts and the first note of each thread. */
@@ -201,17 +198,6 @@ export function ledger(): Item[] {
   return items()
     .filter((i) => i.kind === "post" || (i.kind === "micro" && threadRoot(i) === i))
     .sort(newestFirst);
-}
-
-/** Topics with at least one published post or note, most used first. */
-export function topics(): { item: Item; count: number }[] {
-  return ofKind("category")
-    .map((item) => ({
-      item,
-      count: items().filter((i) => (i.kind === "post" || i.kind === "micro") && i.categories.includes(item.slug)).length,
-    }))
-    .filter((t) => t.count > 0)
-    .sort((a, b) => b.count - a.count || a.item.title.localeCompare(b.item.title));
 }
 
 /** Formats an ISO date: long is "April 20, 2026", short is "Apr 20". */

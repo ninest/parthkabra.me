@@ -1,13 +1,11 @@
 // Renders a page's markdown to HTML. Handles what the content guide promises: `[[path|label]]` links,
-// images beside the page, ` ```component:… ` fences, and the `Links:` / `Related:` lines, which leave
-// the body and go to the sidebar.
+// images beside the page, and ` ```component:… ` fences.
 import { Marked, type Tokens } from "marked";
 import { markedSmartypants } from "marked-smartypants";
 import { codeToHtml } from "shiki";
 import { bodyOf, byPath, fileDir, mediaUrl, type Item } from "./content";
 
-export type Heading = { depth: number; id: string; text: string };
-export type Rendered = { html: string; headings: Heading[]; links: string[]; related: string[]; hasMermaid: boolean };
+export type Rendered = { html: string; hasMermaid: boolean };
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const slugify = (s: string) =>
@@ -40,20 +38,9 @@ function parseFence(text: string): { props: Record<string, string>; body: string
   return { props, body: at === -1 ? "" : text.slice(at + 3).trim() };
 }
 
-/** Moves `Links:` and `Related:` lines out of the body, returning each entry as its own markdown. */
-function takeLinkLines(markdown: string) {
-  const out = { links: [] as string[], related: [] as string[] };
-  const body = markdown.replace(/^(Links|Related):[ \t]*(.+?)[ \t]*\\?[ \t]*$/gm, (_, key: string, list: string) => {
-    out[key === "Links" ? "links" : "related"].push(...list.split(/,\s*(?=\[|<a\b)/));
-    return "";
-  });
-  return { ...out, body };
-}
-
-/** Page `i`'s body as HTML, with its headings and sidebar links. */
+/** Page `i`'s body as HTML. */
 export async function render(i: Item): Promise<Rendered> {
   const dir = fileDir(i);
-  const headings: Heading[] = [];
   const seen = new Map<string, number>();
   let hasMermaid = false;
 
@@ -86,7 +73,7 @@ export async function render(i: Item): Promise<Rendered> {
         code.html = `<aside class="callout callout-${props.variant ?? "default"}">${title}${inner}</aside>`;
       } else if (lang === "component:mermaid") {
         hasMermaid = true;
-        code.html = `<pre class="mermaid">${escape(parseFence(code.text).body)}</pre>`;
+        code.html = `<pre class="mermaid not-typography">${escape(parseFence(code.text).body)}</pre>`;
       } else if (lang === "component:subscribe-form") {
         code.html = `<aside class="callout callout-secondary"><p>The form isn’t wired up in this rewrite yet. <a href="/rss.xml">RSS</a> works.</p></aside>`;
       } else if (lang.startsWith("component:")) {
@@ -105,8 +92,7 @@ export async function render(i: Item): Promise<Rendered> {
         const n = seen.get(base) ?? 0;
         seen.set(base, n + 1);
         const id = n ? `${base}-${n}` : base;
-        if (depth === 2 || depth === 3) headings.push({ depth, id, text: html.replace(/<[^>]+>/g, "") });
-        return `<h${depth} id="${id}"><a class="anchor" href="#${id}">${html}</a></h${depth}>\n`;
+        return `<h${depth} id="${id}">${html}</h${depth}>\n`;
       },
       image({ href, text }: Tokens.Image) {
         const src = /^(https?:)?\//.test(href) ? href : mediaUrl(`${dir}/${href}`);
@@ -121,8 +107,5 @@ export async function render(i: Item): Promise<Rendered> {
     },
   });
 
-  const { body, links, related } = takeLinkLines(bodyOf(i));
-  const html = await marked.parse(body);
-  const inline = async (list: string[]) => Promise.all(list.map((m) => marked.parseInline(m) as Promise<string>));
-  return { html, headings, links: await inline(links), related: await inline(related), hasMermaid };
+  return { html: await marked.parse(bodyOf(i)), hasMermaid };
 }
