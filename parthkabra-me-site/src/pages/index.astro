@@ -5,7 +5,7 @@ import CategoryList from "../components/category-list.astro";
 import { assetUrl, ofKind, site, workByOrder } from "../lib/content";
 import { getPageUrl, routes } from "../utils/links";
 
-const { now, links } = site();
+const { now, nowSince, links } = site();
 const work = workByOrder().filter((w) => w.frontmatter.featured);
 const projects = ofKind("project").filter((p) => p.frontmatter.featured);
 const posts = ofKind("post").slice(0, 10);
@@ -106,9 +106,12 @@ const isExternal = (url: string) => /^https?:/.test(url);
 
   <CategoryList />
 
-  <section slot="sidebar" class="mt-8">
-    <h2 class="font-bold">Now</h2>
-    <p class="ml-5 mt-1">{now}</p>
+  <section slot="sidebar" class="mt-8 border-l-[3px] border-primary bg-primary/6 p-3">
+    <div class="flex items-baseline justify-between">
+      <h2 class="font-bold">Now</h2>
+      {nowSince && <span class="text-sm tabular-nums text-muted-foreground">{nowSince}</span>}
+    </div>
+    <p class="mt-1">{now}</p>
   </section>
 
   <div slot="sidebar" class="mt-8">

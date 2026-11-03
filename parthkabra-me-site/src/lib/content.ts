@@ -121,7 +121,8 @@ export const hasPage = (i: Item) => !i.external && i.kind !== "tool";
 /** The site-wide status line and profile links from `site.md`. */
 export function site() {
   const fm = entries().find((e) => e.path === "site")!.frontmatter;
-  return { now: String(fm.status ?? ""), links: fm.links as { title: string; url: string }[] };
+  const [, since, now] = /^(\d{4}\/\d{2})?\s*(.*)$/.exec(String(fm.status ?? ""))!;
+  return { now: now!, nowSince: since, links: fm.links as { title: string; url: string }[] };
 }
 
 /** A page's markdown with its frontmatter removed. */
