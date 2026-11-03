@@ -20,7 +20,7 @@ const { notes = ofKind("micro").slice(0, 10), title = "Microblog", showViewAll =
         return (
           <li>
             <a href={note.href} class="block py-3 hover:bg-muted/50">
-              <p class="text-xs text-muted-foreground">{formatDate(note.date)}</p>
+              <p class="text-sm text-muted-foreground">{formatDate(note.date)}</p>
               <p class="mt-0.5 text-sm font-semibold">{note.title}</p>
               <p class="mt-0.5 line-clamp-3 text-sm leading-snug">{excerpt(note, 160)}</p>
               {image && <img src={image} alt="" loading="lazy" class="mt-2 max-h-32 rounded-lg ring-1 ring-border" />}
