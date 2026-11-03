@@ -40,13 +40,10 @@
   --error: var(--color-red-400);
 }
 
-/* A page's `theme.navbar.color` is also its accent. Lightened in dark mode so that dark brand
-   colours stay readable as text; the navbar itself keeps the exact colour. */
+/* A page's `theme.navbar.color` is also its accent, the exact colour in light and dark alike so that
+   the title always matches the page's logo. */
 html[data-theme-color] {
   --primary: var(--page-color);
-}
-html[data-theme-color].dark {
-  --primary: color-mix(in oklab, var(--page-color) 55%, white);
 }
 
 /* Code: Shiki's two palettes, switched by the theme toggle rather than the OS setting */
@@ -77,16 +74,4 @@ html[data-theme-color].dark {
 }
 .callout > :last-child {
   margin-bottom: 0;
-}
-
-/* PROTOTYPE: drop once a microblog variant is picked. Without the switcher, A shows. */
-.variant-b,
-.variant-c,
-html[data-variant="B"] .variant-a,
-html[data-variant="C"] .variant-a {
-  display: none;
-}
-html[data-variant="B"] .variant-b,
-html[data-variant="C"] .variant-c {
-  display: block;
 }

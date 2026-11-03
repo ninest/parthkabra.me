@@ -1,6 +1,4 @@
 ---
-// PROTOTYPE: three variants of the feed, switched by ?variant=: A links, B a timeline with hairlines,
-// C the same timeline with the dates in a column of their own.
 import Note from "../components/microblog/note.astro";
 import ThreadList from "../components/microblog/thread-list.astro";
 import SidebarLayout from "../components/sidebar-layout.astro";
@@ -8,58 +6,21 @@ import { microThreads, ofKind } from "../lib/content";
 
 const threads = microThreads();
 const count = ofKind("micro").length;
-const stamp = (date: string) => date.slice(0, 7).replace("-", "/");
 ---
 
 <SidebarLayout head={{ title: "Microblog", description: "All microblog posts" }} breadcrumbs={[{ label: "Parth Kabra", href: "/" }, { label: "Microblog" }]}>
-  <div data-variants={import.meta.env.DEV ? "A:Links,B:Timeline,C:Date column" : undefined}>
-    <h1 class="text-3xl font-black">Microblog ({count})</h1>
+  <h1 class="text-3xl font-black">Microblog ({count})</h1>
 
-    <ul class="variant-a mt-8 space-y-2">
-      {
-        threads.map(([root, ...replies]) => (
-          <li>
-            <a href={root!.href}>
-              <span class="tabular-nums mr-2">{stamp(root!.date)}</span>
-              <span class="underline text-primary">{root!.title}</span>
-            </a>
-            {replies.length > 0 && (
-              <ul class="mt-2 ml-[4.25rem] space-y-2 border-l border-border pl-3">
-                {replies.map((reply) => (
-                  <li>
-                    <a href={reply.href} class="underline text-primary">{reply.title}</a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))
-      }
-    </ul>
-
-    <div class="variant-b mt-8 divide-y divide-border border-y border-border">
-      {
-        threads.map((notes) => (
-          <div>
-            {notes.map((note, n) => (
-              <Note note={note} threadedUp={n > 0} threadedDown={n < notes.length - 1} />
-            ))}
-          </div>
-        ))
-      }
-    </div>
-
-    <div class="variant-c mt-8 divide-y divide-border border-y border-border">
-      {
-        threads.map((notes) => (
-          <div>
-            {notes.map((note, n) => (
-              <Note note={note} dateGutter threadedUp={n > 0} threadedDown={n < notes.length - 1} />
-            ))}
-          </div>
-        ))
-      }
-    </div>
+  <div class="mt-8 divide-y divide-border border-y border-border">
+    {
+      threads.map((notes) => (
+        <div>
+          {notes.map((note, n) => (
+            <Note note={note} threadedUp={n > 0} threadedDown={n < notes.length - 1} />
+          ))}
+        </div>
+      ))
+    }
   </div>
 
   <ThreadList slot="sidebar" />

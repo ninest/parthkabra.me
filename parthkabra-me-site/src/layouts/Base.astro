@@ -1,7 +1,6 @@
 ---
 // Every page: the head and the page's colour, if its theme sets one.
 import "../styles/global.css";
-import PrototypeSwitcher from "../components/PrototypeSwitcher.astro";
 import ThemeInit from "../components/theme-init.astro";
 import { routes } from "../utils/links";
 
@@ -41,7 +40,6 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDescription} />
     <slot name="head" />
-    <PrototypeSwitcher />
   </head>
 
   <body class="bg-background text-foreground" style={themeColor ? `background-color: ${themeColor}` : undefined}>

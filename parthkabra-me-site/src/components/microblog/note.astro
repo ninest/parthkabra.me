@@ -1,24 +1,19 @@
 ---
-// One note as a timeline row: no avatar or name, just title, date and body. Notes in a thread are
-// joined by a line down the left. `dateGutter` (PROTOTYPE) moves the date to a column of its own.
+// One note as a timeline row: the date in a column of its own, then title and body. Notes in a thread
+// are joined by a line down the left of the text.
 import { formatDate, type Item } from "../../lib/content";
 import { render } from "../../lib/markdown";
 
-type Props = { note: Item; threadedDown?: boolean; threadedUp?: boolean; current?: boolean; dateGutter?: boolean };
-const { note, threadedDown = false, threadedUp = false, current = false, dateGutter = false } = Astro.props;
+type Props = { note: Item; threadedDown?: boolean; threadedUp?: boolean; current?: boolean };
+const { note, threadedDown = false, threadedUp = false, current = false } = Astro.props;
 const { html } = await render(note);
 const inThread = threadedUp || threadedDown;
-const year = note.date.slice(0, 4);
 ---
 
-<article class:list={["flex", dateGutter ? "flex-col sm:flex-row sm:gap-4" : "", current && "-mx-3 bg-muted px-3"]}>
-  {
-    dateGutter && (
-      <a href={note.href} class="shrink-0 pt-3 text-sm leading-6 text-muted-foreground hover:underline sm:w-24">
-        <time datetime={note.date}>{formatDate(note.date, "short")}, {year}</time>
-      </a>
-    )
-  }
+<article class:list={["flex flex-col sm:flex-row sm:gap-4", current && "-mx-3 bg-muted px-3"]}>
+  <a href={note.href} class="shrink-0 pt-3 text-sm leading-6 text-muted-foreground hover:underline sm:w-24">
+    <time datetime={note.date}>{formatDate(note.date, "short")}, {note.date.slice(0, 4)}</time>
+  </a>
   <div class="flex min-w-0 flex-1 gap-3">
     {
       inThread && (
@@ -28,17 +23,8 @@ const year = note.date.slice(0, 4);
         </div>
       )
     }
-    <div class:list={["min-w-0 flex-1", dateGutter ? "pb-4 pt-1 sm:pt-3" : "pb-4 pt-3"]}>
-      <div class="flex items-baseline justify-between gap-4">
-        <h2 class="font-semibold"><a href={note.href} class="hover:underline">{note.title}</a></h2>
-        {
-          !dateGutter && (
-            <a href={note.href} class="shrink-0 text-sm text-muted-foreground hover:underline">
-              <time datetime={note.date}>{formatDate(note.date, "short")}, {year}</time>
-            </a>
-          )
-        }
-      </div>
+    <div class="min-w-0 flex-1 pb-4 pt-1 sm:pt-3">
+      <h2 class="font-semibold"><a href={note.href} class="hover:underline">{note.title}</a></h2>
       <div class="typography mt-1 [&_p]:leading-normal [&_p:not(:first-child)]:mt-3 [&_img]:my-2 [&_img]:max-h-80 [&_img]:w-auto [&_img]:max-w-full [&_img]:rounded-xl [&_img]:ring-1 [&_img]:ring-border" set:html={html} />
     </div>
   </div>
