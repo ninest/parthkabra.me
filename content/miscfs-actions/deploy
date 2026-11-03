@@ -1,0 +1,7 @@
+# Builds parthkabra.me from this instance's content and deploys it to Cloudflare (the Worker `me`).
+# miscfs's environment has only the system PATH, whose node is too old, so use the fnm install
+# matching the site's .node-version. cf finds its login in ~/.config/cloudflare.
+set -e
+cd ~/code/parthkabra-me/parthkabra-me-site
+export PATH="$HOME/.local/share/fnm/node-versions/v$(cat .node-version)/installation/bin:$PATH"
+npm run cf:deploy
