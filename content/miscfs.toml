@@ -11,7 +11,7 @@ name = "parthkabra-me"
 listen = "100.123.158.24:8003"
 # The address you open the UI at, for links the server hands out (e.g. session links an agent replies
 # with). Defaults to the listen address.
-url = "http://hel:8003"
+url = "https://mecms.hel.misc.page"
 
 [chat]
 # opencode's web UI. When set, each session's menu gets "Chat with opencode", which opens it
