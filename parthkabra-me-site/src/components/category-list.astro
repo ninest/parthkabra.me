@@ -2,25 +2,22 @@
 import { byPath, type Item } from "../lib/content";
 import { routes } from "../utils/links";
 
+type Props = { indent?: boolean };
+const { indent = false } = Astro.props;
+
 // The topics worth browsing; the rest have only a post or two.
 const VISIBLE = ["ai", "astro", "blog", "cli", "firefox", "git", "html", "javascript", "leetcode", "mac", "maps", "meta", "origami", "python", "restaurants", "typescript", "ui", "vscode"];
 const categories = VISIBLE.map((slug) => byPath(`categories/${slug}`)).filter((c): c is Item => !!c);
 ---
 
 <nav class="mt-8">
-  <div class="text-sm font-bold">Categories</div>
-  <ul class="mt-2 flex flex-wrap gap-1 rounded-md overflow-hidden">
-    <li class="grow min-w-[20%]">
-      <a href={routes.all} class="block bg-muted py-1 px-2 text-center">All</a>
-    </li>
+  <h2 class="font-bold">Categories</h2>
+  <p class:list={["mt-1", indent && "ml-5"]}>
+    <span><a href={routes.all} class="underline text-primary">All</a>, </span>
     {
-      categories.map((cat) => (
-        <li class="grow min-w-[20%]">
-          <a href={cat.href} class="block bg-muted py-1 px-2 text-center">
-            {cat.title}
-          </a>
-        </li>
+      categories.map((cat, i) => (
+        <span><a href={cat.href} class="underline text-primary whitespace-nowrap">{cat.title}</a>{i < categories.length - 1 && ", "}</span>
       ))
     }
-  </ul>
+  </p>
 </nav>
