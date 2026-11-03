@@ -1,7 +1,7 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
-import { exportContent } from "./scripts/content.mjs";
+import { draftPostPaths, exportContent } from "./scripts/content.mjs";
 
 /** Exports the content before Astro reads it. */
 const content = {
@@ -15,7 +15,7 @@ export default defineConfig({
   build: { format: "file" },
   trailingSlash: "never",
   prefetch: { prefetchAll: true },
-  integrations: [content, sitemap()],
+  integrations: [content, sitemap({ filter: (page) => !draftPostPaths().has(new URL(page).pathname) })],
   devToolbar: { enabled: false },
   server: { host: "0.0.0.0", port: 2102 },
   // Tailwind only reaches tool pages: src/styles/tools.css is the one file that imports it.

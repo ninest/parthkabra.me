@@ -20,5 +20,8 @@
 /restaurant/* /restaurants/:splat 301
 # The restaurant mini-blog moved to friedrice.fun
 /micro/2026/fire-ice-back-bay https://friedrice.fun/fire-ice/ 301
+/micro/2026/fire-ice-back-bay/ https://friedrice.fun/fire-ice/ 301
 /micro/2026/pinocchios-pizza-harvard https://friedrice.fun/pinocchios-pizza-subs/ 301
+/micro/2026/pinocchios-pizza-harvard/ https://friedrice.fun/pinocchios-pizza-subs/ 301
 /micro/2026/pressed-cafe-back-bay-boston https://friedrice.fun/pesto-goat-cheese-blt-at-pressed-cafe/ 301
+/micro/2026/pressed-cafe-back-bay-boston/ https://friedrice.fun/pesto-goat-cheese-blt-at-pressed-cafe/ 301

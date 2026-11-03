@@ -82,12 +82,12 @@ const entries = () =>
 
 let cached: Item[] | undefined;
 
-/** Every published item: guides, the group index and drafts are left out. */
-export function items(): Item[] {
+/** Every item with its own page, drafts included: guides and the group index are left out. */
+export function allItems(): Item[] {
   return (cached ??= entries().flatMap((e) => {
     const kind = DIRS[e.path.split("/")[0]!];
     const name = basename(e.path);
-    if (!kind || name === "AGENTS" || e.path === "categories" || e.frontmatter.draft) return [];
+    if (!kind || name === "AGENTS" || e.path === "categories") return [];
     const fm = e.frontmatter;
     const created = String(fm.createdAt ?? fm.startDate ?? "");
     const updated = fm.updatedAt && String(fm.updatedAt) !== created ? String(fm.updatedAt) : undefined;
@@ -112,10 +112,15 @@ export function items(): Item[] {
   }));
 }
 
+let published: Item[] | undefined;
+
+/** Every item to list anywhere. Drafts are left out: they have a page, reachable only by its URL. */
+export const items = () => (published ??= allItems().filter((i) => !i.frontmatter.draft));
+
 const newestFirst = (a: Item, b: Item) => b.date.localeCompare(a.date);
 
 export const ofKind = (kind: Kind) => items().filter((i) => i.kind === kind).sort(newestFirst);
-export const byPath = (path: string) => items().find((i) => i.path === path);
+export const byPath = (path: string) => allItems().find((i) => i.path === path);
 export const hasPage = (i: Item) => !i.external && i.kind !== "tool";
 
 /** The site-wide status line and profile links from `site.md`. */

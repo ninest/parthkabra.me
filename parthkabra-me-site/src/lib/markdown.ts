@@ -2,11 +2,13 @@
 // images beside the page, and ` ```component:… ` fences.
 import { Marked, type Tokens } from "marked";
 import { markedSmartypants } from "marked-smartypants";
+import { buttonClasses } from "../components/button";
+import { inputClasses } from "../components/input";
 import { render as renderDiagram } from "pele";
 import { codeToHtml } from "shiki";
 import { bodyOf, byPath, fileDir, mediaUrl, type Item } from "./content";
 
-export type Rendered = { html: string };
+export type Rendered = { html: string; hasSubscribeForm: boolean };
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const slugify = (s: string) =>
@@ -39,9 +41,26 @@ function parseFence(text: string): { props: Record<string, string>; body: string
   return { props, body: at === -1 ? "" : text.slice(at + 3).trim() };
 }
 
+// The script that submits it is components/subscribe-form-script.astro.
+const SUBSCRIBE_FORM = `<form id="subscribe-form" class="not-typography mt-6 flex max-w-md flex-col gap-5">
+  <label class="flex flex-col gap-1">
+    <span class="text-sm">Email</span>
+    <input type="email" name="email" required maxlength="254" placeholder="you@example.com" class="${inputClasses("px-2 py-1 rounded")}">
+  </label>
+  <label class="flex flex-col gap-1">
+    <span class="text-sm">Why are you subscribing? What interested you? <span class="text-muted-foreground">(optional)</span></span>
+    <textarea name="reason" rows="3" maxlength="2000" class="${inputClasses("px-2 py-1 rounded")}"></textarea>
+  </label>
+  <div class="flex items-center gap-3">
+    <button type="submit" class="${buttonClasses("primary")}">Subscribe</button>
+    <span id="subscribe-status" class="text-sm text-muted-foreground" aria-live="polite"></span>
+  </div>
+</form>`;
+
 /** Page `i`'s body as HTML. */
 export async function render(i: Item): Promise<Rendered> {
   const dir = fileDir(i);
+  let hasSubscribeForm = false;
   const seen = new Map<string, number>();
 
   const marked = new Marked(markedSmartypants(), {
@@ -74,7 +93,8 @@ export async function render(i: Item): Promise<Rendered> {
       } else if (lang === "component:mermaid") {
         code.html = `<figure class="diagram">${renderDiagram(parseFence(code.text).body).svg}</figure>`;
       } else if (lang === "component:subscribe-form") {
-        code.html = `<aside class="callout callout-secondary"><p>The form isn’t wired up in this rewrite yet. <a href="/rss.xml">RSS</a> works.</p></aside>`;
+        hasSubscribeForm = true;
+        code.html = SUBSCRIBE_FORM;
       } else if (lang.startsWith("component:")) {
         code.html = ""; // tools render on their own full-page route
       } else {
@@ -106,5 +126,5 @@ export async function render(i: Item): Promise<Rendered> {
     },
   });
 
-  return { html: await marked.parse(bodyOf(i)) };
+  return { html: await marked.parse(bodyOf(i)), hasSubscribeForm };
 }

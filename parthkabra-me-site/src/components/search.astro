@@ -28,13 +28,21 @@ import Button from "./button.astro";
       .map(
         (r) =>
           `<li>
-            <a href="${r.url}" ${r.external ? 'target="_blank" rel="noopener"' : ""} class="flex items-center justify-between bg-muted/50 py-1 px-2">
+            <a href="${r.url}" ${r.external ? 'target="_blank" rel="noopener"' : ""} data-result-title="${r.title}" data-result-type="${r.type}" class="flex items-center justify-between bg-muted/50 py-1 px-2">
               <div>${r.title}</div>
               <div class="text-sm">${r.type}</div>
             </a>
           </li>`,
       )
       .join("");
+    $resultsList.querySelectorAll<HTMLAnchorElement>("a[data-result-title]").forEach(($a) => {
+      $a.addEventListener("click", () => {
+        window.posthog?.capture("search_result_clicked", {
+          result_title: $a.dataset.resultTitle,
+          result_type: $a.dataset.resultType,
+        });
+      });
+    });
   }
 
   $input.addEventListener("input", () => {
@@ -44,6 +52,10 @@ import Button from "./button.astro";
       $resultsList.innerHTML = "";
       return;
     }
-    debounceTimer = setTimeout(async () => renderResults(await search(query)), 150);
+    debounceTimer = setTimeout(async () => {
+      const results = await search(query);
+      renderResults(results);
+      window.posthog?.capture("search_performed", { query, result_count: results.length });
+    }, 150);
   });
 </script>

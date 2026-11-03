@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "cf:dev": "astro build && wrangler dev --ip 0.0.0.0 --port 2104",
+    "cf:preview": "astro build && wrangler versions upload",
+    "cf:deploy": "astro build && wrangler deploy",
+    "migrate": "wrangler d1 migrations apply me-production --local",
+    "migrate:prod": "wrangler d1 migrations apply me-production --remote"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -22,5 +27,8 @@
     "pele": "^1.13.0",
     "shiki": "^4.6.0",
     "tailwindcss": "^4.3.4"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.2"
   }
 }

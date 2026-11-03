@@ -46,6 +46,7 @@
   $themeToggle.addEventListener("click", () => {
     const next = isDark() ? "light" : "dark";
     setTheme(next);
+    window.posthog?.capture("theme_toggled", { theme: next });
   });
 
   renderIcon();

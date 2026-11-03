@@ -3,17 +3,18 @@
 import CategoryList from "../components/category-list.astro";
 import MicroblogSidebar from "../components/microblog/microblog-sidebar.astro";
 import Note from "../components/microblog/note.astro";
+import SubscribeFormScript from "../components/subscribe-form-script.astro";
 import ThreadList from "../components/microblog/thread-list.astro";
 import PageTitle from "../components/page-title.astro";
 import PostList from "../components/post-list.astro";
 import SidebarLayout from "../components/sidebar-layout.astro";
 import {
+  allItems,
   assetUrl,
   bodyOf,
   byPath,
   formatDate,
   hasPage,
-  items,
   ofKind,
   thread,
   workByOrder,
@@ -24,7 +25,7 @@ import { pageTheme } from "../lib/theme";
 import { getCategoryUrl, routes } from "../utils/links";
 
 export function getStaticPaths() {
-  return items()
+  return allItems()
     .filter(hasPage)
     .map((item) => ({ params: { path: item.href.slice(1) }, props: { item } }));
 }
@@ -77,9 +78,24 @@ const neighbours = item.kind === "work" ? [{ label: "Next", item: work[at - 1] }
 const categoryPosts = ofKind("post").filter((p) => p.categories.includes(item.slug));
 const categoryNotes = ofKind("micro").filter((m) => m.categories.includes(item.slug));
 const hasBody = bodyOf(item).trim().length > 0;
+
+// The analytics event for viewing this page, if its kind has one.
+const view = {
+  post: { event: "post_viewed", properties: { post_title: item.title, category: firstCategory, category_title: categoryTitle } },
+  project: { event: "project_viewed", properties: { project_title: item.title, project_id: item.slug } },
+  work: { event: "work_viewed", properties: { work_title: item.title, work_id: item.slug } },
+}[item.kind as string];
 ---
 
 <SidebarLayout head={head} breadcrumbs={breadcrumbs} navbarColor={theme.navbarColor}>
+  {r.hasSubscribeForm && <SubscribeFormScript />}
+  {
+    view && (
+      <script is:inline define:vars={{ event: view.event, properties: view.properties }}>
+        window.posthog?.capture(event, properties);
+      </script>
+    )
+  }
   {
     item.kind === "micro" ? (
       <div class="border-y border-border">

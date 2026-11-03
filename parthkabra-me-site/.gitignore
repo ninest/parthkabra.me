@@ -4,3 +4,8 @@ dist/
 # Made from ../content on every dev/build run (see scripts/content.mjs)
 .export/
 public/media/
+# Local Cloudflare state and overrides
+.wrangler/
+.dev.vars
+# miscfs export temp folders, left behind if an export is interrupted
+..export.*/

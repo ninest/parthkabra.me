@@ -1,0 +1,31 @@
+---
+// Sends the subscribe form (drawn by lib/markdown.ts) to worker/index.ts.
+---
+
+<script>
+  const $form = document.getElementById("subscribe-form") as HTMLFormElement | null;
+  const $status = document.getElementById("subscribe-status");
+  const $submit = $form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  $form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!$status || !$submit) return;
+
+    $status.textContent = "Submitting…";
+    $submit.disabled = true;
+    try {
+      const res = await fetch("/api/subscribe", { method: "POST", body: new FormData($form) });
+      const data = await res.json();
+      if (!res.ok) {
+        $status.textContent = data.error || "Something went wrong";
+        return;
+      }
+      $status.textContent = data.alreadySubscribed ? "You're already subscribed — thanks!" : "Thanks for subscribing!";
+      $form.reset();
+    } catch {
+      $status.textContent = "Something went wrong";
+    } finally {
+      $submit.disabled = false;
+    }
+  });
+</script>
