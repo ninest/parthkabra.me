@@ -19,6 +19,7 @@
     "marked": "^18.1.3",
     "marked-smartypants": "^1.1.12",
     "minisearch": "^7.2.0",
+    "pele": "^1.13.0",
     "shiki": "^4.6.0",
     "tailwindcss": "^4.3.4"
   }

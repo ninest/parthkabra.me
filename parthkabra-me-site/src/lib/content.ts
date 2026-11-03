@@ -87,7 +87,7 @@ export function items(): Item[] {
   return (cached ??= entries().flatMap((e) => {
     const kind = DIRS[e.path.split("/")[0]!];
     const name = basename(e.path);
-    if (!kind || name === "AGENTS" || e.path === "categories/index" || e.frontmatter.draft) return [];
+    if (!kind || name === "AGENTS" || e.path === "categories" || e.frontmatter.draft) return [];
     const fm = e.frontmatter;
     const created = String(fm.createdAt ?? fm.startDate ?? "");
     const updated = fm.updatedAt && String(fm.updatedAt) !== created ? String(fm.updatedAt) : undefined;

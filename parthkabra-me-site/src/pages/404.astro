@@ -1,0 +1,11 @@
+---
+import SidebarLayout from "../components/sidebar-layout.astro";
+import { routes } from "../utils/links";
+---
+
+<SidebarLayout head={{ title: "Not found" }} breadcrumbs={[{ label: "Parth Kabra", href: "/" }]}>
+  <h1 class="text-3xl font-black">Page not found</h1>
+  <p class="mt-2 text-muted-foreground">
+    This page doesn't exist, or it has moved. Try the search, or see <a href={routes.all} class="underline text-primary">all posts</a>.
+  </p>
+</SidebarLayout>

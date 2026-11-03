@@ -1,0 +1,3 @@
+# The map's agent instructions have no file extension, so hosts can't guess their type.
+/tools/map/agents
+  Content-Type: text/plain; charset=utf-8

@@ -1,0 +1,24 @@
+# Old URLs, from the previous site's src/utils/redirects.ts. First match wins.
+/me/about /about 301
+/me/about/* /about/:splat 301
+/project/nsr /projects/national-service-resources 301
+/project/nsr/* /projects/national-service-resources/:splat 301
+/projects/nsr /projects/national-service-resources 301
+/projects/nsr/* /projects/national-service-resources/:splat 301
+/project /projects 301
+/project/* /projects/:splat 301
+/collections/* /collection/:splat 301
+/work/saf /work/singapore-armed-forces 301
+/work/saf/* /work/singapore-armed-forces/:splat 301
+/tools/ai-mapmaker /tools/ai-map 301
+/tools/ai-mapmaker/* /tools/ai-map/:splat 301
+/tool/repeated-word-finder /tools/duplicate-word-finder 301
+/tool/repeated-word-finder/* /tools/duplicate-word-finder/:splat 301
+/tools/doc /tools/absolutely-write 301
+/tools/doc/* /tools/absolutely-write/:splat 301
+/restaurant /restaurants 301
+/restaurant/* /restaurants/:splat 301
+# The restaurant mini-blog moved to friedrice.fun
+/micro/2026/fire-ice-back-bay https://friedrice.fun/fire-ice/ 301
+/micro/2026/pinocchios-pizza-harvard https://friedrice.fun/pinocchios-pizza-subs/ 301
+/micro/2026/pressed-cafe-back-bay-boston https://friedrice.fun/pesto-goat-cheese-blt-at-pressed-cafe/ 301

@@ -10,7 +10,6 @@ const { breadcrumbs, head, navbarColor } = Astro.props;
 ---
 
 <Base head={{ ...head, themeColor: navbarColor }}>
-  <slot name="head" slot="head" />
   {navbarColor && <FilledNavbar color={navbarColor} breadcrumbs={breadcrumbs} />}
   <div class="px-4">
     <div class:list={["max-w-300 mx-auto", navbarColor ? "mb-16" : "my-16"]}>

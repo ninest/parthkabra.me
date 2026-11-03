@@ -2,10 +2,11 @@
 // images beside the page, and ` ```component:… ` fences.
 import { Marked, type Tokens } from "marked";
 import { markedSmartypants } from "marked-smartypants";
+import { render as renderDiagram } from "pele";
 import { codeToHtml } from "shiki";
 import { bodyOf, byPath, fileDir, mediaUrl, type Item } from "./content";
 
-export type Rendered = { html: string; hasMermaid: boolean };
+export type Rendered = { html: string };
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const slugify = (s: string) =>
@@ -42,7 +43,6 @@ function parseFence(text: string): { props: Record<string, string>; body: string
 export async function render(i: Item): Promise<Rendered> {
   const dir = fileDir(i);
   const seen = new Map<string, number>();
-  let hasMermaid = false;
 
   const marked = new Marked(markedSmartypants(), {
     async: true,
@@ -72,8 +72,7 @@ export async function render(i: Item): Promise<Rendered> {
         const inner = await marked.parse(body);
         code.html = `<aside class="callout callout-${props.variant ?? "default"}">${title}${inner}</aside>`;
       } else if (lang === "component:mermaid") {
-        hasMermaid = true;
-        code.html = `<pre class="mermaid not-typography">${escape(parseFence(code.text).body)}</pre>`;
+        code.html = `<figure class="diagram">${renderDiagram(parseFence(code.text).body).svg}</figure>`;
       } else if (lang === "component:subscribe-form") {
         code.html = `<aside class="callout callout-secondary"><p>The form isn’t wired up in this rewrite yet. <a href="/rss.xml">RSS</a> works.</p></aside>`;
       } else if (lang.startsWith("component:")) {
@@ -107,5 +106,5 @@ export async function render(i: Item): Promise<Rendered> {
     },
   });
 
-  return { html: await marked.parse(bodyOf(i)), hasMermaid };
+  return { html: await marked.parse(bodyOf(i)) };
 }
