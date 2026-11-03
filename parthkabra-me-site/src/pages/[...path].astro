@@ -102,6 +102,25 @@ const view = {
         {notes.map((note, n) => (
           <Note note={note} current={note === item && notes.length > 1} threadedUp={n > 0} threadedDown={n < notes.length - 1} />
         ))}
+        {/* A link to a note further down a thread should land on that note, not on the thread's first post */}
+        {notes.indexOf(item) > 0 && (
+          <script is:inline>
+            (() => {
+              const note = document.querySelector("[data-current-note]");
+              const nav = performance.getEntriesByType("navigation")[0]?.type;
+              if (!note || location.hash || nav === "reload" || nav === "back_forward") return;
+              // Styles and images above the note arrive later and move it, so land on it again as the page
+              // finishes loading, until the reader scrolls on their own
+              let readerScrolled = false;
+              for (const e of ["wheel", "touchstart", "keydown", "mousedown"])
+                addEventListener(e, () => (readerScrolled = true), { once: true, passive: true });
+              const land = () => readerScrolled || note.scrollIntoView({ block: "start" });
+              land();
+              addEventListener("DOMContentLoaded", land, { once: true });
+              addEventListener("load", land, { once: true });
+            })();
+          </script>
+        )}
       </div>
     ) : (
       <>

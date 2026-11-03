@@ -10,7 +10,7 @@ const { html } = await render(note);
 const inThread = threadedUp || threadedDown;
 ---
 
-<article class:list={["flex flex-col sm:flex-row sm:gap-4", current && "-mx-3 bg-muted px-3"]}>
+<article data-current-note={current || undefined} class:list={["flex flex-col sm:flex-row sm:gap-4", current && "-mx-3 scroll-mt-4 bg-muted px-3"]}>
   <a href={note.href} class="shrink-0 pt-3 text-sm leading-6 text-muted-foreground hover:underline sm:w-24">
     <time datetime={note.date}>{formatDate(note.date, "short")}, {note.date.slice(0, 4)}</time>
   </a>
