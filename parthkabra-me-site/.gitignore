@@ -9,3 +9,5 @@ public/media/
 .dev.vars
 # miscfs export temp folders, left behind if an export is interrupted
 ..export.*/
+# cf build output, generated types and account cache
+.cloudflare/

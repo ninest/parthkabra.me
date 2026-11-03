@@ -6,11 +6,12 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "cf:dev": "astro build && wrangler dev --ip 0.0.0.0 --port 2104",
-    "cf:preview": "astro build && wrangler versions upload",
-    "cf:deploy": "astro build && wrangler deploy",
-    "migrate": "wrangler d1 migrations apply me-production --local",
-    "migrate:prod": "wrangler d1 migrations apply me-production --remote"
+    "cf:build": "astro build && wrangler build --x-new-config --x-cf-build-output",
+    "cf:dev": "astro build && wrangler dev --x-new-config --persist-to .wrangler/state --ip 0.0.0.0 --port 2104",
+    "cf:preview": "npm run cf:build && cf workers versions create --prebuilt",
+    "cf:deploy": "npm run cf:build && cf deploy --prebuilt",
+    "migrate": "cf d1 migrations apply a982122a-a012-4f5e-9270-d576ece2bcad --local --persist-to .wrangler/state",
+    "migrate:prod": "cf d1 migrations apply a982122a-a012-4f5e-9270-d576ece2bcad"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -29,6 +30,7 @@
     "tailwindcss": "^4.3.4"
   },
   "devDependencies": {
+    "cf": "^1.0.0-beta.27",
     "wrangler": "^4.156.2"
   }
 }
