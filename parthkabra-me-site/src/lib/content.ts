@@ -139,10 +139,19 @@ export const fileDir = (i: Pick<Item, "file">) => dirname(i.file);
 
 const pathInLink = (value: unknown) => String(value ?? "").replace(/^\[\[|\]\]$/g, "").split("|")[0]!;
 
-/** The first note of the thread a note belongs to; a note with no parent is its own root. */
+/**
+ * The first note of the thread a note belongs to. Only `thread` joins a thread: a note with no `thread`
+ * is its own root, even when its `inReplyTo` names a note elsewhere.
+ */
 export function threadRoot(i: Item): Item {
-  const parent = byPath(pathInLink(i.frontmatter.thread || i.frontmatter.inReplyTo));
+  const parent = byPath(pathInLink(i.frontmatter.thread));
   return parent && parent !== i ? threadRoot(parent) : i;
+}
+
+/** The note `i` replies to when that note is in another thread, shown as a link above `i`. */
+export function replyElsewhere(i: Item): Item | undefined {
+  const parent = byPath(pathInLink(i.frontmatter.inReplyTo));
+  return parent && parent !== i && threadRoot(parent) !== threadRoot(i) ? parent : undefined;
 }
 
 /** Every note in `i`'s thread, oldest first. Only the root when `i` isn't threaded. */

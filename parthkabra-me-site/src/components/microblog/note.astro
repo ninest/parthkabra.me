@@ -1,12 +1,13 @@
 ---
 // One note as a timeline row: the date in a column of its own, then title and body. Notes in a thread
 // are joined by a line down the left of the text.
-import { formatDate, type Item } from "../../lib/content";
+import { formatDate, replyElsewhere, type Item } from "../../lib/content";
 import { render } from "../../lib/markdown";
 
 type Props = { note: Item; threadedDown?: boolean; threadedUp?: boolean; current?: boolean };
 const { note, threadedDown = false, threadedUp = false, current = false } = Astro.props;
 const { html } = await render(note);
+const repliesTo = replyElsewhere(note);
 const inThread = threadedUp || threadedDown;
 ---
 
@@ -24,6 +25,13 @@ const inThread = threadedUp || threadedDown;
       )
     }
     <div class="min-w-0 flex-1 pb-4 pt-1 sm:pt-3">
+      {
+        repliesTo && (
+          <p class="mb-0.5 text-sm text-muted-foreground">
+            ↩ In reply to <a href={repliesTo.href} class="text-primary underline">{repliesTo.title}</a>
+          </p>
+        )
+      }
       <h2 class="font-semibold"><a href={note.href} class="hover:underline">{note.title}</a></h2>
       <div class="typography mt-1 [&_p]:leading-normal [&_p:not(:first-child)]:mt-3 [&_img]:my-2 [&_img]:max-h-80 [&_img]:w-auto [&_img]:max-w-full [&_img]:rounded-xl [&_img]:ring-1 [&_img]:ring-border" set:html={html} />
     </div>
