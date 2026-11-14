@@ -19,6 +19,14 @@ const key = "pk_production_ZL2bDhs2q5XhoOYPE6guNm6Y";
         tag.src = src;
         tag.dataset.key = key;
         tag.dataset.mode = 'cookieless';
+        // Events tracked before flock.js has loaded (see track.astro) are sent once it has.
+        window.flockQueue = [];
+        tag.onload = function () {
+          window.flockQueue.forEach(function (queued) {
+            window.flock.track(queued[0], queued[1]);
+          });
+          window.flockQueue = undefined;
+        };
         document.head.appendChild(tag);
       }
     </script>

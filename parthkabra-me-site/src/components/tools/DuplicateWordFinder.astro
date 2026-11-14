@@ -67,7 +67,7 @@ import TextareaWithHighlights from "../TextareaWithHighlights.astro";
       analyticsTimer = null;
       if (signature === lastCapturedAnalysis) return;
       lastCapturedAnalysis = signature;
-      window.posthog?.capture("duplicate_word_analysis", {
+      window.track("duplicate_word_analysis", {
         tool: "duplicate_word_finder",
         passage_length: passageLength,
         duplicate_count: duplicateCount,

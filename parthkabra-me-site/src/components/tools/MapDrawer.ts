@@ -179,7 +179,7 @@ const HINTS = {
 
 // Adds the shared map tool property so every map analytics event is easy to segment.
 function captureMapEvent(event: string, properties: Record<string, unknown> = {}) {
-  window.posthog?.capture(event, { tool: "map", ...properties });
+  window.track(event, { tool: "map", ...properties });
 }
 
 function mapSearchResultKind(result: { isStreet?: boolean; geometry?: unknown }): "point" | "line" {

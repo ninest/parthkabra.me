@@ -84,6 +84,7 @@ const view = {
   post: { event: "post_viewed", properties: { post_title: item.title, category: firstCategory, category_title: categoryTitle } },
   project: { event: "project_viewed", properties: { project_title: item.title, project_id: item.slug } },
   work: { event: "work_viewed", properties: { work_title: item.title, work_id: item.slug } },
+  micro: { event: "micropost_thread_opened", properties: { post_title: item.title, thread_length: notes.length } },
 }[item.kind as string];
 ---
 
@@ -92,7 +93,7 @@ const view = {
   {
     view && (
       <script is:inline define:vars={{ event: view.event, properties: view.properties }}>
-        window.posthog?.capture(event, properties);
+        window.track(event, properties);
       </script>
     )
   }

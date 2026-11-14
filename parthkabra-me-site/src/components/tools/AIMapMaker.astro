@@ -163,7 +163,7 @@ const claudeUrl = "https://claude.ai/new";
       $prompt.focus();
       return;
     }
-    window.posthog?.capture("tool_used", { tool: "ai_mapmaker", provider, query: request });
+    window.track("tool_used", { tool: "ai_mapmaker", provider, query: request });
     void copyPrompt(buildPrompt(request));
   });
 
@@ -188,7 +188,7 @@ const claudeUrl = "https://claude.ai/new";
       provider = ($btn.dataset.provider as Provider) || "chatgpt";
       updateSendLink();
       setProvidersOpen(false);
-      window.posthog?.capture("ai_mapmaker_provider_selected", { provider });
+      window.track("ai_mapmaker_provider_selected", { provider });
     });
   });
 

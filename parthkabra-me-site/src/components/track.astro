@@ -1,0 +1,41 @@
+---
+// `window.track(event, properties)`: sends one analytics event to PostHog and Flock. Either may be
+// missing (dev builds, people who opted out); then that side does nothing. Flock takes only flat
+// string, number, boolean or null properties, so it gets the event without any nested ones.
+// Also tracks the clicks every page shares: links to other sites and to the RSS feed.
+---
+
+<script is:inline>
+  window.track = function (event, properties) {
+    properties = properties || {};
+    window.posthog?.capture(event, properties);
+    var flat = {};
+    for (var name in properties) {
+      var value = properties[name];
+      if (value === null || ['string', 'number', 'boolean'].indexOf(typeof value) >= 0) flat[name] = value;
+    }
+    // flock.js loads after the page's first scripts run, so early events wait in its queue.
+    if (window.flock) window.flock.track(event, flat);
+    else window.flockQueue?.push([event, flat]);
+  };
+
+  function trackLinkClick(e) {
+    if (e.type === 'auxclick' && e.button !== 1) return;
+    var $a = e.target instanceof Element ? e.target.closest('a[href]') : null;
+    if (!$a) return;
+    var url;
+    try {
+      url = new URL($a.href);
+    } catch (_) {
+      return;
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+    if (url.host !== location.host) {
+      window.track('outbound_link_clicked', { host: url.host, url: url.origin + url.pathname, link_text: $a.textContent.trim().slice(0, 100) });
+    } else if (url.pathname === '/rss.xml') {
+      window.track('rss_clicked', {});
+    }
+  }
+  document.addEventListener('click', trackLinkClick);
+  document.addEventListener('auxclick', trackLinkClick);
+</script>

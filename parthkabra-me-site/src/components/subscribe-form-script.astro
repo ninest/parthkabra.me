@@ -21,6 +21,7 @@
         return;
       }
       $status.textContent = data.alreadySubscribed ? "You're already subscribed — thanks!" : "Thanks for subscribing!";
+      window.track("subscribe_submitted", { page: location.pathname, already_subscribed: Boolean(data.alreadySubscribed) });
       $form.reset();
     } catch {
       $status.textContent = "Something went wrong";

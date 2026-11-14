@@ -3,6 +3,7 @@
 import "../styles/global.css";
 import PostHog from "../components/posthog.astro";
 import Flock from "../components/flock.astro";
+import Track from "../components/track.astro";
 import ThemeInit from "../components/theme-init.astro";
 import { routes } from "../utils/links";
 
@@ -34,6 +35,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 
     <PostHog />
     <Flock />
+    <Track />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
