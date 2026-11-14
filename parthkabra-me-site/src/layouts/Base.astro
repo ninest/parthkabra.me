@@ -2,6 +2,7 @@
 // Every page: the head and the page's colour, if its theme sets one.
 import "../styles/global.css";
 import PostHog from "../components/posthog.astro";
+import Flock from "../components/flock.astro";
 import ThemeInit from "../components/theme-init.astro";
 import { routes } from "../utils/links";
 
@@ -32,6 +33,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <link rel="alternate" type="application/rss+xml" title={siteName} href={new URL(routes.rss, Astro.site)} />
 
     <PostHog />
+    <Flock />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />

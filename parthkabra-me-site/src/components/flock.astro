@@ -1,0 +1,26 @@
+---
+// Flock analytics (https://github.com/ninest/flock), in production builds only, in cookieless mode:
+// the script stores nothing in the browser. Like PostHog, it stays off for people who opted out at
+// /opt-out-analytics, which is why the tag is added by script instead of written into the page.
+// The project key is a public, client-side one.
+const src = "https://emotionalsupport.misc.page/flock.js";
+const key = "pk_production_ZL2bDhs2q5XhoOYPE6guNm6Y";
+---
+
+{
+  import.meta.env.PROD && (
+    <script is:inline define:vars={{ src, key }}>
+      var optedOut = false;
+      try {
+        optedOut = localStorage.getItem('analytics_opted_out') === '1';
+      } catch (_) {}
+      if (!optedOut) {
+        var tag = document.createElement('script');
+        tag.src = src;
+        tag.dataset.key = key;
+        tag.dataset.mode = 'cookieless';
+        document.head.appendChild(tag);
+      }
+    </script>
+  )
+}
