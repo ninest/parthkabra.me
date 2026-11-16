@@ -1,14 +1,28 @@
 ---
 import ThemeToggle from "./theme-toggle.astro";
 import Wordmark from "./wordmark.astro";
+import { routes } from "../utils/links";
 
 export type Breadcrumb = { label: string; href?: string };
-type Props = { breadcrumbs?: Breadcrumb[]; class?: string };
+// `links: false` drops the row of section links, for full-screen tools that need the height.
+type Props = { breadcrumbs?: Breadcrumb[]; class?: string; links?: boolean };
 
-const { breadcrumbs } = Astro.props;
+const { breadcrumbs, links = true } = Astro.props;
+
+// The site's sections, on every page so that someone landing on a post from a search can get around.
+const sections = [
+  { label: "Home", href: routes.home },
+  { label: "Blog", href: routes.all },
+  { label: "Projects", href: routes.projects },
+  { label: "Work", href: routes.work },
+  { label: "Micro", href: routes.microblog },
+];
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+const isCurrent = (href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
 ---
 
-<div class:list={["flex items-baseline justify-between", Astro.props.class]}>
+<div class={Astro.props.class}>
+<div class="flex items-baseline justify-between">
   {
     breadcrumbs ? (
       <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap min-w-0">
@@ -37,6 +51,24 @@ const { breadcrumbs } = Astro.props;
     <ThemeToggle />
     <p class="et-time"></p>
   </div>
+</div>
+{
+  links && (
+    <nav aria-label="Sections" class="mt-2 flex gap-4 overflow-x-auto whitespace-nowrap">
+      {sections.map(({ label, href }) =>
+        isCurrent(href) ? (
+          <a href={href} aria-current={path === href ? "page" : "true"} class="font-semibold underline decoration-2 underline-offset-4">
+            {label}
+          </a>
+        ) : (
+          <a href={href} class="opacity-70 hover:opacity-100 hover:underline underline-offset-4">
+            {label}
+          </a>
+        ),
+      )}
+    </nav>
+  )
+}
 </div>
 
 <script>

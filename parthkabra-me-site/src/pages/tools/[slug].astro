@@ -46,10 +46,10 @@ const head = { title: item.title, description: item.description, themeColor: col
     fill ? (
       <div class="fixed inset-0 flex flex-col">
         {color ? (
-          <FilledNavbar color={color} class="py-3" breadcrumbs={[...crumbs, { label: item.title }]} />
+          <FilledNavbar color={color} class="py-3" links={false} breadcrumbs={[...crumbs, { label: item.title }]} />
         ) : (
           <div class="px-4 py-3 border-b border-border bg-background">
-            <Navbar breadcrumbs={[...crumbs, { label: item.title }]} />
+            <Navbar links={false} breadcrumbs={[...crumbs, { label: item.title }]} />
           </div>
         )}
         <main class="flex-1 min-h-0 relative">
