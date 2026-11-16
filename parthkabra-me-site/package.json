@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "@fontsource-variable/mulish": "^5.3.0",
     "@tailwindcss/vite": "^4.3.4",
     "allo-font": "^1.0.0",
     "astro": "^7.3.8",

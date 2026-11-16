@@ -1,5 +1,5 @@
 ---
-// The site's name as its logo: Allo at its heaviest and roundest, in the page's accent.
+// The site's name as its logo: Allo, fully rounded, lowercase and loosely spaced, with the single-story a.
 interface Props {
   class?: string;
   id?: string;
@@ -7,13 +7,15 @@ interface Props {
 const { class: className = "text-2xl", id } = Astro.props;
 ---
 
-<span id={id} class:list={["wordmark text-primary", className]}>Parth Kabra</span>
+<span id={id} class:list={["wordmark text-primary", className]}>parth kabra</span>
 
 <style>
   .wordmark {
-    font-weight: 900;
-    font-variation-settings: "ROND" 100, "opsz" 32;
-    letter-spacing: -0.02em;
+    font-weight: 750;
+    font-variation-settings: "ROND" 100, "opsz" 14;
+    font-feature-settings: "ss01";
+    letter-spacing: 0.03em;
+    word-spacing: 0.08em;
     line-height: 1;
   }
 </style>

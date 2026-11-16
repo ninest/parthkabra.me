@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "./typography.css";
 @import "allo-font";
-@import "@fontsource-variable/mulish"; /* only fetched by pages whose theme.title.font asks for it */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
