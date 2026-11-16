@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "./typography.css";
-@import "allo-font";
+@import "./fonts.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

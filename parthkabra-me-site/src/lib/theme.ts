@@ -8,7 +8,7 @@
 //       src: wayfair.svg   # an image beside the page, shown next to the title
 //       size: 40           # px; default 24
 //     title:
-//       roundness: 0       # Allo's ROND axis, 0 (sharp) to 100 (round); default 50
+//       roundness: 0       # Allo's ROND axis, 0 (sharp) to 100 (round); default 50. Loads "Allo Full"
 //       tracking: 0.06     # letter spacing in em; positive is wider
 //       size: 48           # px
 //       case: lowercase    # or uppercase
@@ -47,7 +47,8 @@ export function pageTheme(i: Item): PageTheme {
   if (title?.case && !["lowercase", "uppercase"].includes(title.case)) fail(`unknown case "${title.case}"`);
 
   const styles = [
-    title?.roundness !== undefined && `font-variation-settings: "ROND" ${title.roundness}`,
+    // the text font has roundness fixed at 50, so another roundness needs the full font (src/styles/fonts.css)
+    title?.roundness !== undefined && `font-family: "Allo Full", "Allo", sans-serif; font-variation-settings: "ROND" ${title.roundness}`,
     title?.tracking !== undefined && `letter-spacing: ${title.tracking}em`,
     title?.size && `font-size: ${title.size}px; line-height: 1`,
     title?.case && `text-transform: ${title.case}`,

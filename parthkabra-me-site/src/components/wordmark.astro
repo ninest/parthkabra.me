@@ -1,5 +1,7 @@
 ---
-// The site's name as its logo: Allo, fully rounded and loosely spaced, with the single-story a.
+// The site's name as its logo: Allo, fully rounded and loosely spaced, with the single-story a. It renders in
+// "Allo Logo", a cut of only these letters at this style (scripts/fonts.py): change the text, weight or
+// roundness here and change that cut to match.
 interface Props {
   class?: string;
   id?: string;
@@ -11,8 +13,8 @@ const { class: className = "text-2xl", id } = Astro.props;
 
 <style>
   .wordmark {
+    font-family: "Allo Logo", "Allo", sans-serif;
     font-weight: 750;
-    font-variation-settings: "ROND" 100, "opsz" 14;
     font-feature-settings: "ss01";
     letter-spacing: 0.03em;
     word-spacing: 0.08em;

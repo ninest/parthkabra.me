@@ -1,3 +1,8 @@
 # The map's agent instructions have no file extension, so hosts can't guess their type.
 /tools/map/agents
   Content-Type: text/plain; charset=utf-8
+
+# Built assets (CSS, JS, fonts) have a content hash in their names, so a changed file gets a new URL: browsers
+# can keep them for good.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -11,7 +11,8 @@
     "cf:preview": "npm run cf:build && cf workers versions create --prebuilt",
     "cf:deploy": "npm run cf:build && cf deploy --prebuilt",
     "migrate": "cf d1 migrations apply a982122a-a012-4f5e-9270-d576ece2bcad --local --persist-to .wrangler/state",
-    "migrate:prod": "cf d1 migrations apply a982122a-a012-4f5e-9270-d576ece2bcad"
+    "migrate:prod": "cf d1 migrations apply a982122a-a012-4f5e-9270-d576ece2bcad",
+    "fonts": "uv run scripts/fonts.py"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

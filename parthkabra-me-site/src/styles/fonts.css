@@ -1,0 +1,77 @@
+/* The site's one typeface, Allo, cut into the families below by scripts/fonts.py (`npm run fonts`); its header
+   says what each cut keeps and how to add one. A browser downloads a family only when a page renders text in
+   it. Every family uses the same name for its weights and obliques, so `font-weight`/`font-style` just work. */
+
+@font-face {
+  font-family: "Allo";
+  src: url("../assets/fonts/allo-text.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Allo";
+  src: url("../assets/fonts/allo-400-oblique.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Allo";
+  src: url("../assets/fonts/allo-500-oblique.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Allo";
+  src: url("../assets/fonts/allo-600-oblique.woff2") format("woff2");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Allo";
+  src: url("../assets/fonts/allo-700-oblique.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Allo";
+  src: url("../assets/fonts/allo-800-oblique.woff2") format("woff2");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Allo";
+  src: url("../assets/fonts/allo-900-oblique.woff2") format("woff2");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Only the wordmark's letters, at its style: see src/components/wordmark.astro */
+@font-face {
+  font-family: "Allo Logo";
+  src: url("../assets/fonts/allo-logo.woff2") format("woff2");
+  font-weight: 750;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Every roundness and weight, for page titles that set theme.title.roundness (src/lib/theme.ts) */
+@font-face {
+  font-family: "Allo Full";
+  src: url("../assets/fonts/allo-full.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

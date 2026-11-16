@@ -6,6 +6,7 @@ import Flock from "../components/flock.astro";
 import Track from "../components/track.astro";
 import ThemeInit from "../components/theme-init.astro";
 import { routes } from "../utils/links";
+import alloText from "../assets/fonts/allo-text.woff2?url";
 
 export type Head = { title?: string; fullTitle?: string; description?: string; themeColor?: string };
 type Props = { head?: Head };
@@ -27,6 +28,8 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width" />
+    <!-- the text font, fetched alongside the CSS rather than after it (src/styles/fonts.css) -->
+    <link rel="preload" href={alloText} as="font" type="font/woff2" crossorigin />
 
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
