@@ -1,74 +1,88 @@
 ---
 import ThemeToggle from "./theme-toggle.astro";
 import Wordmark from "./wordmark.astro";
+import SectionMenu from "./section-menu.astro";
 import { routes } from "../utils/links";
 
 export type Breadcrumb = { label: string; href?: string };
-// `links: false` drops the row of section links, for full-screen tools that need the height.
+// `links: false` drops the row of section links on wide screens, for full-screen tools.
 type Props = { breadcrumbs?: Breadcrumb[]; class?: string; links?: boolean };
 
 const { breadcrumbs, links = true } = Astro.props;
 
-// The site's sections, on every page so that someone landing on a post from a search can get around.
+// The site's sections, on every page so that someone landing on a post from a search can get around: a row in
+// the middle of the navbar on wide screens, a dropdown after the section's crumb on narrow ones.
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+const isCurrent = (href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
 const sections = [
   { label: "Home", href: routes.home },
   { label: "Blog", href: routes.all },
   { label: "Projects", href: routes.projects },
   { label: "Work", href: routes.work },
   { label: "Micro", href: routes.microblog },
-];
-const path = Astro.url.pathname.replace(/\/$/, "") || "/";
-const isCurrent = (href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
+].map((s) => ({ ...s, current: isCurrent(s.href) }));
+
+// The first crumb is always home, so it is drawn as the name (or, on the home page, the wordmark).
+const crumbs = breadcrumbs?.slice(1) ?? [];
 ---
 
-<div class={Astro.props.class}>
-<div class="flex items-baseline justify-between">
-  {
-    breadcrumbs ? (
-      <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap min-w-0">
-        {breadcrumbs.map((crumb, i) => (
-          <>
-            {i > 0 && <span>{">"}</span>}
-            {crumb.href ? (
-              <a href={crumb.href} class="underline">
-                {crumb.label}
-              </a>
-            ) : (
-              <span>{crumb.label}</span>
-            )}
-          </>
-        ))}
-      </div>
-    ) : (
-      <h1>
-        <a href="/" aria-label="Parth Kabra — home">
-          <Wordmark class="text-2xl" />
+<div class:list={["grid grid-cols-[1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center gap-4", Astro.props.class]}>
+  <div class="flex items-center gap-2 whitespace-nowrap min-w-0">
+    {
+      breadcrumbs ? (
+        <a href="/" class="hover:underline underline-offset-4">
+          Parth Kabra
         </a>
-      </h1>
+      ) : (
+        <h1>
+          <a href="/" aria-label="Parth Kabra — home">
+            <Wordmark class="text-2xl" />
+          </a>
+        </h1>
+      )
+    }
+    {
+      crumbs.map((crumb, i) => (
+        <>
+          <svg viewBox="0 0 16 16" class="size-3.5 shrink-0 opacity-50" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 4l4 4-4 4" />
+          </svg>
+          {crumb.href ? (
+            <a href={crumb.href} class="hover:underline underline-offset-4">
+              {crumb.label}
+            </a>
+          ) : (
+            <span class="truncate">{crumb.label}</span>
+          )}
+          {i === 0 && <SectionMenu sections={sections} />}
+        </>
+      ))
+    }
+    {crumbs.length === 0 && <SectionMenu sections={sections} />}
+  </div>
+  {
+    links ? (
+      <nav aria-label="Sections" class="hidden md:flex gap-4 whitespace-nowrap">
+        {sections.map(({ label, href, current }) =>
+          current ? (
+            <a href={href} aria-current={path === href ? "page" : "true"} class="font-semibold underline decoration-2 underline-offset-4">
+              {label}
+            </a>
+          ) : (
+            <a href={href} class="opacity-70 hover:opacity-100 hover:underline underline-offset-4">
+              {label}
+            </a>
+          ),
+        )}
+      </nav>
+    ) : (
+      <div class="hidden md:block" />
     )
   }
-  <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
+  <div class="flex items-center justify-end gap-2 shrink-0 whitespace-nowrap">
     <ThemeToggle />
     <p class="et-time"></p>
   </div>
-</div>
-{
-  links && (
-    <nav aria-label="Sections" class="mt-2 flex gap-4 overflow-x-auto whitespace-nowrap">
-      {sections.map(({ label, href }) =>
-        isCurrent(href) ? (
-          <a href={href} aria-current={path === href ? "page" : "true"} class="font-semibold underline decoration-2 underline-offset-4">
-            {label}
-          </a>
-        ) : (
-          <a href={href} class="opacity-70 hover:opacity-100 hover:underline underline-offset-4">
-            {label}
-          </a>
-        ),
-      )}
-    </nav>
-  )
-}
 </div>
 
 <script>

@@ -15,7 +15,7 @@ const { breadcrumbs, head, navbarColor } = Astro.props;
     <div class:list={["max-w-300 mx-auto", navbarColor ? "mb-16" : "my-16"]}>
       {!navbarColor && <Navbar breadcrumbs={breadcrumbs} />}
 
-      <div class="mt-8">
+      <div class:list={["mt-8", !navbarColor && "md:mt-16"]}>
         <SidebarColumns>
           <slot />
           <Fragment slot="sidebar">

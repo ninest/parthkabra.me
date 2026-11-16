@@ -62,7 +62,7 @@ const head = { title: item.title, description: item.description, themeColor: col
         <div class="px-4">
           <div class:list={["max-w-300 mx-auto", color ? "mb-16" : "my-16"]}>
             {!color && <Navbar breadcrumbs={crumbs} />}
-            <div class="mt-8 flex flex-col md:flex-row gap-12 lg:gap-24">
+            <div class:list={["mt-8 flex flex-col md:flex-row gap-12 lg:gap-24", !color && "md:mt-16"]}>
               <div class="flex-1 min-w-0">
                 <PageTitle title={item.title} theme={theme} />
                 <p class="mt-2 text-muted-foreground">{formatDate(item.date, "month")} · {item.description}</p>

@@ -1,0 +1,40 @@
+---
+// The site's sections as a dropdown, for the breadcrumb on narrow screens (wide ones show them as a row).
+type Props = { sections: { label: string; href: string; current: boolean }[] };
+const { sections } = Astro.props;
+---
+
+<details class="section-menu relative md:hidden">
+  <summary
+    aria-label="Sections"
+    class="flex size-7 cursor-pointer list-none select-none items-center justify-center rounded-md border border-current/30 hover:bg-current/10"
+  >
+    <svg viewBox="0 0 16 16" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <path d="M4 6l4 4 4-4"></path>
+    </svg>
+  </summary>
+  <div class="absolute left-0 top-full z-20 mt-2 flex min-w-40 flex-col rounded-lg border border-border bg-background p-1 text-foreground shadow-lg">
+    {
+      sections.map(({ label, href, current }) => (
+        <a href={href} aria-current={current ? "true" : undefined} class:list={["rounded px-3 py-1.5 hover:bg-muted", current && "font-semibold"]}>
+          {label}
+        </a>
+      ))
+    }
+  </div>
+</details>
+
+<style>
+  summary::-webkit-details-marker {
+    display: none;
+  }
+</style>
+
+<script>
+  // Close an open menu on a click outside it.
+  document.addEventListener("click", (e) => {
+    document.querySelectorAll<HTMLDetailsElement>(".section-menu[open]").forEach(($menu) => {
+      if (!$menu.contains(e.target as Node)) $menu.open = false;
+    });
+  });
+</script>
