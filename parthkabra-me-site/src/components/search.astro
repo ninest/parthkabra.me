@@ -20,7 +20,7 @@ import Button from "./button.astro";
 
   function renderResults(results: SearchHit[]) {
     if (results.length === 0) {
-      $resultsList.innerHTML = `<li class="text-muted-foreground text-sm">No results</li>`;
+      $resultsList.innerHTML = `<li class="text-muted-foreground">No results</li>`;
       return;
     }
     $resultsList.innerHTML = results
@@ -30,7 +30,7 @@ import Button from "./button.astro";
           `<li>
             <a href="${r.url}" ${r.external ? 'target="_blank" rel="noopener"' : ""} data-result-title="${r.title}" data-result-type="${r.type}" class="flex items-center justify-between bg-muted/50 py-1 px-2">
               <div>${r.title}</div>
-              <div class="text-sm">${r.type}</div>
+              <div>${r.type}</div>
             </a>
           </li>`,
       )

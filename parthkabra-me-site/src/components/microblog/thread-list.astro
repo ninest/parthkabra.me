@@ -11,7 +11,7 @@ const threads = microThreads().filter((notes) => notes.length > 1);
       <ul class="mt-1 mb-10 space-y-1">
         {threads.map(([root]) => (
           <li>
-            <a href={root!.href} class="text-sm text-primary underline">{root!.title}</a>
+            <a href={root!.href} class="text-primary underline">{root!.title}</a>
           </li>
         ))}
       </ul>

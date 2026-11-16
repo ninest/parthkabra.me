@@ -17,7 +17,7 @@
 import { fileDir, mediaUrl, type Item } from "./content";
 
 const FONTS: Record<string, string> = {
-  Inter: '"Inter Variable", sans-serif',
+  Allo: '"Allo", sans-serif',
   Mulish: '"Mulish Variable", sans-serif',
 };
 

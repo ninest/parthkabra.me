@@ -45,7 +45,7 @@ const isExternal = (url: string) => /^https?:/.test(url);
   <section class="mt-8">
     <div class="flex items-center justify-between">
       <h2 class="font-bold">Work</h2>
-      <a href={routes.work} class="underline text-sm text-primary">View all</a>
+      <a href={routes.work} class="underline text-primary">View all</a>
     </div>
     <table class="ml-5 mt-1 w-[calc(100%-1.25rem)] border-collapse border border-border">
       <tbody>
@@ -75,7 +75,7 @@ const isExternal = (url: string) => /^https?:/.test(url);
   <section class="mt-8">
     <div class="flex items-center justify-between">
       <h2 class="font-bold">Recent Projects</h2>
-      <a href={routes.projects} class="underline text-sm text-primary">View all</a>
+      <a href={routes.projects} class="underline text-primary">View all</a>
     </div>
     <ul class="mt-1 ml-3 space-y-2 list-none">
       {
@@ -91,7 +91,7 @@ const isExternal = (url: string) => /^https?:/.test(url);
   <section class="mt-8">
     <div class="flex items-center justify-between">
       <h2 class="font-bold">Posts</h2>
-      <a href={routes.all} class="underline text-sm text-primary">View all</a>
+      <a href={routes.all} class="underline text-primary">View all</a>
     </div>
     <ul class="ml-5 mt-1 space-y-1.5">
       {
@@ -109,7 +109,7 @@ const isExternal = (url: string) => /^https?:/.test(url);
   <section slot="sidebar" class="mt-8 border-l-[3px] border-primary bg-primary/6 p-3">
     <div class="flex items-baseline justify-between">
       <h2 class="font-bold">Now</h2>
-      {nowSince && <span class="text-sm tabular-nums text-muted-foreground">{nowSince}</span>}
+      {nowSince && <span class="tabular-nums text-muted-foreground">{nowSince}</span>}
     </div>
     <p class="mt-1">{now}</p>
   </section>

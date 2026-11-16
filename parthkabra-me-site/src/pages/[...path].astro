@@ -156,7 +156,7 @@ const view = {
         <nav class="mt-8 rounded-md overflow-hidden flex flex-col gap-1">
           {sameCategory.map((post) => (
             <a href={post.href} target={post.external ? "_blank" : undefined} rel={post.external ? "noopener" : undefined} class="block bg-muted py-1 px-2">
-              <div class="text-sm text-muted-foreground">{post.date.slice(0, 7).replace("-", "/")}</div>
+              <div class="text-muted-foreground">{post.date.slice(0, 7).replace("-", "/")}</div>
               <div class="mt-1 font-semibold">{post.title}</div>
             </a>
           ))}
@@ -169,7 +169,7 @@ const view = {
         <nav class="mt-8 rounded-md overflow-hidden flex flex-col gap-1">
           {neighbours.map((n) => (
             <a href={n.item!.href} class="block bg-muted py-1 px-2">
-              <div class="text-sm">{n.label}</div>
+              <div>{n.label}</div>
               <div class="mt-1 font-semibold">{n.item!.title}</div>
             </a>
           ))}

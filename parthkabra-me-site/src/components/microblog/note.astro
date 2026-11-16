@@ -12,7 +12,7 @@ const inThread = threadedUp || threadedDown;
 ---
 
 <article data-current-note={current || undefined} class:list={["flex flex-col sm:flex-row sm:gap-4", current && "-mx-3 scroll-mt-4 bg-muted px-3"]}>
-  <a href={note.href} class="shrink-0 pt-3 text-sm leading-6 text-muted-foreground hover:underline sm:w-24">
+  <a href={note.href} class="shrink-0 pt-3 leading-6 text-muted-foreground hover:underline sm:w-24">
     <time datetime={note.date}>{formatDate(note.date, "short")}, {note.date.slice(0, 4)}</time>
   </a>
   <div class="flex min-w-0 flex-1 gap-3">
@@ -27,7 +27,7 @@ const inThread = threadedUp || threadedDown;
     <div class="min-w-0 flex-1 pb-4 pt-1 sm:pt-3">
       {
         repliesTo && (
-          <p class="mb-0.5 text-sm text-muted-foreground">
+          <p class="mb-0.5 text-muted-foreground">
             In reply to <a href={repliesTo.href} class="text-primary underline">{repliesTo.title}</a>
           </p>
         )
