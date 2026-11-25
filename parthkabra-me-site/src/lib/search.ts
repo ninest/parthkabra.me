@@ -7,6 +7,7 @@ export type SearchDoc = {
   title: string;
   description: string;
   body: string;
+  context?: string;
   createdAt: string;
   url?: string;
   external?: boolean;
@@ -17,6 +18,7 @@ export type SearchHit = {
   title: string;
   type: string;
   description: string;
+  context?: string;
   createdAt: string;
   score: number;
   url?: string;
@@ -31,7 +33,7 @@ export async function search(query: string): Promise<SearchHit[]> {
     const docs: SearchDoc[] = await res.json();
     miniSearch = new MiniSearch<SearchDoc>({
       fields: ["title", "description", "body"],
-      storeFields: ["title", "description", "type", "createdAt", "url", "external"],
+      storeFields: ["title", "description", "type", "context", "createdAt", "url", "external"],
       processTerm: (term, _fieldName) => {
         const lower = term.toLowerCase();
         // _fieldName is undefined during search — only filter stop words at index time

@@ -29,8 +29,11 @@ import Button from "./button.astro";
         (r) =>
           `<li>
             <a href="${r.url}" ${r.external ? 'target="_blank" rel="noopener"' : ""} data-result-title="${r.title}" data-result-type="${r.type}" class="flex items-center justify-between bg-muted/50 py-1 px-2">
-              <div>${r.title}</div>
-              <div>${r.type}</div>
+              <div class="min-w-0">
+                ${r.context ? `<div class="truncate text-muted-foreground">${r.context}</div>` : ""}
+                <div>${r.title}</div>
+              </div>
+              <div class="shrink-0">${r.type}</div>
             </a>
           </li>`,
       )

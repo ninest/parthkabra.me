@@ -1,4 +1,4 @@
-import { excerpt, items, plainText, type Kind } from "../lib/content";
+import { contextLine, excerpt, items, plainText, type Kind } from "../lib/content";
 
 const SEARCHED: Partial<Record<Kind, string>> = {
   category: "category",
@@ -22,6 +22,7 @@ export function GET() {
         title: i.title,
         description: i.description ?? (i.kind === "micro" ? excerpt(i, 155) : ""),
         body: isPublished ? plainText(i) : "",
+        context: i.kind === "micro" ? contextLine(i) : undefined,
         createdAt: i.date,
         url: i.href,
         external: i.external,

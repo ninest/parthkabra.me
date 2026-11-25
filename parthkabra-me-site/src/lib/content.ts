@@ -149,6 +149,17 @@ export function replyElsewhere(i: Item): Item | undefined {
   return parent && parent !== i && threadRoot(parent) !== threadRoot(i) ? parent : undefined;
 }
 
+/**
+ * The Context line for a micro post listed outside its thread: the thread's first post when it continues a
+ * thread, else the post it replies to in another thread, else nothing. Never more than one, never the chain.
+ */
+export function contextLine(i: Item): string | undefined {
+  const root = threadRoot(i);
+  if (root !== i) return `Thread: ${root.title}`;
+  const repliesTo = replyElsewhere(i);
+  return repliesTo && `Reply to: ${repliesTo.title}`;
+}
+
 /** Every note in `i`'s thread, oldest first. Only the root when `i` isn't threaded. */
 export function thread(i: Item): Item[] {
   const root = threadRoot(i);
