@@ -17,7 +17,8 @@ export function exportContent() {
   rmSync(media, { recursive: true, force: true });
   mkdirSync(dirname(media), { recursive: true });
   execFileSync("cp", ["-al", out, media]);
-  rmSync(join(media, "_miscfs"), { recursive: true, force: true });
+  // The Manifest and the type definitions are for the build, not for publishing.
+  for (const dir of ["_miscfs", "_types"]) rmSync(join(media, dir), { recursive: true, force: true });
   execFileSync("find", [media, "-name", "*.md", "-delete"]);
 }
 
@@ -26,7 +27,8 @@ export function draftPostPaths() {
   const { pages } = JSON.parse(readFileSync(join(out, "_miscfs/pages.json"), "utf8"));
   return new Set(
     pages
-      .filter((p) => p.frontmatter.draft && p.path.startsWith("posts/"))
-      .map((p) => `/${p.frontmatter.categories[0]}/${basename(p.path)}`),
+      .filter((p) => p.frontmatter.draft && p.type === "post")
+      // The first category is a link to its category page, whose name is the URL prefix.
+      .map((p) => `/${basename(p.frontmatter.categories[0].replace(/^\[\[|\]\]$/g, "").split("|")[0])}/${basename(p.path)}`),
   );
 }

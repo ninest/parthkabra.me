@@ -1,5 +1,6 @@
 // The site's view of the content: the miscfs export in .export/ (see scripts/content.mjs), turned
-// into items a page can show. The content's AGENTS.md is the source for the path-to-URL rules.
+// into items a page can show. Each page's Type comes from the Manifest; the type definitions in the
+// content's _types/ say what each Type is and the URL it's published at.
 import { readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import {
@@ -20,6 +21,8 @@ export type Kind = "post" | "micro" | "project" | "work" | "tool" | "collection"
 type ManifestEntry = {
   path: string;
   file: string;
+  /** The page's Type: one of Kind, or `any` for a page the site doesn't publish. */
+  type: string;
   title?: string;
   frontmatter: Record<string, any>;
   cover?: string;
@@ -43,22 +46,18 @@ export type Item = {
   links: Record<string, string>;
 };
 
-const DIRS: Record<string, Kind> = {
-  posts: "post",
-  micro: "micro",
-  projects: "project",
-  work: "work",
-  tools: "tool",
-  collections: "collection",
-  pages: "page",
-  categories: "category",
-};
+const KINDS = new Set<string>(["post", "micro", "project", "work", "tool", "collection", "page", "category"] satisfies Kind[]);
 
-/** The URL an entry is published at, by the content guide's rules. */
-function hrefOf(kind: Kind, path: string, slug: string, fm: Record<string, any>): string {
+const pathInLink = (value: unknown) => String(value ?? "").replace(/^\[\[|\]\]$/g, "").split("|")[0]!;
+
+/** A post's or micro post's categories, as slugs: each is a link to its category page, named by its slug. */
+const categoriesOf = (fm: Record<string, any>): string[] => (fm.categories ?? []).map((c: unknown) => basename(pathInLink(c)));
+
+/** The URL an entry is published at; a post's comes from its first category. */
+function hrefOf(kind: Kind, path: string, slug: string, fm: Record<string, any>, categories: string[]): string {
   switch (kind) {
     case "post":
-      return fm.externalUrl ?? getPostUrl(fm.categories[0], slug);
+      return fm.externalUrl ?? getPostUrl(categories[0]!, slug);
     case "micro":
       return getMicroblogUrl(path.replace(/^micro\//, ""));
     case "project":
@@ -82,13 +81,14 @@ const entries = () =>
 
 let cached: Item[] | undefined;
 
-/** Every item with its own page, drafts included: guides and the group index are left out. */
+/** Every item with its own page, drafts included: pages of no Type the site knows (an Any, such as a guide) are left out. */
 export function allItems(): Item[] {
   return (cached ??= entries().flatMap((e) => {
-    const kind = DIRS[e.path.split("/")[0]!];
+    if (!KINDS.has(e.type)) return [];
+    const kind = e.type as Kind;
     const name = basename(e.path);
-    if (!kind || name === "AGENTS" || e.path === "categories") return [];
     const fm = e.frontmatter;
+    const categories = categoriesOf(fm);
     const created = String(fm.createdAt ?? fm.startDate ?? "");
     const updated = fm.updatedAt && String(fm.updatedAt) !== created ? String(fm.updatedAt) : undefined;
     return [
@@ -99,11 +99,11 @@ export function allItems(): Item[] {
         slug: name,
         title: e.title ?? name,
         description: fm.description,
-        href: hrefOf(kind, e.path, name, fm),
+        href: hrefOf(kind, e.path, name, fm, categories),
         external: Boolean(fm.externalUrl),
         date: created,
         updated,
-        categories: fm.categories ?? [],
+        categories,
         frontmatter: fm,
         cover: e.cover,
         links: e.links,
@@ -136,8 +136,6 @@ export const bodyOf = (i: Pick<Item, "file">) =>
 
 export const mediaUrl = (path: string) => "/media/" + path;
 export const fileDir = (i: Pick<Item, "file">) => dirname(i.file);
-
-const pathInLink = (value: unknown) => String(value ?? "").replace(/^\[\[|\]\]$/g, "").split("|")[0]!;
 
 /**
  * The first note of the thread a note belongs to. Only `thread` joins a thread: a note with no `thread`
