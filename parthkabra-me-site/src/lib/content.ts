@@ -2,6 +2,7 @@
 // into items a page can show. Each page's Type comes from the Manifest; the type definitions in the
 // content's _types/ say what each Type is and the URL it's published at.
 import { readFileSync } from "node:fs";
+import { categorySlugs, pathInLink } from "../../scripts/content.mjs";
 import { basename, dirname, join } from "node:path";
 import {
   getCategoryUrl,
@@ -16,7 +17,10 @@ import {
 
 const ROOT = join(process.cwd(), ".export");
 
-export type Kind = "post" | "micro" | "project" | "work" | "tool" | "collection" | "page" | "category";
+/** The Types the site publishes; every other page (an Any, such as a guide) is left out. */
+const KINDS = ["post", "micro", "project", "work", "tool", "collection", "page", "category"] as const;
+export type Kind = (typeof KINDS)[number];
+const isKind = (type: string): type is Kind => (KINDS as readonly string[]).includes(type);
 
 type ManifestEntry = {
   path: string;
@@ -45,13 +49,6 @@ export type Item = {
   cover?: string;
   links: Record<string, string>;
 };
-
-const KINDS = new Set<string>(["post", "micro", "project", "work", "tool", "collection", "page", "category"] satisfies Kind[]);
-
-const pathInLink = (value: unknown) => String(value ?? "").replace(/^\[\[|\]\]$/g, "").split("|")[0]!;
-
-/** A post's or micro post's categories, as slugs: each is a link to its category page, named by its slug. */
-const categoriesOf = (fm: Record<string, any>): string[] => (fm.categories ?? []).map((c: unknown) => basename(pathInLink(c)));
 
 /** The URL an entry is published at; a post's comes from its first category. */
 function hrefOf(kind: Kind, path: string, slug: string, fm: Record<string, any>, categories: string[]): string {
@@ -84,11 +81,11 @@ let cached: Item[] | undefined;
 /** Every item with its own page, drafts included: pages of no Type the site knows (an Any, such as a guide) are left out. */
 export function allItems(): Item[] {
   return (cached ??= entries().flatMap((e) => {
-    if (!KINDS.has(e.type)) return [];
-    const kind = e.type as Kind;
+    const kind = e.type;
+    if (!isKind(kind)) return [];
     const name = basename(e.path);
     const fm = e.frontmatter;
-    const categories = categoriesOf(fm);
+    const categories: string[] = categorySlugs(fm);
     const created = String(fm.createdAt ?? fm.startDate ?? "");
     const updated = fm.updatedAt && String(fm.updatedAt) !== created ? String(fm.updatedAt) : undefined;
     return [

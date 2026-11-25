@@ -22,13 +22,18 @@ export function exportContent() {
   execFileSync("find", [media, "-name", "*.md", "-delete"]);
 }
 
+/** The page path a `[[path|label]]` link names. */
+export const pathInLink = (value) => String(value ?? "").replace(/^\[\[|\]\]$/g, "").split("|")[0];
+
+/** A post's or micro post's categories as slugs: each is a link to its category page, whose name is the slug. */
+export const categorySlugs = (frontmatter) => (frontmatter.categories ?? []).map((link) => basename(pathInLink(link)));
+
 /** The URL paths of draft posts: they have a page, but stay out of the sitemap. */
 export function draftPostPaths() {
   const { pages } = JSON.parse(readFileSync(join(out, "_miscfs/pages.json"), "utf8"));
   return new Set(
     pages
       .filter((p) => p.frontmatter.draft && p.type === "post")
-      // The first category is a link to its category page, whose name is the URL prefix.
-      .map((p) => `/${basename(p.frontmatter.categories[0].replace(/^\[\[|\]\]$/g, "").split("|")[0])}/${basename(p.path)}`),
+      .map((p) => `/${categorySlugs(p.frontmatter)[0]}/${basename(p.path)}`),
   );
 }
