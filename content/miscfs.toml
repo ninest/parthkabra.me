@@ -13,8 +13,14 @@ listen = "100.123.158.24:8003"
 # with). Defaults to the listen address.
 url = "https://mecms.hel.misc.page"
 app_name = "Me CMS"
+icon = "👋"
 
 [chat]
 # opencode's web UI. When set, each session's menu gets "Chat with opencode", which opens it
 # with a starting prompt naming this instance and the session on your clipboard.
 # opencode = "http://hel:49374"
+
+[mcp]
+listen = "127.0.0.1:8006"                              # public MCP, on this machine only; Caddy proxies to it
+public_url = "https://mcp.hel.misc.page/mecms-mcp"     # where apps reach it
+password_hash = "$argon2id$v=19$m=65536,t=2,p=1$JCwtEDPJeNDQ9PAB34wwHIfXwumZJZJsVhQhrJFYCgQ$Zo+iNXYzVZJbBRD0PcsKTwfnEy2OBirfWiJs0scCl7E"
